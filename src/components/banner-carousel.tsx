@@ -101,11 +101,11 @@ export function BannerCarousel() {
               aria-roledescription="слайд"
               aria-label={`${index + 1} из ${banners.length}`}
               aria-hidden={index !== active}
-              className="w-full shrink-0"
+              className="w-full shrink-0 font-display"
             >
               <div className="flex flex-col items-center gap-6 p-6 md:flex-row md:gap-10 md:p-10 lg:p-12">
                 <div className="flex w-full flex-col gap-5 md:w-[46%]">
-                  <h2 className="font-serif text-2xl font-bold leading-tight text-balance text-navy md:text-3xl lg:text-4xl">
+                  <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-balance text-navy md:text-3xl lg:text-4xl">
                     {banner.titleBefore}{" "}
                     <span className="inline-block rounded-xl bg-primary px-2.5 py-0.5 align-middle text-primary-foreground">
                       {banner.discount}
