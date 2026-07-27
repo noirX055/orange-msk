@@ -1,65 +1,200 @@
-import Image from "next/image";
+import Link from "next/link"
+import {
+  ArrowRight,
+  BadgeCheck,
+  CreditCard,
+  Headphones,
+  Laptop,
+  Monitor,
+  RefreshCw,
+  Smartphone,
+  Truck,
+  WashingMachine,
+  Watch,
+} from "lucide-react"
+import { ProductCard } from "@/components/product-card"
+import { ProductVisual } from "@/components/product-visual"
+import { products } from "@/lib/products"
 
-export default function Home() {
+const categoryCards = [
+  { slug: "smartphones", name: "Смартфоны", count: "320 товаров", Icon: Smartphone },
+  { slug: "laptops", name: "Ноутбуки", count: "180 товаров", Icon: Laptop },
+  { slug: "monitors", name: "Мониторы", count: "95 товаров", Icon: Monitor },
+  { slug: "audio", name: "Аудио", count: "240 товаров", Icon: Headphones },
+  { slug: "wearables", name: "Гаджеты", count: "150 товаров", Icon: Watch },
+  { slug: "home", name: "Техника для дома", count: "210 товаров", Icon: WashingMachine },
+]
+
+const benefits = [
+  { title: "Доставка за 2 часа", text: "По Москве и в пределах МКАД", Icon: Truck },
+  { title: "Официальная гарантия", text: "От 1 года на всю технику", Icon: BadgeCheck },
+  { title: "Рассрочка 0%", text: "До 24 месяцев без переплат", Icon: CreditCard },
+  { title: "Trade-in", text: "Обмен старого устройства", Icon: RefreshCw },
+]
+
+export default function HomePage() {
+  const popular = products.slice(0, 8)
+  const deals = products.filter((product) => product.oldPrice).slice(0, 4)
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="mx-auto flex max-w-7xl flex-col gap-16 px-4 py-8">
+      <section className="overflow-hidden rounded-card bg-navy text-navy-foreground">
+        <div className="flex flex-col items-center gap-10 p-6 md:flex-row md:p-12">
+          <div className="flex w-full flex-col gap-6 md:w-1/2">
+            <span className="w-fit rounded-full bg-primary px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary-foreground">
+              Только до конца недели
+            </span>
+            <h1 className="font-serif text-3xl font-bold leading-tight text-balance md:text-5xl">
+              Электроника с гарантией и доставкой по Москве в день заказа
+            </h1>
+            <p className="max-w-md leading-relaxed text-navy-foreground/75">
+              Более 1 200 моделей смартфонов, ноутбуков, мониторов и аудио. Проверяем технику при вас
+              и даём 14 дней на возврат.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/catalog"
+                className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                Перейти в каталог
+                <ArrowRight size={18} />
+              </Link>
+              <Link
+                href="/catalog?sale=1"
+                className="rounded-full border border-navy-foreground/25 px-6 py-3 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+              >
+                Смотреть скидки
+              </Link>
+            </div>
+            <dl className="flex flex-wrap gap-8 pt-2">
+              {[
+                ["1 200+", "товаров в наличии"],
+                ["12 лет", "на рынке Москвы"],
+                ["4.9", "средняя оценка"],
+              ].map(([value, label]) => (
+                <div key={label} className="flex flex-col">
+                  <dt className="text-2xl font-bold text-primary">{value}</dt>
+                  <dd className="text-xs text-navy-foreground/65">{label}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <div className="grid w-full grid-cols-2 gap-4 md:w-1/2">
+            {products.slice(0, 2).map((product) => (
+              <Link
+                key={product.id}
+                href={`/product/${product.slug}`}
+                className="flex flex-col gap-3 rounded-card bg-background p-4 text-foreground transition-transform hover:-translate-y-1"
+              >
+                <ProductVisual category={product.category} className="h-28 w-full rounded-lg" />
+                <span className="text-xs font-medium text-muted-foreground">{product.brand}</span>
+                <span className="text-sm font-semibold leading-relaxed">{product.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="categories-title">
+        <h2 id="categories-title" className="mb-6 font-serif text-2xl font-bold">
+          Категории
+        </h2>
+        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+          {categoryCards.map(({ slug, name, count, Icon }) => (
+            <li key={slug}>
+              <Link
+                href={`/catalog?category=${slug}`}
+                className="flex h-full flex-col items-start gap-3 rounded-card border border-border bg-card p-4 transition-colors hover:border-primary"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-muted text-navy">
+                  <Icon size={22} strokeWidth={1.5} />
+                </span>
+                <span className="text-sm font-semibold leading-relaxed">{name}</span>
+                <span className="text-xs text-muted-foreground">{count}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="benefits-title">
+        <h2 id="benefits-title" className="sr-only">
+          Преимущества магазина
+        </h2>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {benefits.map(({ title, text, Icon }) => (
+            <li key={title} className="flex items-start gap-3 rounded-card bg-muted p-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Icon size={20} strokeWidth={1.75} />
+              </span>
+              <span className="flex flex-col gap-1">
+                <span className="text-sm font-semibold">{title}</span>
+                <span className="text-xs leading-relaxed text-muted-foreground">{text}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="popular-title">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <h2 id="popular-title" className="font-serif text-2xl font-bold">
+            Популярные товары
+          </h2>
+          <Link
+            href="/catalog"
+            className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+          >
+            Все товары
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {popular.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="deals-title">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <h2 id="deals-title" className="font-serif text-2xl font-bold">
+            Скидки недели
+          </h2>
+          <Link
+            href="/catalog?sale=1"
+            className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+          >
+            Все скидки
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {deals.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+      <section className="flex flex-col items-start gap-6 rounded-card border border-primary/30 bg-primary/10 p-6 md:flex-row md:items-center md:p-10">
+        <div className="flex flex-col gap-2">
+          <h2 className="font-serif text-2xl font-bold text-balance">
+            Обменяйте старый смартфон на новый со скидкой до 30 000 ₽
+          </h2>
+          <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Бесплатная диагностика в магазине на Тверской: оцениваем устройство за 15 минут и сразу
+            вычитаем сумму из стоимости покупки.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        <Link
+          href="/catalog"
+          className="ml-auto flex shrink-0 items-center gap-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-navy-foreground transition-opacity hover:opacity-90"
+        >
+          Узнать цену обмена
+          <ArrowRight size={18} />
+        </Link>
+      </section>
     </div>
-  );
+  )
 }
