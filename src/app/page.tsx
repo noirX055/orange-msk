@@ -12,8 +12,8 @@ import {
   WashingMachine,
   Watch,
 } from "lucide-react"
+import { BannerCarousel } from "@/components/banner-carousel"
 import { ProductCard } from "@/components/product-card"
-import { ProductVisual } from "@/components/product-visual"
 import { products } from "@/lib/products"
 
 const categoryCards = [
@@ -38,63 +38,8 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-16 px-4 py-8">
-      <section className="overflow-hidden rounded-card bg-navy text-navy-foreground">
-        <div className="flex flex-col items-center gap-10 p-6 md:flex-row md:p-12">
-          <div className="flex w-full flex-col gap-6 md:w-1/2">
-            <span className="w-fit rounded-full bg-primary px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary-foreground">
-              Только до конца недели
-            </span>
-            <h1 className="font-serif text-3xl font-bold leading-tight text-balance md:text-5xl">
-              Электроника с гарантией и доставкой по Москве в день заказа
-            </h1>
-            <p className="max-w-md leading-relaxed text-navy-foreground/75">
-              Более 1 200 моделей смартфонов, ноутбуков, мониторов и аудио. Проверяем технику при вас
-              и даём 14 дней на возврат.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/catalog"
-                className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                Перейти в каталог
-                <ArrowRight size={18} />
-              </Link>
-              <Link
-                href="/catalog?sale=1"
-                className="rounded-full border border-navy-foreground/25 px-6 py-3 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-              >
-                Смотреть скидки
-              </Link>
-            </div>
-            <dl className="flex flex-wrap gap-8 pt-2">
-              {[
-                ["1 200+", "товаров в наличии"],
-                ["12 лет", "на рынке Москвы"],
-                ["4.9", "средняя оценка"],
-              ].map(([value, label]) => (
-                <div key={label} className="flex flex-col">
-                  <dt className="text-2xl font-bold text-primary">{value}</dt>
-                  <dd className="text-xs text-navy-foreground/65">{label}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-
-          <div className="grid w-full grid-cols-2 gap-4 md:w-1/2">
-            {products.slice(0, 2).map((product) => (
-              <Link
-                key={product.id}
-                href={`/product/${product.slug}`}
-                className="flex flex-col gap-3 rounded-card bg-background p-4 text-foreground transition-transform hover:-translate-y-1"
-              >
-                <ProductVisual category={product.category} className="h-28 w-full rounded-lg" />
-                <span className="text-xs font-medium text-muted-foreground">{product.brand}</span>
-                <span className="text-sm font-semibold leading-relaxed">{product.name}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <h1 className="sr-only">Orange MSK — магазин электроники в Москве</h1>
+      <BannerCarousel />
 
       <section aria-labelledby="categories-title">
         <h2 id="categories-title" className="mb-6 font-serif text-2xl font-bold">
