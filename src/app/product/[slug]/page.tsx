@@ -1,8 +1,14 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { BadgeCheck, CreditCard, RefreshCw, Star, Truck } from "lucide-react"
-import { getCategoryName, getProduct, getRelated, products } from "@/lib/products"
-import { ProductVisual } from "@/components/product-visual"
+import {
+  getCategoryName,
+  getProduct,
+  getProductImages,
+  getRelated,
+  products,
+} from "@/lib/products"
+import { ProductGallery } from "@/components/product-gallery"
 import { ProductBuyPanel } from "@/components/product-buy-panel"
 import { ProductCard } from "@/components/product-card"
 
@@ -58,22 +64,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </nav>
 
       <div className="flex flex-col gap-8 lg:flex-row">
-        <div className="flex flex-col gap-4 lg:w-1/2">
-          <ProductVisual
-            category={product.category}
-            size="lg"
-            className="h-80 w-full rounded-card border border-border md:h-[420px]"
-          />
-          <div className="grid grid-cols-4 gap-3">
-            {[0, 1, 2, 3].map((index) => (
-              <ProductVisual
-                key={index}
-                category={product.category}
-                size="sm"
-                className="h-20 w-full rounded-lg border border-border"
-              />
-            ))}
-          </div>
+        <div className="lg:w-1/2">
+          <ProductGallery images={getProductImages(product)} alt={product.name} />
         </div>
 
         <div className="flex flex-col gap-6 lg:w-1/2">

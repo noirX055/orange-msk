@@ -333,6 +333,26 @@ export function getCategoryName(slug: string) {
   return categories.find((category) => category.slug === slug)?.name ?? slug
 }
 
+const galleryByCategory: Record<string, string[]> = {
+  smartphones: [
+    "/products/smartphones/1.png",
+    "/products/smartphones/2.png",
+    "/products/smartphones/3.png",
+  ],
+  laptops: ["/products/laptops/1.png", "/products/laptops/2.png", "/products/laptops/3.png"],
+  monitors: ["/products/monitors/1.png", "/products/monitors/2.png", "/products/monitors/3.png"],
+  audio: ["/products/audio/1.png", "/products/audio/2.png", "/products/audio/3.png"],
+  wearables: ["/products/wearables/1.png", "/products/wearables/2.png", "/products/wearables/3.png"],
+  home: ["/products/home/1.png", "/products/home/2.png", "/products/home/3.png"],
+}
+
+export function getProductImages(product: Product) {
+  const gallery = galleryByCategory[product.category] ?? []
+  // товары одной категории показывают снимки в разном порядке
+  const offset = product.id.length % Math.max(gallery.length, 1)
+  return [...gallery.slice(offset), ...gallery.slice(0, offset)]
+}
+
 export function getRelated(product: Product, limit = 4) {
   return products
     .filter((item) => item.category === product.category && item.id !== product.id)

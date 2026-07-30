@@ -3,9 +3,9 @@
 import Link from "next/link"
 import { Check, ShoppingCart, Star } from "lucide-react"
 import { useState } from "react"
-import { formatPrice, type Product } from "@/lib/products"
+import { formatPrice, getProductImages, type Product } from "@/lib/products"
 import { useCart } from "@/components/cart-provider"
-import { ProductVisual } from "@/components/product-visual"
+import { ProductHoverGallery } from "@/components/product-hover-gallery"
 
 const badgeStyles: Record<string, string> = {
   Хит: "bg-navy text-navy-foreground",
@@ -26,7 +26,12 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-card border border-border bg-card transition-colors hover:border-primary/60">
       <Link href={`/product/${product.slug}`} className="relative block">
-        <ProductVisual category={product.category} size="md" className="h-44 w-full" />
+        <ProductHoverGallery
+          images={getProductImages(product)}
+          alt={product.name}
+          category={product.category}
+          className="h-44 w-full"
+        />
         {product.badge && (
           <span
             className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold ${badgeStyles[product.badge]}`}
