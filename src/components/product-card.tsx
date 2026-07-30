@@ -6,6 +6,7 @@ import { useState } from "react"
 import { formatPrice, getProductImages, type Product } from "@/lib/products"
 import { useCart } from "@/components/cart-provider"
 import { ProductHoverGallery } from "@/components/product-hover-gallery"
+import { BrandLogo } from "@/components/brand-logo"
 
 const badgeStyles: Record<string, string> = {
   Хит: "bg-navy text-navy-foreground",
@@ -48,8 +49,8 @@ export function ProductCard({ product }: { product: Product }) {
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="font-medium uppercase tracking-wide">{product.brand}</span>
-          <span className="flex items-center gap-1 text-foreground">
+          <BrandLogo brand={product.brand} size={14} />
+          <span className="ml-auto flex items-center gap-1 text-foreground">
             <Star size={13} className="fill-primary text-primary" />
             {product.rating}
           </span>

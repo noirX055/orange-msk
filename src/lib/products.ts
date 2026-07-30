@@ -20,6 +20,20 @@ export type Product = {
   specs: { label: string; value: string }[]
 }
 
+// Логотипы брендов (моно-версии) загружены из theSVG.org
+const brandLogos: Record<string, string> = {
+  Apple: "/brands/apple.svg",
+  Samsung: "/brands/samsung.svg",
+  Xiaomi: "/brands/xiaomi.svg",
+  ASUS: "/brands/asus.svg",
+  LG: "/brands/lg.svg",
+  Sony: "/brands/sony.svg",
+}
+
+export function getBrandLogo(brand: string) {
+  return brandLogos[brand]
+}
+
 export const categories: Category[] = [
   { slug: "smartphones", name: "Смартфоны" },
   { slug: "laptops", name: "Ноутбуки" },

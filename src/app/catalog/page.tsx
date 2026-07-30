@@ -9,7 +9,7 @@ export const metadata = {
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; sale?: string }>
+  searchParams: Promise<{ category?: string; sale?: string; brand?: string }>
 }) {
   const params = await searchParams
 
@@ -30,6 +30,7 @@ export default async function CatalogPage({
       <CatalogView
         initialCategory={params.category ?? "all"}
         initialSaleOnly={params.sale === "1"}
+        initialBrand={params.brand}
       />
     </div>
   )

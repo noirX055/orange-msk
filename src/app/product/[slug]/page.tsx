@@ -9,6 +9,7 @@ import {
   products,
 } from "@/lib/products"
 import { ProductGallery } from "@/components/product-gallery"
+import { BrandLogo } from "@/components/brand-logo"
 import { ProductBuyPanel } from "@/components/product-buy-panel"
 import { ProductCard } from "@/components/product-card"
 
@@ -71,9 +72,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <div className="flex flex-col gap-6 lg:w-1/2">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3 text-xs">
-              <span className="font-semibold uppercase tracking-wide text-muted-foreground">
-                {product.brand}
-              </span>
+              <BrandLogo brand={product.brand} size={20} />
               <span
                 className={`rounded-full px-2.5 py-1 font-semibold ${
                   product.inStock ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
@@ -82,7 +81,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 {product.inStock ? "В наличии" : "Нет в наличии"}
               </span>
             </div>
-            <h1 className="font-serif text-2xl font-bold leading-tight text-balance md:text-3xl">
+            <h1 className="text-2xl font-bold leading-tight tracking-tight text-balance md:text-3xl">
               {product.name}
             </h1>
             <div className="flex items-center gap-2 text-sm">
@@ -122,14 +121,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <div className="grid gap-8 lg:grid-cols-2">
         <section aria-labelledby="about-title">
-          <h2 id="about-title" className="mb-4 font-serif text-xl font-bold">
+          <h2 id="about-title" className="mb-4 text-xl font-bold tracking-tight">
             О товаре
           </h2>
           <p className="leading-relaxed text-muted-foreground">{product.description}</p>
         </section>
 
         <section aria-labelledby="specs-title">
-          <h2 id="specs-title" className="mb-4 font-serif text-xl font-bold">
+          <h2 id="specs-title" className="mb-4 text-xl font-bold tracking-tight">
             Характеристики
           </h2>
           <dl className="overflow-hidden rounded-card border border-border">
@@ -149,7 +148,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <section aria-labelledby="related-title">
-        <h2 id="related-title" className="mb-6 font-serif text-2xl font-bold">
+        <h2 id="related-title" className="mb-6 text-2xl font-bold tracking-tight">
           Похожие товары
         </h2>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

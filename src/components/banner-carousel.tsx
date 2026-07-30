@@ -101,7 +101,7 @@ export function BannerCarousel() {
               aria-roledescription="слайд"
               aria-label={`${index + 1} из ${banners.length}`}
               aria-hidden={index !== active}
-              className="w-full shrink-0 font-display"
+              className="w-full shrink-0"
             >
               <div className="flex flex-col items-center gap-6 p-6 md:flex-row md:gap-10 md:p-10 lg:p-12">
                 <div className="flex w-full flex-col gap-5 md:w-[46%]">

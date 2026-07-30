@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { SlidersHorizontal } from "lucide-react"
 import { categories, products } from "@/lib/products"
 import { ProductCard } from "@/components/product-card"
+import { BrandLogo } from "@/components/brand-logo"
 
 const sortOptions = [
   { value: "popular", label: "По популярности" },
@@ -17,12 +18,16 @@ const brands = Array.from(new Set(products.map((product) => product.brand))).sor
 export function CatalogView({
   initialCategory = "all",
   initialSaleOnly = false,
+  initialBrand,
 }: {
   initialCategory?: string
   initialSaleOnly?: boolean
+  initialBrand?: string
 }) {
   const [category, setCategory] = useState(initialCategory)
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([])
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(
+    initialBrand && brands.includes(initialBrand) ? [initialBrand] : [],
+  )
   const [maxPrice, setMaxPrice] = useState(150000)
   const [inStockOnly, setInStockOnly] = useState(false)
   const [saleOnly, setSaleOnly] = useState(initialSaleOnly)
@@ -89,20 +94,21 @@ export function CatalogView({
 
       <fieldset>
         <legend className="mb-3 text-sm font-semibold">Бренд</legend>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {brands.map((brand) => (
             <button
               key={brand}
               type="button"
               onClick={() => toggleBrand(brand)}
               aria-pressed={selectedBrands.includes(brand)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              aria-label={brand}
+              className={`flex h-14 items-center justify-center rounded-lg border bg-card px-2 transition-colors ${
                 selectedBrands.includes(brand)
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border text-muted-foreground hover:border-primary"
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:border-primary"
               }`}
             >
-              {brand}
+              <BrandLogo brand={brand} size={18} />
             </button>
           ))}
         </div>
@@ -162,7 +168,7 @@ export function CatalogView({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl font-bold">Каталог</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Каталог</h1>
           <p className="mt-1 text-sm text-muted-foreground">Найдено товаров: {visible.length}</p>
         </div>
         <div className="flex items-center gap-2">

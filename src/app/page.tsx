@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { BannerCarousel } from "@/components/banner-carousel"
 import { ProductCard } from "@/components/product-card"
+import { BrandLogo } from "@/components/brand-logo"
 import { products } from "@/lib/products"
 
 const categoryCards = [
@@ -24,6 +25,8 @@ const categoryCards = [
   { slug: "wearables", name: "Гаджеты", count: "150 товаров", Icon: Watch },
   { slug: "home", name: "Техника для дома", count: "210 товаров", Icon: WashingMachine },
 ]
+
+const brandCards = Array.from(new Set(products.map((product) => product.brand))).sort()
 
 const benefits = [
   { title: "Доставка за 2 часа", text: "По Москве и в пределах МКАД", Icon: Truck },
@@ -42,7 +45,7 @@ export default function HomePage() {
       <BannerCarousel />
 
       <section aria-labelledby="categories-title">
-        <h2 id="categories-title" className="mb-6 font-serif text-2xl font-bold">
+        <h2 id="categories-title" className="mb-6 text-2xl font-bold tracking-tight">
           Категории
         </h2>
         <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
@@ -57,6 +60,25 @@ export default function HomePage() {
                 </span>
                 <span className="text-sm font-semibold leading-relaxed">{name}</span>
                 <span className="text-xs text-muted-foreground">{count}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="brands-title">
+        <h2 id="brands-title" className="mb-6 text-2xl font-bold tracking-tight">
+          Официальные бренды
+        </h2>
+        <ul className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-7">
+          {brandCards.map((brand) => (
+            <li key={brand}>
+              <Link
+                href={`/catalog?brand=${encodeURIComponent(brand)}`}
+                aria-label={brand}
+                className="flex h-20 items-center justify-center rounded-card border border-border bg-card px-3 transition-colors hover:border-primary"
+              >
+                <BrandLogo brand={brand} size={24} />
               </Link>
             </li>
           ))}
@@ -84,7 +106,7 @@ export default function HomePage() {
 
       <section aria-labelledby="popular-title">
         <div className="mb-6 flex items-end justify-between gap-4">
-          <h2 id="popular-title" className="font-serif text-2xl font-bold">
+          <h2 id="popular-title" className="text-2xl font-bold tracking-tight">
             Популярные товары
           </h2>
           <Link
@@ -104,7 +126,7 @@ export default function HomePage() {
 
       <section aria-labelledby="deals-title">
         <div className="mb-6 flex items-end justify-between gap-4">
-          <h2 id="deals-title" className="font-serif text-2xl font-bold">
+          <h2 id="deals-title" className="text-2xl font-bold tracking-tight">
             Скидки недели
           </h2>
           <Link
@@ -124,7 +146,7 @@ export default function HomePage() {
 
       <section className="flex flex-col items-start gap-6 rounded-card border border-primary/30 bg-primary/10 p-6 md:flex-row md:items-center md:p-10">
         <div className="flex flex-col gap-2">
-          <h2 className="font-serif text-2xl font-bold text-balance">
+          <h2 className="text-2xl font-bold tracking-tight text-balance">
             Обменяйте старый смартфон на новый со скидкой до 30 000 ₽
           </h2>
           <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">

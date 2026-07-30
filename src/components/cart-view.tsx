@@ -20,7 +20,7 @@ export function CartView() {
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground">
           <ShoppingBag size={26} />
         </span>
-        <h1 className="font-serif text-2xl font-bold">Заказ оформлен</h1>
+        <h1 className="tracking-tight text-2xl font-bold">Заказ оформлен</h1>
         <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
           Менеджер Orange MSK свяжется с вами в течение 15 минут для подтверждения времени доставки.
         </p>
@@ -40,7 +40,7 @@ export function CartView() {
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <ShoppingBag size={26} />
         </span>
-        <h1 className="font-serif text-2xl font-bold">Корзина пуста</h1>
+        <h1 className="tracking-tight text-2xl font-bold">Корзина пуста</h1>
         <p className="text-sm text-muted-foreground">
           Добавьте товары из каталога, чтобы оформить заказ.
         </p>
@@ -59,7 +59,7 @@ export function CartView() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-end justify-between gap-4">
-        <h1 className="font-serif text-3xl font-bold">Корзина</h1>
+        <h1 className="tracking-tight text-3xl font-bold">Корзина</h1>
         <button
           type="button"
           onClick={clear}
@@ -128,7 +128,7 @@ export function CartView() {
         </ul>
 
         <aside className="h-fit w-full shrink-0 rounded-card border border-border p-5 lg:w-80">
-          <h2 className="mb-4 font-serif text-lg font-bold">Итого</h2>
+          <h2 className="mb-4 tracking-tight text-lg font-bold">Итого</h2>
           <dl className="flex flex-col gap-3 text-sm">
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Товары ({totalItems})</dt>

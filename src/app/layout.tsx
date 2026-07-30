@@ -1,19 +1,9 @@
 import type { Metadata, Viewport } from "next"
-import { Geist, Geist_Mono, Montserrat, Playfair_Display } from "next/font/google"
+import { Montserrat, Playfair_Display } from "next/font/google"
 import "./globals.css"
 import { CartProvider } from "@/components/cart-provider"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin", "cyrillic"],
-})
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-})
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -43,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${montserrat.variable} h-full bg-background antialiased`}
+      className={`${montserrat.variable} ${playfair.variable} h-full bg-background antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <CartProvider>
