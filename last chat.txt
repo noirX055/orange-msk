@@ -1,0 +1,128 @@
+[07.08.2026 22:20] Артем: Тестовый админ уже есть в сиде: admin@orange-msk.ru / admin1234 (роль admin в raw_user_meta_data, копируется в profiles.role триггером handle_new_user).
+
+     ---
+     1. База данных — новый файл supabase-admin.sql
+
+     Выполняется после supabase-setup.sql и supabase-account.sql. Переиспользует существующую функцию public.is_admin().
+
+     Таблица products (поля 1:1 с типом Product):
+     id uuid pk default gen_random_uuid()
+     slug text unique not null          -- стабильный идентификатор (orders/favorites хранят product_slug)
+     name, brand, category text not null
+     price integer not null
+     old_price integer                  -- nullable
+     rating numeric default 0
+     reviews integer default 0
+     in_stock boolean default true
+     badge text                         -- 'Хит' | 'Новинка' | 'Скидка' | null
+     colors jsonb default '[]'          -- [{name, hex}]
+     specs jsonb default '[]'           -- [{label, value}]
+     images jsonb default '[]'          -- массив URL загруженных фото (пусто → показываем галерею по категории)
+     description text
+     sort integer default 0
+     created_at timestamptz default now()
+     updated_at timestamptz default now()
+     - Индексы: products_category_idx, products_slug_idx. Триггер updated_at (по образцу on_profile_updated).
+     - RLS: публичный SELECT (using (true)), а insert/update/delete — только public.is_admin().
+     - Сид: перенести текущие 12 товаров из products.ts в insert-ы (slug, name, brand, category, price, old_price, rating, reviews, in_stock, badge, colors, specs). Идемпотентно: on conflict (slug) do update.
+
+     Политики администрирования заказов (дополняют supabase-account.sql):
+     create policy "Admins can update all orders" on public.orders
+       for update using (public.is_admin()) with check (public.is_admin());
+     create policy "Admins can delete all orders" on public.orders
+       for delete using (public.is_admin());
+     create policy "Admins can update all order items" on public.order_items
+       for update using (public.is_admin()) with check (public.is_admin());
+     create policy "Admins can delete all order items" on public.order_items
+       for delete using (public.is_admin());
+     create policy "Admins can insert order items" on public.order_items
+       for insert with check (public.is_admin());
+
+     Supabase Storage — бакет product-images:
+     insert into storage.buckets (id, name, public) values ('product-images','product-images', true)
+       on conflict (id) do nothing;
+     -- публичное чтение; запись только админам (is_admin проверяется по сессии)
+     create policy "Public read product images" on storage.objects
+       for select using (bucket_id = 'product-images');
+     create policy "Admins manage product images" on storage.objects
+       for all using (bucket_id = 'product-images' and public.is_admin())
+       with check (bucket_id = 'product-images' and public.is_admin());
+
+     ---
+     2. next.config.ts — разрешить домен Storage для next/image
+
+     Картинки из Storage — это внешние URL (https://<ref>.supabase.co/storage/...). Без этого next/image их не отрендерит.
+     images: { remotePatterns: [{ protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" }] }
+
+     ---
+     3. Рефакторинг src/lib/products.ts → shared + server-queries
+
+     products.ts импортируется и клиентскими компонентами (catalog-view, product-card, product-buy-panel, cart-provider) ради типа Product и чистых хелперов. Поэтому нельзя добавлять в него серверный
+     Supabase-клиент. Разделяем по образцу src/lib/account/queries.ts (server-only):
+[07.08.2026 22:20] Артем: - src/lib/products.ts (остаётся общим, без БД): тип Product, categories, formatPrice, getCategoryName, getBrandLogo/brandLogos, galleryByCategory, getProductImages. Убрать из него захардкоженный массив
+     products и функции getProduct/getRelated.
+       - getProductImages(product) дополнить: если product.images?.length → вернуть их; иначе текущая логика галереи по категории (обратная совместимость с сид-товарами).
+     - src/lib/products/queries.ts (новый, server-only, import { createClient } from "@/lib/supabase/server"):
+       - getProducts(filters?), getProductBySlug(slug), getRelatedProducts(product, limit), getProductById(id) (для формы редактирования). Мапят snake_case строки БД в тип Product (old_price → oldPrice, in_stock
+     → inStock).
+
+     Тип Product дополнить полем images?: string[].
+
+     ---
+     4. Переключение витрины на БД (потребители массива)
+
+     - src/app/page.tsx (главная) — сделать async: const products = await getProducts(); popular = products.slice(0,8), deals = products.filter(p => p.oldPrice), бренды из products.
+     - src/app/catalog/page.tsx + src/components/catalog-view.tsx — catalog/page.tsx (server) грузит await getProducts() и передаёт массив пропом в CatalogView; CatalogView убирает import { products }, принимает
+     products: Product[] пропом (фильтры/сортировка остаются клиентскими in-memory — товаров немного).
+     - src/app/product/[slug]/page.tsx — await getProductBySlug(slug), await getRelatedProducts(...). Убрать generateStaticParams (товары теперь динамические) — страница рендерится динамически.
+     - src/app/account/favorites/page.tsx — заменить синхронный getProduct на выборку из БД по слагам (getProducts() + фильтр по favorites, либо .in('slug', slugs)).
+
+     product-card.tsx, product-buy-panel.tsx, cart-provider.tsx, cart-view.tsx, brand-logo.tsx, site-header/footer.tsx — менять не нужно (используют тип/хелперы/categories, которые остаются).
+
+     ---
+     5. Раздел /admin
+
+     Защита: src/lib/admin/guard.ts → requireAdmin(): берёт getProfile() (уже есть, возвращает role); если role !== 'admin' → redirect("/"). Гость → /login.
+
+     - src/app/admin/layout.tsx (server) — вызывает requireAdmin(), рисует сайдбар + контент (по образцу account/layout.tsx).
+     - src/components/admin/admin-sidebar.tsx (client, usePathname) — пункты: Обзор, Товары, Заказы, «На сайт», Выйти (переиспользует signOut из @/app/account/actions).
+     - /admin page.tsx — дашборд: кол-во товаров, заказов, заказов в статусе new, суммарная выручка (sum(total) по done).
+     - Товары:
+       - /admin/products/page.tsx — таблица (фото-превью, название, категория, цена, наличие, badge) + кнопки «Редактировать»/«Удалить» (форма с deleteProduct), кнопка «Добавить товар».
+       - /admin/products/new/page.tsx и /admin/products/[id]/edit/page.tsx — общий клиентский компонент product-form.tsx (useActionState, как profile-form.tsx/address-form.tsx). Поля: name, slug, brand, category
+     (select из categories), price, old_price, rating, reviews, in_stock (checkbox), badge (select), description, повторяемые строки colors ({name,hex}) и specs ({label,value}), загрузка images (<input
+     type="file" multiple>), превью и удаление уже загруженных.
+     - Заказы:
+       - /admin/orders/page.tsx — все заказы (фильтр по статусу через searchParams), имя покупателя, дата, сумма, статус-бейдж, ссылка на детали.
+       - /admin/orders/[id]/page.tsx — детали: покупатель (имя/телефон/адрес), позиции, суммы; смена статуса (updateOrderStatus), правка позиций/удаление заказа (deleteOrder).
+
+     Переиспользовать: ORDER_STATUS (src/lib/account/queries.ts), formatPrice, ProductVisual, токены (navy, primary, muted, border, rounded-card).
+
+     ---
+     6. Серверная часть админки
+[07.08.2026 22:20] Артем: - src/lib/admin/queries.ts (server): getAdminStats(), getAllProducts(), getAllOrders(status?), getOrderById(id). Для имён покупателей — отдельный запрос profiles по in('id', userIds) (без изменения схемы;
+     политика Admins can view all profiles уже есть).
+     - src/app/admin/actions.ts ("use server") с гардом requireAdmin() в каждом экшене:
+       - Товары: createProduct, updateProduct, deleteProduct, uploadProductImages(files) (грузит в бакет product-images, возвращает публичные URL), removeProductImage.
+       - Заказы: updateOrderStatus(orderId, status), updateOrderItem/removeOrderItem, deleteOrder(orderId).
+       - Все — с revalidatePath соответствующих страниц (/admin/..., а также /catalog, /, /product/[slug] при изменении товара).
+
+     ---
+     7. Хедер — ссылка на админку
+
+     В src/components/account/account-menu.tsx добавить пункт «Админ-панель» (/admin) в дропдаун, если user.user_metadata.role === 'admin' (роль уже в metadata — доп. запрос не нужен).
+
+     ---
+     Verification
+
+     1. Выполнить в Supabase SQL Editor по порядку: supabase-setup.sql → supabase-seed.sql → supabase-account.sql → supabase-admin.sql.
+     2. npx tsc --noEmit и npx eslint src — без ошибок.
+     3. Dev-сервер (уже запущен на :3000). Проверить curl -o /dev/null -w "%{http_code}":
+       - /, /catalog, /product/iphone-16-pro-256 → 200 (витрина читает из БД, выглядит как раньше).
+       - /admin, /admin/products, /admin/orders под гостем → 307 на /login.
+     4. В браузере под admin@orange-msk.ru:
+       - Товары: создать/отредактировать/удалить, загрузить фото — проверить, что оно появилось в бакете и на витрине (next/image рендерит URL из Storage).
+       - Заказы: увидеть все заказы, сменить статус, убедиться, что покупатель видит новый статус в /account/orders.
+       - Под user@orange-msk.ru — пункт «Админ-панель» отсутствует, /admin редиректит.
+
+● План одобрен. Обновляю список задач под админку и начинаю реализацию. Сначала перечитаю полный products.ts — он нужен дословно для сид-скрипта и рефакторинга.
