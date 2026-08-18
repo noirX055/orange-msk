@@ -23,27 +23,14 @@ export function ProductBuyPanel({ product }: { product: Product }) {
   }
 
   return (
-    <div className="flex flex-col gap-5 rounded-card border border-border p-5">
-      <div className="flex flex-wrap items-end gap-3">
-        <span className="text-3xl font-bold">{formatPrice(product.price)}</span>
-        {product.oldPrice && (
-          <>
-            <span className="text-base text-muted-foreground line-through">
-              {formatPrice(product.oldPrice)}
-            </span>
-            <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground">
-              −{discount}%
-            </span>
-          </>
-        )}
-      </div>
-
-      {product.colors.length > 1 && (
+    <div className="flex flex-col gap-8 pt-2">
+      {product.colors.length > 0 && (
         <fieldset>
-          <legend className="mb-2.5 text-sm font-semibold">
-            Цвет: <span className="font-normal text-muted-foreground">{color}</span>
+          <legend className="mb-3 text-sm">
+            <span className="text-muted-foreground">Цвет — </span>
+            <span className="font-medium text-foreground">{color || product.colors[0]?.name}</span>
           </legend>
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-3">
             {product.colors.map((option) => (
               <button
                 key={option.name}
@@ -51,12 +38,12 @@ export function ProductBuyPanel({ product }: { product: Product }) {
                 onClick={() => setColor(option.name)}
                 aria-label={option.name}
                 aria-pressed={color === option.name}
-                className={`h-9 w-9 rounded-full border-2 transition-colors ${
-                  color === option.name ? "border-primary" : "border-border"
+                className={`relative h-[34px] w-[34px] shrink-0 rounded-full transition-all ${
+                  color === option.name ? "ring-2 ring-foreground ring-offset-2" : "ring-1 ring-border hover:ring-foreground/40"
                 }`}
               >
                 <span
-                  className="block h-full w-full rounded-full border border-border/60"
+                  className="absolute inset-1 rounded-full border border-black/10 dark:border-white/10 shadow-inner"
                   style={{ backgroundColor: option.hex }}
                 />
               </button>
@@ -64,6 +51,39 @@ export function ProductBuyPanel({ product }: { product: Product }) {
           </div>
         </fieldset>
       )}
+
+      {/* Pseudo-variants if we have memory in specs */}
+      {product.specs.find((s) => s.label.toLowerCase().includes("память")) && (
+        <fieldset>
+          <legend className="mb-3 text-sm">
+            <span className="font-medium text-foreground">Память. </span>
+            <span className="text-muted-foreground">Сколько памяти вам нужно?</span>
+          </legend>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              className="rounded-xl border-2 border-foreground px-4 py-2.5 text-sm font-medium"
+            >
+              {product.specs.find((s) => s.label.toLowerCase().includes("память"))?.value}
+            </button>
+          </div>
+        </fieldset>
+      )}
+
+      <div className="flex flex-col gap-5 pt-2">
+        <div className="flex items-end gap-3">
+          <span className="text-3xl font-bold tracking-tight">{formatPrice(product.price)}</span>
+          {product.oldPrice && (
+            <>
+              <span className="pb-1 text-base font-medium text-muted-foreground line-through">
+                {formatPrice(product.oldPrice)}
+              </span>
+              <span className="mb-1 rounded-md bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 dark:bg-red-500/20 dark:text-red-400">
+                −{discount}%
+              </span>
+            </>
+          )}
+        </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-full border border-border p-1">
@@ -101,6 +121,7 @@ export function ProductBuyPanel({ product }: { product: Product }) {
           size={20}
           className="h-11 w-11 shrink-0 border border-border hover:border-primary/60"
         />
+      </div>
       </div>
 
       {added && (

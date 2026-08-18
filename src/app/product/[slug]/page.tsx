@@ -61,36 +61,24 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <div className="flex flex-col gap-6 lg:w-1/2">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3 text-xs">
-              <BrandLogo brand={product.brand} size={20} />
-              <span
-                className={`rounded-full px-2.5 py-1 font-semibold ${
-                  product.inStock ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {product.inStock ? "В наличии" : "Нет в наличии"}
-              </span>
-            </div>
-            <h1 className="text-2xl font-bold leading-tight tracking-tight text-balance md:text-3xl">
+          <div className="flex flex-col gap-4">
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-balance md:text-4xl">
               {product.name}
             </h1>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="flex items-center gap-0.5" aria-label={`Рейтинг ${product.rating} из 5`}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    size={15}
-                    className={
-                      star <= Math.round(product.rating)
-                        ? "fill-primary text-primary"
-                        : "text-border"
-                    }
-                  />
-                ))}
+            
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-green-50/80 px-2.5 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-600 dark:text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                Оригинальный товар
               </span>
-              <span className="font-semibold">{product.rating}</span>
-              <span className="text-muted-foreground">· {product.reviews} отзывов</span>
+              
+              <div className="flex items-center gap-1.5 text-sm">
+                <span className="flex items-center gap-0.5 text-amber-500" aria-label={`Рейтинг ${product.rating} из 5`}>
+                  <Star size={14} className="fill-current" />
+                  <span className="font-bold text-foreground">{product.rating}</span>
+                </span>
+                <span className="text-muted-foreground">· {product.reviews} отзывов</span>
+              </div>
             </div>
           </div>
 
