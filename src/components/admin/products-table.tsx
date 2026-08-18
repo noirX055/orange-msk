@@ -226,7 +226,7 @@ export function ProductsTable({ products }: { products: Product[] }) {
       <p className="text-sm text-muted-foreground">Найдено: {filtered.length} · Страница {safePage} из {totalPages}</p>
 
       <div className="overflow-x-auto rounded-card border border-border">
-        <table className="w-full min-w-[900px] text-sm">
+        <table className="w-full text-sm">
           <thead className="border-b border-border bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               {sortHeader("Товар", "name")}
