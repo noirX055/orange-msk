@@ -21,10 +21,12 @@ export function ProductForm({
   product,
   categories,
   brands,
+  groups = [],
 }: {
   product?: Product
   categories: { slug: string; name: string }[]
   brands: { id: number; slug: string; name: string }[]
+  groups?: { id: number; name: string; brand_id: number; category_slug: string }[]
 }) {
   const isEdit = Boolean(product)
   const action = isEdit ? updateProduct : createProduct
@@ -39,6 +41,14 @@ export function ProductForm({
   const [existingImages, setExistingImages] = useState<string[]>(product?.images ?? [])
   const [newFiles, setNewFiles] = useState<{ file: File; url: string }[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [selectedBrand, setSelectedBrand] = useState(product?.brand || "")
+  const [selectedCategory, setSelectedCategory] = useState(product?.category || categories[0]?.slug || "")
+
+  const currentBrandId = brands.find((b) => b.name === selectedBrand)?.id
+  const filteredGroups = groups.filter(
+    (g) => g.brand_id === currentBrandId && g.category_slug === selectedCategory
+  )
 
   // Синхронизируем стейт превью с реальным input.files (через DataTransfer),
   // чтобы форма отправляла ровно тот набор, что виден пользователю.
@@ -89,7 +99,14 @@ export function ProductForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <label htmlFor="brand" className={labelBase}>Бренд *</label>
-            <select id="brand" name="brand" defaultValue={product?.brand || ""} required className={inputBase}>
+            <select
+              id="brand"
+              name="brand"
+              value={selectedBrand}
+              onChange={(e) => setSelectedBrand(e.target.value)}
+              required
+              className={inputBase}
+            >
               <option value="" disabled>Выберите бренд</option>
               {brands.map((b) => (
                 <option key={b.id} value={b.name}>{b.name}</option>
@@ -98,13 +115,17 @@ export function ProductForm({
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="series" className={labelBase}>Серия / модель</label>
-            <input
+            <select
               id="series"
               name="series"
-              defaultValue={product?.series}
-              placeholder="напр. iPhone 16, Galaxy S25"
+              defaultValue={product?.series || ""}
               className={inputBase}
-            />
+            >
+              <option value="">Без серии</option>
+              {filteredGroups.map((g) => (
+                <option key={g.id} value={g.name}>{g.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -114,7 +135,8 @@ export function ProductForm({
             <select
               id="category"
               name="category"
-              defaultValue={product?.category ?? categories[0].slug}
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
               className={inputBase}
             >
               {categories.map((category) => (

@@ -282,3 +282,64 @@ export async function deleteBrand(formData: FormData): Promise<void> {
   await supabase.from("brands").delete().eq("id", id)
   revalidatePath("/admin/settings")
 }
+
+// ---------- Группы товаров (Серии) ----------
+
+export async function createGroup(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  const name = String(formData.get("name") ?? "").trim()
+  const brand_id = Number(formData.get("brand_id"))
+  const category_slug = String(formData.get("category_slug") ?? "").trim()
+
+  if (!name) return { ok: false, error: "Укажите название группы" }
+  if (!brand_id) return { ok: false, error: "Укажите бренд" }
+  if (!category_slug) return { ok: false, error: "Укажите категорию" }
+
+  const { error } = await supabase.from("product_groups").insert({ name, brand_id, category_slug })
+
+  if (error) {
+    if (error.code === "23505") return { ok: false, error: "Группа с таким названием уже существует для этого бренда и категории" }
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath("/admin/settings")
+  return { ok: true, message: "Группа успешно добавлена" }
+}
+
+export async function updateGroup(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  const id = Number(formData.get("id"))
+  const name = String(formData.get("name") ?? "").trim()
+  const brand_id = Number(formData.get("brand_id"))
+  const category_slug = String(formData.get("category_slug") ?? "").trim()
+
+  if (!id) return { ok: false, error: "Не указана группа" }
+  if (!name) return { ok: false, error: "Укажите название группы" }
+  if (!brand_id) return { ok: false, error: "Укажите бренд" }
+  if (!category_slug) return { ok: false, error: "Укажите категорию" }
+
+  const { error } = await supabase.from("product_groups").update({ name, brand_id, category_slug }).eq("id", id)
+
+  if (error) {
+    if (error.code === "23505") return { ok: false, error: "Группа с таким названием уже существует для этого бренда и категории" }
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath("/admin/settings")
+  return { ok: true, message: "Группа успешно обновлена" }
+}
+
+export async function deleteGroup(formData: FormData): Promise<void> {
+  const { supabase } = await requireAdmin()
+  const id = Number(formData.get("id"))
+  if (!id) return
+
+  await supabase.from("product_groups").delete().eq("id", id)
+  revalidatePath("/admin/settings")
+}

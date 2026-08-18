@@ -71,6 +71,13 @@ export async function getAllBrands(): Promise<{ id: number; slug: string; name: 
   return (data as { id: number; slug: string; name: string }[] | null) ?? []
 }
 
+export async function getAllGroups(): Promise<{ id: number; name: string; brand_id: number; category_slug: string }[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from("product_groups").select("id, name, brand_id, category_slug").order("name")
+  if (error) return []
+  return (data as { id: number; name: string; brand_id: number; category_slug: string }[] | null) ?? []
+}
+
 export async function getAllCategories(): Promise<{ slug: string; name: string }[]> {
   const supabase = await createClient()
   const { data } = await supabase.from("categories").select("slug, name").order("name")
