@@ -7,7 +7,7 @@ import type { OrderStatus } from "@/lib/account/queries"
 
 export type AdminActionState = { ok: boolean; error?: string; message?: string }
 
-const BUCKET = "product-images"
+const BUCKET = "products"
 
 function slugify(value: string) {
   return value
@@ -84,7 +84,10 @@ async function collectImages(
       upsert: true,
       contentType: file.type || undefined,
     })
-    if (error) continue
+    if (error) {
+      console.error("Upload error:", error)
+      throw new Error(`Не удалось загрузить фото ${file.name}: ${error.message}`)
+    }
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
     kept.push(data.publicUrl)
   }
