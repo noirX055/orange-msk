@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
-import { getProductById } from "@/lib/admin/queries"
+import { getProductById, getAllCategories, getAllBrands } from "@/lib/admin/queries"
 import { ProductForm } from "@/components/admin/product-form"
 
 export default async function EditProductPage({
@@ -10,7 +10,12 @@ export default async function EditProductPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const product = await getProductById(id)
+  
+  const [product, categories, brands] = await Promise.all([
+    getProductById(id),
+    getAllCategories(),
+    getAllBrands()
+  ])
 
   if (!product) notFound()
 
@@ -28,7 +33,7 @@ export default async function EditProductPage({
         <p className="mt-1 text-sm text-muted-foreground">Редактирование товара</p>
       </div>
 
-      <ProductForm product={product} />
+      <ProductForm product={product} categories={categories} brands={brands} />
     </div>
   )
 }

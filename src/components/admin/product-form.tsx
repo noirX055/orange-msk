@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Plus, Save, Trash2, X } from "lucide-react"
 import { createProduct, updateProduct, type AdminActionState } from "@/app/admin/actions"
-import { categories, type Product } from "@/lib/products"
+import { type Product } from "@/lib/products"
 
 const inputBase =
   "h-12 w-full rounded-xl border border-border bg-muted/50 px-4 text-sm outline-none transition-all placeholder:text-muted-foreground/50 focus:border-primary focus:bg-white focus:shadow-[0_0_0_3px_rgba(245,150,12,0.12)]"
@@ -17,7 +17,15 @@ const initial: AdminActionState = { ok: false }
 type ColorRow = { name: string; hex: string }
 type SpecRow = { label: string; value: string }
 
-export function ProductForm({ product }: { product?: Product }) {
+export function ProductForm({
+  product,
+  categories,
+  brands,
+}: {
+  product?: Product
+  categories: { slug: string; name: string }[]
+  brands: { id: number; slug: string; name: string }[]
+}) {
   const isEdit = Boolean(product)
   const action = isEdit ? updateProduct : createProduct
   const [state, formAction, pending] = useActionState(action, initial)
@@ -81,7 +89,12 @@ export function ProductForm({ product }: { product?: Product }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <label htmlFor="brand" className={labelBase}>Бренд *</label>
-            <input id="brand" name="brand" defaultValue={product?.brand} required className={inputBase} />
+            <select id="brand" name="brand" defaultValue={product?.brand || ""} required className={inputBase}>
+              <option value="" disabled>Выберите бренд</option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.name}>{b.name}</option>
+              ))}
+            </select>
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="series" className={labelBase}>Серия / модель</label>

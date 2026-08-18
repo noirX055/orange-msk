@@ -227,3 +227,58 @@ export async function deleteOrder(formData: FormData): Promise<void> {
   revalidatePath("/admin/orders")
   redirect("/admin/orders")
 }
+
+// ---------- Бренды ----------
+
+export async function createBrand(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  const name = String(formData.get("name") ?? "").trim()
+  const slug = String(formData.get("slug") ?? "").trim() || slugify(name)
+
+  if (!name) return { ok: false, error: "Укажите название бренда" }
+
+  const { error } = await supabase.from("brands").insert({ name, slug })
+
+  if (error) {
+    if (error.code === "23505") return { ok: false, error: "Бренд с таким названием или slug уже существует" }
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath("/admin/settings")
+  return { ok: true, message: "Бренд успешно добавлен" }
+}
+
+export async function updateBrand(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  const id = Number(formData.get("id"))
+  const name = String(formData.get("name") ?? "").trim()
+  const slug = String(formData.get("slug") ?? "").trim()
+
+  if (!id) return { ok: false, error: "Не указан бренд" }
+  if (!name) return { ok: false, error: "Укажите название бренда" }
+
+  const { error } = await supabase.from("brands").update({ name, slug }).eq("id", id)
+
+  if (error) {
+    if (error.code === "23505") return { ok: false, error: "Бренд с таким названием или slug уже существует" }
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath("/admin/settings")
+  return { ok: true, message: "Бренд успешно обновлен" }
+}
+
+export async function deleteBrand(formData: FormData): Promise<void> {
+  const { supabase } = await requireAdmin()
+  const id = Number(formData.get("id"))
+  if (!id) return
+
+  await supabase.from("brands").delete().eq("id", id)
+  revalidatePath("/admin/settings")
+}

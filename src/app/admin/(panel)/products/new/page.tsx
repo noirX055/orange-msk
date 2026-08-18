@@ -1,8 +1,14 @@
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { ProductForm } from "@/components/admin/product-form"
+import { getAllCategories, getAllBrands } from "@/lib/admin/queries"
 
-export default function NewProductPage() {
+export default async function NewProductPage() {
+  const [categories, brands] = await Promise.all([
+    getAllCategories(),
+    getAllBrands(),
+  ])
+
   return (
     <div className="flex flex-col gap-6">
       <div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ImageIcon, LayoutGrid, LogOut, Package, ShoppingBag, Store } from "lucide-react"
+import { ImageIcon, LayoutGrid, LogOut, Package, Settings, ShoppingBag, Store } from "lucide-react"
 import { signOut } from "@/app/account/actions"
 
 const links = [
@@ -10,6 +10,7 @@ const links = [
   { href: "/admin/products", label: "Товары", icon: Package },
   { href: "/admin/orders", label: "Заказы", icon: ShoppingBag },
   { href: "/admin/banners", label: "Баннеры", icon: ImageIcon },
+  { href: "/admin/settings", label: "Настройки", icon: Settings },
 ]
 
 export function AdminSidebar() {
