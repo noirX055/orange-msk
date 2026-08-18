@@ -104,7 +104,12 @@ export async function createProduct(
   if (!fields.category) return { ok: false, error: "Выберите категорию" }
   if (!fields.price || fields.price <= 0) return { ok: false, error: "Укажите цену" }
 
-  const images = await collectImages(formData, supabase, fields.slug)
+  let images: string[] = []
+  try {
+    images = await collectImages(formData, supabase, fields.slug)
+  } catch (e: any) {
+    return { ok: false, error: e.message || "Ошибка при загрузке изображений" }
+  }
 
   const { error } = await supabase.from("products").insert({ ...fields, images })
 
@@ -131,7 +136,12 @@ export async function updateProduct(
   if (!fields.name) return { ok: false, error: "Укажите название" }
   if (!fields.price || fields.price <= 0) return { ok: false, error: "Укажите цену" }
 
-  const images = await collectImages(formData, supabase, fields.slug)
+  let images: string[] = []
+  try {
+    images = await collectImages(formData, supabase, fields.slug)
+  } catch (e: any) {
+    return { ok: false, error: e.message || "Ошибка при загрузке изображений" }
+  }
 
   const { error } = await supabase.from("products").update({ ...fields, images }).eq("id", Number(id))
 
