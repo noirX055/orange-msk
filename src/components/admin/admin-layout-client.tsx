@@ -53,7 +53,7 @@ export function AdminLayoutClient({
           </button>
         </header>
 
-        <div className="mx-auto w-full max-w-5xl px-4 py-8 lg:px-8">{children}</div>
+        <div className="mx-auto w-full max-w-[1600px] px-4 py-8 lg:px-8">{children}</div>
       </main>
     </div>
   )

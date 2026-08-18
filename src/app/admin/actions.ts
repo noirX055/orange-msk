@@ -40,16 +40,18 @@ function parseProductForm(formData: FormData) {
     specs = []
   }
 
+  const parseNum = (val: string) => Number(val.replace(/\s/g, "").replace(",", "."))
+
   return {
     name,
     slug,
     brand: String(formData.get("brand") ?? "").trim(),
     series: String(formData.get("series") ?? "").trim() || null,
     category: String(formData.get("category") ?? "").trim(),
-    price: Number(formData.get("price") ?? 0),
-    old_price: oldPriceRaw ? Number(oldPriceRaw) : null,
-    rating: Number(formData.get("rating") ?? 0),
-    reviews: Number(formData.get("reviews") ?? 0),
+    price: parseNum(String(formData.get("price") ?? "0")),
+    old_price: oldPriceRaw ? parseNum(oldPriceRaw) : null,
+    rating: parseNum(String(formData.get("rating") ?? "0")),
+    reviews: parseNum(String(formData.get("reviews") ?? "0")),
     in_stock: formData.get("in_stock") === "on",
     is_visible: formData.get("is_visible") === "on",
     badge: badge || null,
@@ -131,7 +133,7 @@ export async function updateProduct(
 
   const images = await collectImages(formData, supabase, fields.slug)
 
-  const { error } = await supabase.from("products").update({ ...fields, images }).eq("id", id)
+  const { error } = await supabase.from("products").update({ ...fields, images }).eq("id", Number(id))
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Товар с таким slug уже существует" }
