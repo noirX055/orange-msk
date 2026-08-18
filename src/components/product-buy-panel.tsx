@@ -23,7 +23,7 @@ export function ProductBuyPanel({ product }: { product: Product }) {
   }
 
   return (
-    <div className="flex flex-col gap-8 pt-2">
+    <div className="flex flex-col gap-6 pt-1">
       {product.colors.length > 0 && (
         <fieldset>
           <legend className="mb-3 text-sm">

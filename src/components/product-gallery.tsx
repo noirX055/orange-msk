@@ -7,8 +7,8 @@ export function ProductGallery({ images, alt }: { images: string[]; alt: string 
   const [active, setActive] = useState(0)
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="relative h-[400px] w-full overflow-hidden md:h-[550px]">
+    <div className="flex flex-col gap-5">
+      <div className="relative h-[350px] w-full overflow-hidden md:h-[420px]">
         <Image
           src={images[active] || "/placeholder.svg"}
           alt={alt}

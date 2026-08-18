@@ -60,9 +60,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <ProductGallery images={getProductImages(product)} alt={product.name} />
         </div>
 
-        <div className="flex flex-col gap-6 lg:w-1/2">
-          <div className="flex flex-col gap-4">
-            <h1 className="text-3xl font-bold leading-tight tracking-tight text-balance md:text-4xl">
+        <div className="flex flex-col gap-5 lg:w-1/2">
+          <div className="flex flex-col gap-3">
+            <h1 className="text-2xl font-bold leading-tight tracking-tight text-balance md:text-3xl">
               {product.name}
             </h1>
             
