@@ -59,26 +59,33 @@ export function ProductGallery({ images, alt }: { images: string[]; alt: string 
 
       {isOpen && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setIsOpen(false)}
         >
-          <button
-            type="button"
-            onClick={() => setIsOpen(false)}
-            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-foreground hover:text-background md:right-8 md:top-8"
-            aria-label="Закрыть"
+          <div 
+            className="relative flex w-[90vw] max-w-[550px] flex-col rounded-2xl bg-background p-1.5 shadow-2xl animate-in zoom-in-95 duration-200" 
+            onClick={(e) => e.stopPropagation()}
           >
-            <X size={20} />
-          </button>
-          <div className="relative h-[90vh] w-[90vw]" onClick={(e) => e.stopPropagation()}>
-            <Image
-              src={images[active] || "/placeholder.svg"}
-              alt={alt}
-              fill
-              className="object-contain"
-              sizes="100vw"
-              priority
-            />
+            <div className="absolute right-3 top-3 z-10">
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+                aria-label="Закрыть"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-white dark:bg-black p-4">
+              <Image
+                src={images[active] || "/placeholder.svg"}
+                alt={alt}
+                fill
+                className="object-contain mix-blend-multiply dark:mix-blend-normal"
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                priority
+              />
+            </div>
           </div>
         </div>
       )}
