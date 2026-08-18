@@ -1,7 +1,7 @@
 "use client"
-
+import Link from "next/link"
 import { useState } from "react"
-import { Plus, Pencil, Trash2, X, Save } from "lucide-react"
+import { Plus, Pencil, Trash2, X, Save, List } from "lucide-react"
 import { createBrand, updateBrand, deleteBrand } from "@/app/admin/actions"
 
 type Brand = { id: number; slug: string; name: string }
@@ -133,6 +133,13 @@ export function BrandsManager({ initialBrands }: { initialBrands: Brand[] }) {
                     <td className="px-4 py-3 text-muted-foreground">{brand.slug}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/admin/settings/brands/${brand.id}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                          title="Группы товаров"
+                        >
+                          <List size={16} />
+                        </Link>
                         <button
                           onClick={() => handleEdit(brand)}
                           className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"

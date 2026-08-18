@@ -12,10 +12,12 @@ export function GroupsManager({
   initialGroups,
   brands,
   categories,
+  fixedBrandId,
 }: {
   initialGroups: Group[]
   brands: Brand[]
   categories: Category[]
+  fixedBrandId?: number
 }) {
   const [editingId, setEditingId] = useState<number | "new" | null>(null)
   const [editName, setEditName] = useState("")
@@ -35,7 +37,7 @@ export function GroupsManager({
   const handleNew = () => {
     setEditingId("new")
     setEditName("")
-    setEditBrandId(brands[0]?.id || "")
+    setEditBrandId(fixedBrandId || brands[0]?.id || "")
     setEditCategorySlug(categories[0]?.slug || "")
     setError("")
   }
@@ -96,7 +98,7 @@ export function GroupsManager({
           <thead className="border-b border-border bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-semibold">Название</th>
-              <th className="px-4 py-3 font-semibold">Бренд</th>
+              {!fixedBrandId && <th className="px-4 py-3 font-semibold">Бренд</th>}
               <th className="px-4 py-3 font-semibold">Категория</th>
               <th className="px-4 py-3 text-right font-semibold">Действия</th>
             </tr>
@@ -105,7 +107,7 @@ export function GroupsManager({
             {initialGroups.map((group) => (
               <tr key={group.id} className="transition-colors hover:bg-muted/30">
                 {editingId === group.id ? (
-                  <td colSpan={4} className="px-4 py-3">
+                  <td colSpan={fixedBrandId ? 3 : 4} className="px-4 py-3">
                     <form onSubmit={handleSave} className="flex items-center gap-3">
                       <input
                         type="text"
@@ -116,18 +118,20 @@ export function GroupsManager({
                         required
                         disabled={loading}
                       />
-                      <select
-                        value={editBrandId}
-                        onChange={(e) => setEditBrandId(Number(e.target.value))}
-                        className="h-9 flex-1 rounded-lg border border-border px-3 text-sm outline-none focus:border-primary"
-                        required
-                        disabled={loading}
-                      >
-                        <option value="" disabled>Выберите бренд</option>
-                        {brands.map((b) => (
-                          <option key={b.id} value={b.id}>{b.name}</option>
-                        ))}
-                      </select>
+                      {!fixedBrandId && (
+                        <select
+                          value={editBrandId}
+                          onChange={(e) => setEditBrandId(Number(e.target.value))}
+                          className="h-9 flex-1 rounded-lg border border-border px-3 text-sm outline-none focus:border-primary"
+                          required
+                          disabled={loading}
+                        >
+                          <option value="" disabled>Выберите бренд</option>
+                          {brands.map((b) => (
+                            <option key={b.id} value={b.id}>{b.name}</option>
+                          ))}
+                        </select>
+                      )}
                       <select
                         value={editCategorySlug}
                         onChange={(e) => setEditCategorySlug(e.target.value)}
@@ -162,9 +166,11 @@ export function GroupsManager({
                 ) : (
                   <>
                     <td className="px-4 py-3 font-medium">{group.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {brands.find((b) => b.id === group.brand_id)?.name || "Неизвестно"}
-                    </td>
+                    {!fixedBrandId && (
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {brands.find((b) => b.id === group.brand_id)?.name || "Неизвестно"}
+                      </td>
+                    )}
                     <td className="px-4 py-3 text-muted-foreground">
                       {categories.find((c) => c.slug === group.category_slug)?.name || group.category_slug}
                     </td>
@@ -193,7 +199,7 @@ export function GroupsManager({
 
             {editingId === "new" ? (
               <tr className="bg-muted/10">
-                <td colSpan={4} className="px-4 py-3">
+                <td colSpan={fixedBrandId ? 3 : 4} className="px-4 py-3">
                   <form onSubmit={handleSave} className="flex items-center gap-3">
                     <input
                       type="text"
@@ -204,18 +210,20 @@ export function GroupsManager({
                       required
                       disabled={loading}
                     />
-                    <select
-                      value={editBrandId}
-                      onChange={(e) => setEditBrandId(Number(e.target.value))}
-                      className="h-9 flex-1 rounded-lg border border-border px-3 text-sm outline-none focus:border-primary"
-                      required
-                      disabled={loading}
-                    >
-                      <option value="" disabled>Выберите бренд</option>
-                      {brands.map((b) => (
-                        <option key={b.id} value={b.id}>{b.name}</option>
-                      ))}
-                    </select>
+                    {!fixedBrandId && (
+                      <select
+                        value={editBrandId}
+                        onChange={(e) => setEditBrandId(Number(e.target.value))}
+                        className="h-9 flex-1 rounded-lg border border-border px-3 text-sm outline-none focus:border-primary"
+                        required
+                        disabled={loading}
+                      >
+                        <option value="" disabled>Выберите бренд</option>
+                        {brands.map((b) => (
+                          <option key={b.id} value={b.id}>{b.name}</option>
+                        ))}
+                      </select>
+                    )}
                     <select
                       value={editCategorySlug}
                       onChange={(e) => setEditCategorySlug(e.target.value)}
@@ -250,7 +258,7 @@ export function GroupsManager({
               </tr>
             ) : (
               <tr>
-                <td colSpan={4} className="p-4">
+                <td colSpan={fixedBrandId ? 3 : 4} className="p-4">
                   <button
                     onClick={handleNew}
                     disabled={loading}
