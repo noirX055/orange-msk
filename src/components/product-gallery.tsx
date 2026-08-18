@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useState, useEffect } from "react"
-import { X } from "lucide-react"
+import { X, ChevronLeft, ChevronRight } from "lucide-react"
 
 export function ProductGallery({ images, alt }: { images: string[]; alt: string }) {
   const [active, setActive] = useState(0)
@@ -76,7 +76,7 @@ export function ProductGallery({ images, alt }: { images: string[]; alt: string 
                 <X size={18} />
               </button>
             </div>
-            <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-white dark:bg-black p-4">
+            <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-white dark:bg-black p-4 group">
               <Image
                 src={images[active] || "/placeholder.svg"}
                 alt={alt}
@@ -85,6 +85,32 @@ export function ProductGallery({ images, alt }: { images: string[]; alt: string 
                 sizes="(max-width: 1024px) 100vw, 1024px"
                 priority
               />
+              {images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActive((a) => (a === 0 ? images.length - 1 : a - 1))
+                    }}
+                    className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/10 text-black opacity-0 backdrop-blur-sm transition-all hover:bg-black/20 group-hover:opacity-100 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 sm:left-4 sm:h-12 sm:w-12"
+                    aria-label="Предыдущее фото"
+                  >
+                    <ChevronLeft size={28} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActive((a) => (a === images.length - 1 ? 0 : a + 1))
+                    }}
+                    className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/10 text-black opacity-0 backdrop-blur-sm transition-all hover:bg-black/20 group-hover:opacity-100 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 sm:right-4 sm:h-12 sm:w-12"
+                    aria-label="Следующее фото"
+                  >
+                    <ChevronRight size={28} />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
