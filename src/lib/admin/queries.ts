@@ -39,13 +39,30 @@ export async function getAdminStats(): Promise<AdminStats> {
 
 export async function getAllProducts(): Promise<Product[]> {
   const supabase = await createClient()
-  const { data } = await supabase
-    .from("products")
-    .select(PRODUCT_COLUMNS)
-    .order("name", { ascending: true })
-    .range(0, 9999)
+  
+  let allData: ProductRow[] = []
+  let from = 0
+  let to = 999
+  let hasMore = true
 
-  return ((data as ProductRow[] | null) ?? []).map(mapProduct)
+  while (hasMore) {
+    const { data } = await supabase
+      .from("products")
+      .select(PRODUCT_COLUMNS)
+      .order("name", { ascending: true })
+      .range(from, to)
+
+    if (data && data.length > 0) {
+      allData = allData.concat(data as ProductRow[])
+      from += 1000
+      to += 1000
+      if (data.length < 1000) hasMore = false
+    } else {
+      hasMore = false
+    }
+  }
+
+  return allData.map(mapProduct)
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
