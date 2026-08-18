@@ -111,18 +111,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <section aria-labelledby="about-title">
+        <section aria-labelledby="about-title" className="flex flex-col">
           <h2 id="about-title" className="mb-4 text-xl font-bold tracking-tight">
-            О товаре
+            Описание
           </h2>
-          <p className="leading-relaxed text-muted-foreground">{product.description}</p>
+          <div className="flex-1 rounded-card border border-border bg-card p-6 shadow-sm">
+            <p className="leading-relaxed text-muted-foreground whitespace-pre-wrap">
+              {product.description || "Описание пока не добавлено."}
+            </p>
+          </div>
         </section>
 
-        <section aria-labelledby="specs-title">
+        <section aria-labelledby="specs-title" className="flex flex-col">
           <h2 id="specs-title" className="mb-4 text-xl font-bold tracking-tight">
             Характеристики
           </h2>
-          <dl className="overflow-hidden rounded-card border border-border">
+          <dl className="flex-1 overflow-hidden rounded-card border border-border bg-card shadow-sm">
             {product.specs.map((spec, index) => (
               <div
                 key={spec.label}
