@@ -7,6 +7,7 @@ import { ProductGallery } from "@/components/product-gallery"
 import { BrandLogo } from "@/components/brand-logo"
 import { ProductBuyPanel } from "@/components/product-buy-panel"
 import { ProductCard } from "@/components/product-card"
+import { ProductTabs } from "@/components/product-tabs"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -98,38 +99,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section aria-labelledby="about-title" className="flex flex-col">
-          <h2 id="about-title" className="mb-4 text-xl font-bold tracking-tight">
-            Описание
-          </h2>
-          <div className="flex-1 rounded-card border border-border bg-card p-6 shadow-sm">
-            <p className="leading-relaxed text-muted-foreground whitespace-pre-wrap">
-              {product.description || "Описание пока не добавлено."}
-            </p>
-          </div>
-        </section>
-
-        <section aria-labelledby="specs-title" className="flex flex-col">
-          <h2 id="specs-title" className="mb-4 text-xl font-bold tracking-tight">
-            Характеристики
-          </h2>
-          <dl className="flex-1 overflow-hidden rounded-card border border-border bg-card shadow-sm">
-            {product.specs.map((spec, index) => (
-              <div
-                key={spec.label}
-                className={`flex items-baseline justify-between gap-4 px-4 py-3 text-sm ${
-                  index % 2 === 0 ? "bg-muted/60" : "bg-card"
-                }`}
-              >
-                <dt className="text-muted-foreground">{spec.label}</dt>
-                <dd className="text-right font-medium">{spec.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      </div>
-
+      <ProductTabs description={product.description || ""} specs={product.specs} />
       <section aria-labelledby="related-title">
         <h2 id="related-title" className="mb-6 text-2xl font-bold tracking-tight">
           Похожие товары
