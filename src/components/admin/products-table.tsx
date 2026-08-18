@@ -1,9 +1,9 @@
 "use client"
 
-import { useMemo, useState, Fragment } from "react"
+import { useMemo, useState, Fragment, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowUpDown, ChevronDown, ChevronUp, Pencil, Search } from "lucide-react"
+import { ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Pencil, Search } from "lucide-react"
 import { formatPrice, getProductImages, getCategoryName, categories, type Product } from "@/lib/products"
 import { deleteProduct } from "@/app/admin/actions"
 import { DeleteButton } from "@/components/admin/delete-button"
@@ -21,6 +21,8 @@ export function ProductsTable({ products }: { products: Product[] }) {
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const [groupByBrand, setGroupByBrand] = useState(false)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 40
 
   const brands = useMemo(
     () => Array.from(new Set(products.map((product) => product.brand))).sort(),
@@ -68,11 +70,16 @@ export function ProductsTable({ products }: { products: Product[] }) {
     return list
   }, [products, query, category, brand, sortKey, sortDir])
 
+  // Reset page when filters change
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const paginatedFiltered = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
   // Группировка по бренду (когда включена) — секции с заголовками
   const groups = useMemo(() => {
-    if (!groupByBrand) return [{ brand: null as string | null, items: filtered }]
+    if (!groupByBrand) return [{ brand: null as string | null, items: paginatedFiltered }]
     const map = new Map<string, Product[]>()
-    for (const product of filtered) {
+    for (const product of paginatedFiltered) {
       const list = map.get(product.brand) ?? []
       list.push(product)
       map.set(product.brand, list)
@@ -80,7 +87,12 @@ export function ProductsTable({ products }: { products: Product[] }) {
     return Array.from(map.keys())
       .sort((a, b) => a.localeCompare(b, "ru"))
       .map((name) => ({ brand: name, items: map.get(name)! }))
-  }, [filtered, groupByBrand])
+  }, [paginatedFiltered, groupByBrand])
+
+  // Reset page on filter change
+  const handleQuery = useCallback((v: string) => { setQuery(v); setPage(1) }, [])
+  const handleCategory = useCallback((v: string) => { setCategory(v); setPage(1) }, [])
+  const handleBrand = useCallback((v: string) => { setBrand(v); setPage(1) }, [])
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -176,13 +188,13 @@ export function ProductsTable({ products }: { products: Product[] }) {
           <input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => handleQuery(event.target.value)}
             placeholder="Поиск по названию, бренду, серии, slug…"
             className={`${controlBase} w-full pl-9`}
           />
         </div>
 
-        <select value={category} onChange={(event) => setCategory(event.target.value)} className={controlBase}>
+        <select value={category} onChange={(event) => handleCategory(event.target.value)} className={controlBase}>
           <option value="all">Все категории</option>
           {categories.map((item) => (
             <option key={item.slug} value={item.slug}>
@@ -191,7 +203,7 @@ export function ProductsTable({ products }: { products: Product[] }) {
           ))}
         </select>
 
-        <select value={brand} onChange={(event) => setBrand(event.target.value)} className={controlBase}>
+        <select value={brand} onChange={(event) => handleBrand(event.target.value)} className={controlBase}>
           <option value="all">Все бренды</option>
           {brands.map((item) => (
             <option key={item} value={item}>
@@ -211,7 +223,7 @@ export function ProductsTable({ products }: { products: Product[] }) {
         </label>
       </div>
 
-      <p className="text-sm text-muted-foreground">Найдено: {filtered.length}</p>
+      <p className="text-sm text-muted-foreground">Найдено: {filtered.length} · Страница {safePage} из {totalPages}</p>
 
       <div className="overflow-hidden rounded-card border border-border">
         <table className="w-full text-sm">
@@ -247,6 +259,53 @@ export function ProductsTable({ products }: { products: Product[] }) {
           </p>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            type="button"
+            disabled={safePage <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-sm transition-colors hover:bg-muted disabled:opacity-30"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2)
+            .reduce<(number | string)[]>((acc, p, i, arr) => {
+              if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...')
+              acc.push(p)
+              return acc
+            }, [])
+            .map((p, i) =>
+              typeof p === 'string' ? (
+                <span key={`dots-${i}`} className="px-1 text-sm text-muted-foreground">…</span>
+              ) : (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPage(p)}
+                  className={`flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-sm font-medium transition-colors ${
+                    p === safePage
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border hover:bg-muted'
+                  }`}
+                >
+                  {p}
+                </button>
+              ),
+            )}
+          <button
+            type="button"
+            disabled={safePage >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-sm transition-colors hover:bg-muted disabled:opacity-30"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

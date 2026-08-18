@@ -42,7 +42,8 @@ export async function getAllProducts(): Promise<Product[]> {
   const { data } = await supabase
     .from("products")
     .select(PRODUCT_COLUMNS)
-    .order("sort", { ascending: true })
+    .order("name", { ascending: true })
+    .range(0, 9999)
 
   return ((data as ProductRow[] | null) ?? []).map(mapProduct)
 }
