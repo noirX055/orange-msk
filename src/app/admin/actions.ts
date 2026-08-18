@@ -152,7 +152,7 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "")
   if (!id) return
 
-  await supabase.from("products").delete().eq("id", id)
+  await supabase.from("products").delete().eq("id", Number(id))
   revalidatePath("/admin/products")
   revalidatePath("/catalog")
   revalidatePath("/")
@@ -165,7 +165,7 @@ export async function toggleProductVisibility(formData: FormData): Promise<void>
   const visible = String(formData.get("visible") ?? "") === "1"
   if (!id) return
 
-  await supabase.from("products").update({ is_visible: visible }).eq("id", id)
+  await supabase.from("products").update({ is_visible: visible }).eq("id", Number(id))
   revalidatePath("/admin/products")
   revalidatePath("/catalog")
   revalidatePath("/")
