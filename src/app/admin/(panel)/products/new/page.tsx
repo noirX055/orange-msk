@@ -22,7 +22,7 @@ export default async function NewProductPage() {
         <h1 className="text-2xl font-bold tracking-tight">Новый товар</h1>
       </div>
 
-      <ProductForm />
+      <ProductForm categories={categories} brands={brands} />
     </div>
   )
 }
