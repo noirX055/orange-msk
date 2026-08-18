@@ -148,11 +148,11 @@ export function ProductsTable({ products }: { products: Product[] }) {
         <td className="px-4 py-3 font-semibold">{formatPrice(product.price)}</td>
         <td className="hidden px-4 py-3 md:table-cell">
           {product.inStock ? (
-            <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
+            <span className="whitespace-nowrap rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
               В наличии
             </span>
           ) : (
-            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            <span className="whitespace-nowrap rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
               Нет
             </span>
           )}
@@ -225,8 +225,8 @@ export function ProductsTable({ products }: { products: Product[] }) {
 
       <p className="text-sm text-muted-foreground">Найдено: {filtered.length} · Страница {safePage} из {totalPages}</p>
 
-      <div className="overflow-hidden rounded-card border border-border">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-card border border-border">
+        <table className="w-full min-w-[900px] text-sm">
           <thead className="border-b border-border bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               {sortHeader("Товар", "name")}
