@@ -65,6 +65,12 @@ export async function getAllProducts(): Promise<Product[]> {
   return allData.map(mapProduct)
 }
 
+export async function getAllCategories(): Promise<{ slug: string; name: string }[]> {
+  const supabase = await createClient()
+  const { data } = await supabase.from("categories").select("slug, name").order("name")
+  return (data as { slug: string; name: string }[] | null) ?? []
+}
+
 export async function getProductById(id: string): Promise<Product | null> {
   const supabase = await createClient()
   const { data } = await supabase

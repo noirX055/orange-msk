@@ -4,7 +4,7 @@ import { useMemo, useState, Fragment, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Pencil, Search } from "lucide-react"
-import { formatPrice, getProductImages, getCategoryName, categories, type Product } from "@/lib/products"
+import { formatPrice, getProductImages, type Product } from "@/lib/products"
 import { deleteProduct } from "@/app/admin/actions"
 import { DeleteButton } from "@/components/admin/delete-button"
 import { VisibilityToggle } from "@/components/admin/visibility-toggle"
@@ -14,7 +14,17 @@ type SortKey = "name" | "category" | "price" | "stock" | "visible"
 const controlBase =
   "h-10 rounded-xl border border-border bg-muted/50 px-3 text-sm outline-none transition-colors focus:border-primary"
 
-export function ProductsTable({ products }: { products: Product[] }) {
+export function ProductsTable({
+  products,
+  categories,
+}: {
+  products: Product[]
+  categories: { slug: string; name: string }[]
+}) {
+  const getCategoryName = useCallback(
+    (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug,
+    [categories]
+  )
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("all")
   const [brand, setBrand] = useState("all")
