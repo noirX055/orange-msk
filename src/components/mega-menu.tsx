@@ -15,7 +15,7 @@ export function MegaMenu({ navigationTree }: { navigationTree?: NavigationTree }
   }
 
   const handleLeave = () => {
-    timeoutRef.current = setTimeout(() => setActiveCategory(null), 150)
+    timeoutRef.current = setTimeout(() => setActiveCategory(null), 200)
   }
 
   const brands = activeCategory && navigationTree?.[activeCategory]
@@ -23,17 +23,21 @@ export function MegaMenu({ navigationTree }: { navigationTree?: NavigationTree }
     : []
 
   return (
-    <nav aria-label="Категории" className="hidden border-t border-border md:block">
+    <nav
+      aria-label="Категории"
+      className="relative hidden border-t border-border md:block"
+      onMouseLeave={handleLeave}
+    >
       <div className="mx-auto max-w-7xl px-4">
         <ul className="flex items-center gap-1">
           {categories.map((category) => (
             <li
               key={category.slug}
               onMouseEnter={() => handleEnter(category.slug)}
-              onMouseLeave={handleLeave}
             >
               <Link
                 href={`/catalog?category=${category.slug}`}
+                onClick={() => setActiveCategory(null)}
                 className={`block whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
                   activeCategory === category.slug
                     ? "border-primary text-foreground"
@@ -57,7 +61,7 @@ export function MegaMenu({ navigationTree }: { navigationTree?: NavigationTree }
 
       {activeCategory && brands.length > 0 && (
         <div
-          className="absolute left-0 right-0 z-40 border-b border-border bg-background shadow-lg animate-in fade-in slide-in-from-top-1 duration-150"
+          className="absolute left-0 right-0 top-full z-[60] border-b border-border bg-background shadow-xl"
           onMouseEnter={() => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current)
           }}

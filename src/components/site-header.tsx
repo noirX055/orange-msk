@@ -16,7 +16,7 @@ export function SiteHeader({ navigationTree }: { navigationTree?: NavigationTree
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur" style={{ overflow: "visible" }}>
       <div className="hidden bg-navy text-navy-foreground md:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-2 text-xs">
           <p className="text-navy-foreground/80">Доставка по Москве за 2 часа — бесплатно от 5 000 ₽</p>
