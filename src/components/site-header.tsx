@@ -9,9 +9,8 @@ import { Logo } from "@/components/logo"
 import { SearchBox } from "@/components/search-box"
 import { AccountMenu } from "@/components/account/account-menu"
 import { MegaMenu } from "@/components/mega-menu"
-import type { NavigationTree } from "@/lib/products/queries"
 
-export function SiteHeader({ navigationTree }: { navigationTree?: NavigationTree }) {
+export function SiteHeader() {
   const { totalItems } = useCart()
   const [open, setOpen] = useState(false)
 
@@ -67,7 +66,7 @@ export function SiteHeader({ navigationTree }: { navigationTree?: NavigationTree
         </div>
       </div>
 
-      <MegaMenu navigationTree={navigationTree} />
+      <MegaMenu />
 
       {open && (
         <div className="border-t border-border bg-background md:hidden">

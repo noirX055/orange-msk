@@ -4,7 +4,6 @@ import "./globals.css"
 import { CartProvider } from "@/components/cart-provider"
 import { FavoritesProvider } from "@/components/favorites-provider"
 import { SiteChrome } from "@/components/site-chrome"
-import { getNavigationTree } from "@/lib/products/queries"
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -26,13 +25,11 @@ export const viewport: Viewport = {
   themeColor: "#22303f",
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const navigationTree = await getNavigationTree()
-
   return (
     <html
       lang="ru"
@@ -41,7 +38,7 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col">
         <CartProvider>
           <FavoritesProvider>
-            <SiteChrome navigationTree={navigationTree}>{children}</SiteChrome>
+            <SiteChrome>{children}</SiteChrome>
           </FavoritesProvider>
         </CartProvider>
       </body>

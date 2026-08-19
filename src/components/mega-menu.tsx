@@ -4,16 +4,24 @@ import Link from "next/link"
 import { useState, useRef, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { categories } from "@/lib/products"
-import type { NavigationTree } from "@/lib/products/queries"
 
-export function MegaMenu({ navigationTree }: { navigationTree?: NavigationTree }) {
+type NavTree = Record<string, Record<string, string[]>>
+
+export function MegaMenu() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [tree, setTree] = useState<NavTree>({})
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navRef = useRef<HTMLElement>(null)
   const [dropdownTop, setDropdownTop] = useState(0)
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    setMounted(true)
+    fetch("/api/navigation")
+      .then((res) => res.json())
+      .then((data) => setTree(data))
+      .catch(() => {})
+  }, [])
 
   const handleEnter = (slug: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
@@ -28,8 +36,8 @@ export function MegaMenu({ navigationTree }: { navigationTree?: NavigationTree }
     timeoutRef.current = setTimeout(() => setActiveCategory(null), 200)
   }
 
-  const brands = activeCategory && navigationTree?.[activeCategory]
-    ? Object.entries(navigationTree[activeCategory])
+  const brands = activeCategory && tree[activeCategory]
+    ? Object.entries(tree[activeCategory])
     : []
 
   const dropdown = activeCategory && brands.length > 0 ? (
