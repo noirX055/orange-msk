@@ -119,3 +119,42 @@ export async function getRelatedProducts(product: Product, limit = 4): Promise<P
     .concat(all.filter((item) => item.category !== product.category && item.id !== product.id))
     .slice(0, limit)
 }
+
+export type NavigationTree = Record<string, Record<string, string[]>>
+
+export async function getNavigationTree(): Promise<NavigationTree> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("products")
+    .select("category, brand, series")
+    .eq("is_visible", true)
+
+  const tree: NavigationTree = {}
+
+  if (data) {
+    for (const row of data) {
+      const { category, brand, series } = row
+      if (!category || !brand) continue
+
+      if (!tree[category]) tree[category] = {}
+      if (!tree[category][brand]) tree[category][brand] = []
+      
+      if (series && !tree[category][brand].includes(series)) {
+        tree[category][brand].push(series)
+      }
+    }
+  }
+
+  // Сортировка для предсказуемого порядка
+  for (const cat of Object.keys(tree)) {
+    const sortedBrands: Record<string, string[]> = {}
+    Object.keys(tree[cat])
+      .sort()
+      .forEach((brand) => {
+        sortedBrands[brand] = tree[cat][brand].sort()
+      })
+    tree[cat] = sortedBrands
+  }
+
+  return tree
+}

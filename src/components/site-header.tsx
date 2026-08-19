@@ -8,8 +8,10 @@ import { useCart } from "@/components/cart-provider"
 import { Logo } from "@/components/logo"
 import { SearchBox } from "@/components/search-box"
 import { AccountMenu } from "@/components/account/account-menu"
+import { MegaMenu } from "@/components/mega-menu"
+import type { NavigationTree } from "@/lib/products/queries"
 
-export function SiteHeader() {
+export function SiteHeader({ navigationTree }: { navigationTree?: NavigationTree }) {
   const { totalItems } = useCart()
   const [open, setOpen] = useState(false)
 
@@ -65,28 +67,7 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <nav aria-label="Категории" className="hidden border-t border-border md:block">
-        <ul className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4">
-          {categories.map((category) => (
-            <li key={category.slug}>
-              <Link
-                href={`/catalog?category=${category.slug}`}
-                className="block whitespace-nowrap border-b-2 border-transparent px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
-              >
-                {category.name}
-              </Link>
-            </li>
-          ))}
-          <li className="ml-auto">
-            <Link
-              href="/catalog?sale=1"
-              className="block whitespace-nowrap px-3 py-3 text-sm font-semibold text-primary"
-            >
-              Скидки
-            </Link>
-          </li>
-        </ul>
-      </nav>
+      <MegaMenu navigationTree={navigationTree} />
 
       {open && (
         <div className="border-t border-border bg-background md:hidden">
