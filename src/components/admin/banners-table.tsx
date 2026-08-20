@@ -68,22 +68,16 @@ export function BannersTable({ banners }: { banners: Banner[] }) {
 
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border text-[10px] font-bold"
-                    style={{ backgroundColor: banner.bgColor }}
-                  >
+                  <div className="flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted">
                     {banner.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={banner.image} alt="" className="h-full w-full object-contain p-1" />
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={banner.image} alt="Баннер" className="h-full w-full object-cover" />
                     ) : (
-                      <span className={banner.textColor === "dark" ? "text-navy" : "text-white"}>
-                        Aa
-                      </span>
+                      <span className="text-xs text-muted-foreground">Без фото</span>
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate font-medium">{banner.title}</p>
-                    <p className="truncate text-xs text-muted-foreground">{banner.subtitle}</p>
+                    <p className="truncate font-medium">{banner.title || "Баннер"}</p>
                   </div>
                 </div>
               </td>

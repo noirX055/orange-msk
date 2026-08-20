@@ -6,80 +6,34 @@ import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import type { Banner } from "@/lib/banners/types"
 
-const defaultBanners: Banner[] = [
-  {
-    id: "dyson-hero",
-    title: "Dyson",
-    subtitle: "",
-    bgColor: "#DF3873",
-    textColor: "light",
-    image: "/banners/dyson.png",
-    href: "/catalog?brand=Dyson",
-    isVisible: true,
-    sort: 1,
-  },
-  {
-    id: "smartphone-hero",
-    title: "Смартфоны",
-    subtitle: "",
-    bgColor: "#080808",
-    textColor: "light",
-    image: "/banners/smartphones.png",
-    href: "/catalog?category=smartphones",
-    isVisible: true,
-    sort: 2,
-  },
-  {
-    id: "laptop-hero",
-    title: "Ноутбуки",
-    subtitle: "",
-    bgColor: "#5BC4E7",
-    textColor: "light",
-    image: "/banners/laptops.png",
-    href: "/catalog?category=laptops",
-    isVisible: true,
-    sort: 3,
-  },
-  {
-    id: "audio-hero",
-    title: "Аудио",
-    subtitle: "",
-    bgColor: "#080808",
-    textColor: "light",
-    image: "/banners/audio.png",
-    href: "/catalog?category=audio",
-    isVisible: true,
-    sort: 4,
-  },
-]
-
-export function BannerCarousel({ banners }: { banners?: Banner[] }) {
-  const displayBanners = banners && banners.length > 0 ? banners : defaultBanners
+export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  const activeBanners = banners.filter((b) => b.isVisible && Boolean(b.image))
+
   // Автопрокрутка слайдера каждые 5 секунд
   useEffect(() => {
-    if (isPaused || displayBanners.length <= 1) return
+    if (isPaused || activeBanners.length <= 1) return
 
     timerRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % displayBanners.length)
+      setCurrentIndex((prev) => (prev + 1) % activeBanners.length)
     }, 5000)
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isPaused, displayBanners.length])
+  }, [isPaused, activeBanners.length])
 
-  if (displayBanners.length === 0) return null
+  if (activeBanners.length === 0) return null
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? displayBanners.length - 1 : prev - 1))
+    setCurrentIndex((prev) => (prev === 0 ? activeBanners.length - 1 : prev - 1))
   }
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % displayBanners.length)
+    setCurrentIndex((prev) => (prev + 1) % activeBanners.length)
   }
 
   return (
@@ -89,26 +43,21 @@ export function BannerCarousel({ banners }: { banners?: Banner[] }) {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Контейнер слайдов с умеренным скруглением (rounded-2xl) */}
-      <div className="relative h-56 w-full sm:h-72 md:h-88 lg:h-[400px]">
-        {displayBanners.map((banner, index) => {
+      {/* Контейнер баннера с закруглением rounded-2xl */}
+      <div className="relative h-52 w-full sm:h-72 md:h-88 lg:h-[380px]">
+        {activeBanners.map((banner, index) => {
           const isActive = index === currentIndex
 
           const slideContent = (
-            <div
-              className="relative h-full w-full overflow-hidden"
-              style={{ backgroundColor: banner.bgColor || "transparent" }}
-            >
-              {banner.image && (
-                <Image
-                  src={banner.image}
-                  alt={banner.title || "Баннер"}
-                  fill
-                  priority={index === 0}
-                  sizes="(max-width: 1280px) 100vw, 1280px"
-                  className="object-cover object-center transition-transform duration-700 group-hover:scale-102"
-                />
-              )}
+            <div className="relative h-full w-full overflow-hidden">
+              <Image
+                src={banner.image}
+                alt={banner.title || "Баннер"}
+                fill
+                priority={index === 0}
+                sizes="(max-width: 1280px) 100vw, 1280px"
+                className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
+              />
             </div>
           )
 
@@ -131,8 +80,8 @@ export function BannerCarousel({ banners }: { banners?: Banner[] }) {
         })}
       </div>
 
-      {/* Кнопки навигации стрелками */}
-      {displayBanners.length > 1 && (
+      {/* Боковые кнопки-стрелки */}
+      {activeBanners.length > 1 && (
         <>
           <button
             type="button"
@@ -151,9 +100,9 @@ export function BannerCarousel({ banners }: { banners?: Banner[] }) {
             <ChevronRight size={22} />
           </button>
 
-          {/* Полоски-индикаторы (пагинация) */}
+          {/* Индикаторы-полоски */}
           <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-2">
-            {displayBanners.map((_, index) => (
+            {activeBanners.map((_, index) => (
               <button
                 key={index}
                 type="button"

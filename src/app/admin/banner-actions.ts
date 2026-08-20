@@ -32,12 +32,12 @@ function parseBannerForm(formData: FormData) {
   }
 }
 
-// Возвращает URL картинки: новый файл имеет приоритет, иначе оставляем существующий
+// Возвращает URL картинки или сообщение об ошибке загрузки
 async function resolveImage(
   formData: FormData,
   supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"],
   titleSlug: string,
-): Promise<string> {
+): Promise<{ url: string; error?: string }> {
   const existing = String(formData.get("existing_image") ?? "").trim()
   const file = formData.get("image")
 
@@ -45,17 +45,32 @@ async function resolveImage(
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
     const path = `${titleSlug}/${Date.now()}_${safeName}`
-    const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+
+    // Пытаемся автоматически гарантировать наличие бакета 'banner-images'
+    try {
+      await supabase.storage.createBucket(BUCKET, { public: true })
+    } catch {
+      // Бакет уже существует
+    }
+
+    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
       upsert: true,
       contentType: file.type || undefined,
     })
-    if (!error) {
-      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
-      return data.publicUrl
+
+    if (uploadError) {
+      console.error("Supabase Storage error:", uploadError)
+      return {
+        url: "",
+        error: `Ошибка загрузки файла в Supabase (${uploadError.message}). Убедитесь, что бакет 'banner-images' создан в хранилище Supabase.`,
+      }
     }
+
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
+    return { url: data.publicUrl }
   }
 
-  return existing
+  return { url: existing }
 }
 
 function revalidateBanners() {
@@ -70,8 +85,9 @@ export async function createBanner(
   const { supabase } = await requireAdmin()
   const fields = parseBannerForm(formData)
 
-  const image = await resolveImage(formData, supabase, slugifyTitle(fields.title))
-  if (!image) return { ok: false, error: "Пожалуйста, загрузите изображение баннера" }
+  const { url: image, error: uploadErr } = await resolveImage(formData, supabase, slugifyTitle(fields.title))
+  if (uploadErr) return { ok: false, error: uploadErr }
+  if (!image) return { ok: false, error: "Пожалуйста, выберите и загрузите фото баннера" }
 
   // Новый баннер — в конец списка
   const { data: last } = await supabase
@@ -99,7 +115,8 @@ export async function updateBanner(
 
   const fields = parseBannerForm(formData)
 
-  const image = await resolveImage(formData, supabase, slugifyTitle(fields.title))
+  const { url: image, error: uploadErr } = await resolveImage(formData, supabase, slugifyTitle(fields.title))
+  if (uploadErr) return { ok: false, error: uploadErr }
 
   const { error } = await supabase.from("banners").update({ ...fields, image }).eq("id", id)
   if (error) return { ok: false, error: error.message }
