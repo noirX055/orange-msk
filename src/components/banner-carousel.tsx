@@ -56,7 +56,7 @@ export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
                 fill
                 priority={index === 0}
                 sizes="(max-width: 1280px) 100vw, 1280px"
-                className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
+                className="object-cover object-center"
               />
             </div>
           )

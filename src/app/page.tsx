@@ -36,7 +36,7 @@ const categoryCards = [
     slug: "monitors",
     name: "Мониторы",
     Icon: Monitor,
-    image: "/categories/monitors.png",
+    image: "/categories/monitorsnew.png",
   },
   {
     slug: "audio",
