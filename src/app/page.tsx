@@ -28,7 +28,7 @@ const categoryCards = [
     color: "text-[#2563EB]",
     circleBg: "bg-[#DFECFD]",
     arrowColor: "text-[#2563EB]",
-    image: "/categories/smartphones.png",
+    image: "/categories/smartphone.png",
   },
   {
     slug: "laptops",
@@ -58,7 +58,7 @@ const categoryCards = [
     color: "text-[#D97706]",
     circleBg: "bg-[#FFF2E2]",
     arrowColor: "text-[#D97706]",
-    image: "/categories/audio.png",
+    image: "/categories/audi.png",
   },
   {
     slug: "wearables",
