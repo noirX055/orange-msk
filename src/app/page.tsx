@@ -29,7 +29,7 @@ const categoryCards = [
     bgGradient: "from-blue-50/80 to-blue-100/30 dark:from-blue-950/20 dark:to-muted/30",
     borderColor: "hover:border-blue-200 dark:hover:border-blue-800",
     arrowBg: "bg-blue-600 text-white",
-    image: "/categories/smartphone.png?v=2",
+    image: "/categories/smartphone.png",
   },
   {
     slug: "laptops",
@@ -40,7 +40,7 @@ const categoryCards = [
     bgGradient: "from-purple-50/80 to-purple-100/30 dark:from-purple-950/20 dark:to-muted/30",
     borderColor: "hover:border-purple-200 dark:hover:border-purple-800",
     arrowBg: "bg-purple-600 text-white",
-    image: "/categories/laptop.png?v=2",
+    image: "/categories/laptop.png",
   },
   {
     slug: "monitors",
@@ -51,7 +51,7 @@ const categoryCards = [
     bgGradient: "from-emerald-50/80 to-emerald-100/30 dark:from-emerald-950/20 dark:to-muted/30",
     borderColor: "hover:border-emerald-200 dark:hover:border-emerald-800",
     arrowBg: "bg-emerald-600 text-white",
-    image: "/categories/monitors.png?v=2",
+    image: "/categories/monitors.png",
   },
   {
     slug: "audio",
@@ -62,7 +62,7 @@ const categoryCards = [
     bgGradient: "from-amber-50/80 to-amber-100/30 dark:from-amber-950/20 dark:to-muted/30",
     borderColor: "hover:border-amber-200 dark:hover:border-amber-800",
     arrowBg: "bg-amber-600 text-white",
-    image: "/categories/audi.png?v=2",
+    image: "/categories/audi.png",
   },
   {
     slug: "wearables",
@@ -73,7 +73,7 @@ const categoryCards = [
     bgGradient: "from-rose-50/80 to-rose-100/30 dark:from-rose-950/20 dark:to-muted/30",
     borderColor: "hover:border-rose-200 dark:hover:border-rose-800",
     arrowBg: "bg-rose-600 text-white",
-    image: "/categories/whatch.png?v=2",
+    image: "/categories/whatch.png",
   },
   {
     slug: "home",
@@ -84,7 +84,7 @@ const categoryCards = [
     bgGradient: "from-sky-50/80 to-sky-100/30 dark:from-sky-950/20 dark:to-muted/30",
     borderColor: "hover:border-sky-200 dark:hover:border-sky-800",
     arrowBg: "bg-sky-600 text-white",
-    image: "/categories/homedevice.png?v=2",
+    image: "/categories/homedevice.png",
   },
 ]
 
