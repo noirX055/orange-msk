@@ -20,12 +20,66 @@ import { getProducts } from "@/lib/products/queries"
 import { getBanners } from "@/lib/banners/queries"
 
 const categoryCards = [
-  { slug: "smartphones", name: "Смартфоны", count: "320 товаров", Icon: Smartphone, color: "bg-blue-50 text-blue-500", image: "/products/smartphones/1.png" },
-  { slug: "laptops", name: "Ноутбуки", count: "180 товаров", Icon: Laptop, color: "bg-purple-50 text-purple-500", image: "/products/laptops/1.png" },
-  { slug: "monitors", name: "Мониторы", count: "95 товаров", Icon: Monitor, color: "bg-emerald-50 text-emerald-500", image: "/products/monitors/1.png" },
-  { slug: "audio", name: "Аудио", count: "240 товаров", Icon: Headphones, color: "bg-orange-50 text-orange-500", image: "/products/audio/1.png" },
-  { slug: "wearables", name: "Гаджеты", count: "150 товаров", Icon: Watch, color: "bg-pink-50 text-pink-500", image: "/products/wearables/1.png" },
-  { slug: "home", name: "Техника для дома", count: "210 товаров", Icon: WashingMachine, color: "bg-sky-50 text-sky-500", image: "/products/home/1.png" },
+  {
+    slug: "smartphones",
+    name: "Смартфоны",
+    count: "320 товаров",
+    Icon: Smartphone,
+    color: "text-[#2563EB]",
+    circleBg: "bg-[#DFECFD]",
+    arrowColor: "text-[#2563EB]",
+    image: "/categories/smartphones.jpg",
+  },
+  {
+    slug: "laptops",
+    name: "Ноутбуки",
+    count: "180 товаров",
+    Icon: Laptop,
+    color: "text-[#7C3AED]",
+    circleBg: "bg-[#F1E8FF]",
+    arrowColor: "text-[#7C3AED]",
+    image: "/categories/laptops.jpg",
+  },
+  {
+    slug: "monitors",
+    name: "Мониторы",
+    count: "95 товаров",
+    Icon: Monitor,
+    color: "text-[#059669]",
+    circleBg: "bg-[#E6F7F0]",
+    arrowColor: "text-[#059669]",
+    image: "/categories/monitors.jpg",
+  },
+  {
+    slug: "audio",
+    name: "Аудио",
+    count: "240 товаров",
+    Icon: Headphones,
+    color: "text-[#D97706]",
+    circleBg: "bg-[#FFF2E2]",
+    arrowColor: "text-[#D97706]",
+    image: "/categories/audio.jpg",
+  },
+  {
+    slug: "wearables",
+    name: "Гаджеты",
+    count: "150 товаров",
+    Icon: Watch,
+    color: "text-[#E11D48]",
+    circleBg: "bg-[#FFEBEF]",
+    arrowColor: "text-[#E11D48]",
+    image: "/categories/wearables.jpg",
+  },
+  {
+    slug: "home",
+    name: "Техника для дома",
+    count: "210 товаров",
+    Icon: WashingMachine,
+    color: "text-[#0284C7]",
+    circleBg: "bg-[#E0F2FE]",
+    arrowColor: "text-[#0284C7]",
+    image: "/categories/home.jpg",
+  },
 ]
 
 const brandOrder = ["Apple", "Samsung", "Xiaomi", "ASUS", "LG", "Sony", "Dyson"]
@@ -52,37 +106,42 @@ export default async function HomePage() {
       <BannerCarousel banners={banners} />
 
       <section aria-labelledby="categories-title">
-        <h2 id="categories-title" className="mb-6 text-2xl font-bold tracking-tight">
+        <h2 id="categories-title" className="mb-6 text-2xl font-bold tracking-tight text-foreground">
           Категории
         </h2>
-        <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-          {categoryCards.map(({ slug, name, count, Icon, color, image }) => (
+        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2">
+          {categoryCards.map(({ slug, name, count, Icon, color, circleBg, arrowColor, image }) => (
             <li key={slug}>
               <Link
                 href={`/catalog?category=${slug}`}
-                className="group relative flex min-h-[180px] flex-col justify-between overflow-hidden rounded-2xl p-5 transition-shadow hover:shadow-lg"
-                style={{ background: `linear-gradient(135deg, var(--background) 0%, hsl(from currentColor h s l / 0.06) 100%)` }}
+                className="group relative flex h-48 w-full items-center justify-between overflow-hidden rounded-3xl bg-[#F6F8FC] p-6 transition-all duration-300 hover:shadow-md dark:bg-muted/30"
               >
-                <div className="flex flex-col gap-3 relative z-10">
-                  <span className={`flex h-11 w-11 items-center justify-center rounded-xl shadow-sm ${color.split(' ')[0]}`}>
-                    <Icon size={22} strokeWidth={1.5} className={color.split(' ')[1]} />
-                  </span>
-                  <span className="text-base font-bold leading-tight">{name}</span>
-                  <span className="text-sm text-muted-foreground">{count}</span>
+                {/* Left Info */}
+                <div className="z-10 flex h-full flex-col justify-between">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-card">
+                    <Icon size={24} strokeWidth={1.75} className={color} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground">{name}</h3>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{count}</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-foreground shadow-sm transition-transform duration-200 group-hover:scale-110 dark:bg-card">
+                    <ArrowRight size={18} className={arrowColor} />
+                  </div>
                 </div>
-                <div className="relative z-10 mt-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                    <ArrowRight size={18} />
-                  </span>
-                </div>
-                <div className="absolute -bottom-2 -right-2 h-[70%] w-[50%] opacity-90 transition-transform duration-300 group-hover:scale-105">
-                  <Image
-                    src={image}
-                    alt={name}
-                    fill
-                    sizes="200px"
-                    className="object-contain object-right-bottom mix-blend-multiply"
-                  />
+
+                {/* Right Circle & Product Image */}
+                <div className="relative h-full w-1/2">
+                  <div className={`absolute right-[-10px] top-1/2 h-40 w-40 -translate-y-1/2 rounded-full ${circleBg} opacity-90 dark:opacity-20`} />
+                  <div className="absolute right-0 top-1/2 h-40 w-40 -translate-y-1/2 transition-transform duration-300 group-hover:scale-105">
+                    <Image
+                      src={image}
+                      alt={name}
+                      fill
+                      sizes="200px"
+                      className="object-contain mix-blend-multiply dark:mix-blend-normal"
+                    />
+                  </div>
                 </div>
               </Link>
             </li>
