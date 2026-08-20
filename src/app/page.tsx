@@ -38,7 +38,7 @@ const categoryCards = [
     color: "text-[#7C3AED]",
     circleBg: "bg-[#F1E8FF]",
     arrowColor: "text-[#7C3AED]",
-    image: "/categories/laptops.png",
+    image: "/categories/laptop.png",
   },
   {
     slug: "monitors",
@@ -58,7 +58,7 @@ const categoryCards = [
     color: "text-[#D97706]",
     circleBg: "bg-[#FFF2E2]",
     arrowColor: "text-[#D97706]",
-    image: "/categories/audi.png",
+    image: "/categories/audio.png",
   },
   {
     slug: "wearables",
@@ -68,7 +68,7 @@ const categoryCards = [
     color: "text-[#E11D48]",
     circleBg: "bg-[#FFEBEF]",
     arrowColor: "text-[#E11D48]",
-    image: "/categories/wearables.png",
+    image: "/categories/whatch.png",
   },
   {
     slug: "home",
@@ -78,7 +78,7 @@ const categoryCards = [
     color: "text-[#0284C7]",
     circleBg: "bg-[#E0F2FE]",
     arrowColor: "text-[#0284C7]",
-    image: "/categories/home.png",
+    image: "/categories/homedevice.png",
   },
 ]
 
