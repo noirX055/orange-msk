@@ -115,36 +115,36 @@ export default async function HomePage() {
         <h2 id="categories-title" className="mb-4 text-xl font-bold tracking-tight text-foreground md:text-2xl">
           Категории
         </h2>
-        <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+        <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           {categoryCards.map(({ slug, name, count, Icon, color, bgGradient, borderColor, arrowBg, image }) => (
             <li key={slug}>
               <Link
                 href={`/catalog?category=${slug}`}
-                className={`group relative flex h-40 sm:h-44 md:h-48 w-full flex-col justify-between overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br ${bgGradient} p-5 md:p-6 transition-all duration-300 ${borderColor} hover:-translate-y-1 hover:shadow-xl`}
+                className={`group relative flex h-36 sm:h-44 md:h-48 w-full flex-col justify-between overflow-hidden rounded-2xl md:rounded-3xl border border-border/60 bg-gradient-to-br ${bgGradient} p-3.5 sm:p-5 md:p-6 transition-all duration-300 ${borderColor} hover:-translate-y-1 hover:shadow-xl`}
               >
-                {/* Left Info */}
-                <div className="z-10 flex h-full flex-col justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-card">
-                    <Icon size={20} strokeWidth={1.8} className={color} />
+                {/* Left Info (restricted to 55% width so text never overlaps image) */}
+                <div className="z-10 flex h-full w-[55%] flex-col justify-between pr-1">
+                  <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-white shadow-sm dark:bg-card">
+                    <Icon size={16} strokeWidth={1.8} className={`${color} sm:w-5 sm:h-5`} />
                   </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground leading-tight tracking-tight">{name}</h3>
-                    <p className="mt-1 text-xs font-medium text-muted-foreground">{count}</p>
+                  <div className="my-auto py-1">
+                    <h3 className="text-xs sm:text-base md:text-xl font-bold text-foreground leading-tight tracking-tight line-clamp-2">{name}</h3>
+                    <p className="mt-0.5 text-[10px] sm:text-xs font-medium text-muted-foreground whitespace-nowrap">{count}</p>
                   </div>
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${arrowBg} shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:translate-x-0.5`}>
-                    <ArrowRight size={15} strokeWidth={2.5} />
+                  <div className={`flex h-6 w-6 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full ${arrowBg} shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:translate-x-0.5`}>
+                    <ArrowRight size={12} strokeWidth={2.5} className="sm:w-4 sm:h-4" />
                   </div>
                 </div>
 
-                {/* Right Product Image without circle */}
-                <div className="absolute right-2 bottom-2 top-2 w-1/2 overflow-hidden pointer-events-none flex items-center justify-end">
-                  <div className="relative h-32 w-32 sm:h-36 sm:w-36 md:h-40 md:w-40 transition-transform duration-300 group-hover:scale-105">
+                {/* Right Product Image (contained inside right 45%) */}
+                <div className="absolute right-0 top-0 bottom-0 w-[45%] overflow-hidden pointer-events-none flex items-center justify-center p-1 sm:p-2">
+                  <div className="relative h-24 w-24 sm:h-36 sm:w-36 md:h-40 md:w-40 transition-transform duration-300 group-hover:scale-105">
                     <Image
                       src={image}
                       alt={name}
                       fill
-                      sizes="200px"
-                      className="object-contain"
+                      sizes="(max-width: 640px) 120px, 200px"
+                      className="object-contain object-right"
                       priority
                     />
                   </div>
