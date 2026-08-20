@@ -129,7 +129,6 @@ export default async function HomePage() {
                   </div>
                   <div className="my-auto py-1">
                     <h3 className="text-xs sm:text-base md:text-xl font-bold text-foreground leading-tight tracking-tight line-clamp-2">{name}</h3>
-                    <p className="mt-0.5 text-[10px] sm:text-xs font-medium text-muted-foreground whitespace-nowrap">{count}</p>
                   </div>
                   <div className={`flex h-6 w-6 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full ${arrowBg} shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:translate-x-0.5`}>
                     <ArrowRight size={12} strokeWidth={2.5} className="sm:w-4 sm:h-4" />
