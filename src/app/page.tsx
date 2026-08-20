@@ -114,32 +114,36 @@ export default async function HomePage() {
             <li key={slug}>
               <Link
                 href={`/catalog?category=${slug}`}
-                className="group relative flex h-48 w-full items-center justify-between overflow-hidden rounded-3xl bg-[#F6F8FC] p-6 transition-all duration-300 hover:shadow-md dark:bg-muted/30"
+                className="group relative flex h-60 sm:h-64 md:h-72 w-full flex-col justify-between overflow-hidden rounded-3xl bg-[#F6F8FC] p-6 md:p-7 transition-all duration-300 hover:shadow-lg dark:bg-muted/30"
               >
                 {/* Left Info */}
                 <div className="z-10 flex h-full flex-col justify-between">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-card">
                     <Icon size={24} strokeWidth={1.75} className={color} />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground">{name}</h3>
-                    <p className="mt-0.5 text-sm text-muted-foreground">{count}</p>
+                  <div className="my-auto py-2">
+                    <h3 className="text-xl md:text-2xl font-bold text-foreground">{name}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{count}</p>
                   </div>
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-foreground shadow-sm transition-transform duration-200 group-hover:scale-110 dark:bg-card">
                     <ArrowRight size={18} className={arrowColor} />
                   </div>
                 </div>
 
-                {/* Right Circle & Product Image */}
-                <div className="relative h-full w-1/2">
-                  <div className={`absolute right-[-10px] top-1/2 h-40 w-40 -translate-y-1/2 rounded-full ${circleBg} opacity-90 dark:opacity-20`} />
-                  <div className="absolute right-0 top-1/2 h-40 w-40 -translate-y-1/2 transition-transform duration-300 group-hover:scale-105">
+                {/* Right Circle & Large Product Image */}
+                <div className="absolute right-0 top-0 bottom-0 w-3/5 overflow-hidden">
+                  {/* Soft Background Circle */}
+                  <div className={`absolute -right-6 top-1/2 h-52 w-52 sm:h-60 sm:w-60 md:h-68 md:w-68 -translate-y-1/2 rounded-full ${circleBg} opacity-90 dark:opacity-20`} />
+                  
+                  {/* Floating Product Image */}
+                  <div className="absolute right-2 top-1/2 h-48 w-48 sm:h-56 sm:w-56 md:h-64 md:w-64 -translate-y-1/2 transition-transform duration-300 group-hover:scale-105">
                     <Image
                       src={image}
                       alt={name}
                       fill
-                      sizes="200px"
+                      sizes="(max-width: 768px) 50vw, 33vw"
                       className="object-contain mix-blend-multiply dark:mix-blend-normal"
+                      priority
                     />
                   </div>
                 </div>
