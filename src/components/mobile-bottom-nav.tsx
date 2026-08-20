@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, LayoutGrid, Heart, ShoppingBag } from "lucide-react"
+import { Home, LayoutGrid, Heart, ShoppingBag, User } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 
 const tabs = [
@@ -10,6 +10,7 @@ const tabs = [
   { href: "/catalog", label: "Каталог", Icon: LayoutGrid },
   { href: "/favorites", label: "Избранное", Icon: Heart },
   { href: "/cart", label: "Корзина", Icon: ShoppingBag },
+  { href: "/account", label: "Профиль", Icon: User },
 ]
 
 export function MobileBottomNav() {
@@ -17,7 +18,7 @@ export function MobileBottomNav() {
   const { totalItems } = useCart()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur md:hidden">
+    <nav className="fixed bottom-2 left-2 right-2 z-50 rounded-2xl border border-border bg-background/90 shadow-lg backdrop-blur-xl md:hidden">
       <ul className="mx-auto flex max-w-lg items-center justify-around">
         {tabs.map(({ href, label, Icon }) => {
           const isActive =
@@ -29,21 +30,26 @@ export function MobileBottomNav() {
             <li key={href}>
               <Link
                 href={href}
-                className={`flex flex-col items-center gap-0.5 px-4 py-2.5 text-[11px] font-medium transition-colors ${
+                className={`group flex flex-col items-center gap-0.5 px-3 py-2.5 text-[11px] font-medium transition-all duration-200 ${
                   isActive
                     ? "text-primary"
-                    : "text-muted-foreground"
+                    : "text-muted-foreground active:scale-90"
                 }`}
               >
-                <span className="relative">
-                  <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
+                <span className="relative transition-transform duration-200 group-active:scale-90">
+                  <span className={`absolute -inset-2 rounded-full transition-all duration-300 ${
+                    isActive ? "bg-primary/10 scale-100" : "scale-0 bg-transparent"
+                  }`} />
+                  <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} className="relative" />
                   {label === "Корзина" && totalItems > 0 && (
                     <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
                       {totalItems}
                     </span>
                   )}
                 </span>
-                {label}
+                <span className={`transition-all duration-200 ${isActive ? "font-semibold" : ""}`}>
+                  {label}
+                </span>
               </Link>
             </li>
           )

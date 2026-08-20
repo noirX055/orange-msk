@@ -18,7 +18,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <SiteHeader />
-      <main className="flex-1 pb-16 md:pb-0">{children}</main>
+      <main className="flex-1 pb-20 md:pb-0">{children}</main>
       <SiteFooter />
       <MobileBottomNav />
     </>
