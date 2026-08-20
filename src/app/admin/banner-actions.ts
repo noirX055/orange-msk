@@ -8,17 +8,6 @@ export type BannerActionState = { ok: boolean; error?: string }
 
 const BUCKET = "banner-images"
 
-function slugifyTitle(value: string) {
-  return (
-    value
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9а-я\s-]/gi, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-") || "banner"
-  )
-}
-
 function parseBannerForm(formData: FormData) {
   const textColor = String(formData.get("text_color") ?? "light")
   const rawTitle = String(formData.get("title") ?? "").trim()
@@ -33,20 +22,20 @@ function parseBannerForm(formData: FormData) {
 }
 
 // Возвращает URL картинки или сообщение об ошибке загрузки
-async function resolveImage(
+async function resolveImageField(
   formData: FormData,
   supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"],
-  titleSlug: string,
+  fileFieldName: string,
+  existingFieldName: string,
 ): Promise<{ url: string; error?: string }> {
-  const existing = String(formData.get("existing_image") ?? "").trim()
-  const file = formData.get("image")
+  const existing = String(formData.get(existingFieldName) ?? "").trim()
+  const file = formData.get(fileFieldName)
 
   if (file instanceof File && file.size > 0) {
     const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg"
     // Чистый ASCII ключ для Supabase Storage без кириллицы
     const path = `banner_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`
 
-    // Пытаемся автоматически гарантировать наличие бакета 'banner-images'
     try {
       await supabase.storage.createBucket(BUCKET, { public: true })
     } catch {
@@ -62,7 +51,7 @@ async function resolveImage(
       console.error("Supabase Storage error:", uploadError)
       return {
         url: "",
-        error: `Ошибка загрузки файла в Supabase (${uploadError.message}). Убедитесь, что бакет 'banner-images' создан в хранилище Supabase.`,
+        error: `Ошибка загрузки файла в Supabase (${uploadError.message}).`,
       }
     }
 
@@ -85,9 +74,13 @@ export async function createBanner(
   const { supabase } = await requireAdmin()
   const fields = parseBannerForm(formData)
 
-  const { url: image, error: uploadErr } = await resolveImage(formData, supabase, slugifyTitle(fields.title))
+  const { url: image, error: uploadErr } = await resolveImageField(formData, supabase, "image", "existing_image")
   if (uploadErr) return { ok: false, error: uploadErr }
-  if (!image) return { ok: false, error: "Пожалуйста, выберите и загрузите фото баннера" }
+
+  const { url: imageMobile, error: uploadMobileErr } = await resolveImageField(formData, supabase, "image_mobile", "existing_image_mobile")
+  if (uploadMobileErr) return { ok: false, error: uploadMobileErr }
+
+  if (!image && !imageMobile) return { ok: false, error: "Пожалуйста, выберите и загрузите фото баннера" }
 
   // Новый баннер — в конец списка
   const { data: last } = await supabase
@@ -98,7 +91,12 @@ export async function createBanner(
     .maybeSingle()
   const sort = ((last as { sort: number } | null)?.sort ?? 0) + 1
 
-  const { error } = await supabase.from("banners").insert({ ...fields, image, sort })
+  const { error } = await supabase.from("banners").insert({
+    ...fields,
+    image,
+    image_mobile: imageMobile,
+    sort,
+  })
   if (error) return { ok: false, error: error.message }
 
   revalidateBanners()
@@ -115,10 +113,18 @@ export async function updateBanner(
 
   const fields = parseBannerForm(formData)
 
-  const { url: image, error: uploadErr } = await resolveImage(formData, supabase, slugifyTitle(fields.title))
+  const { url: image, error: uploadErr } = await resolveImageField(formData, supabase, "image", "existing_image")
   if (uploadErr) return { ok: false, error: uploadErr }
 
-  const { error } = await supabase.from("banners").update({ ...fields, image }).eq("id", id)
+  const { url: imageMobile, error: uploadMobileErr } = await resolveImageField(formData, supabase, "image_mobile", "existing_image_mobile")
+  if (uploadMobileErr) return { ok: false, error: uploadMobileErr }
+
+  const { error } = await supabase.from("banners").update({
+    ...fields,
+    image,
+    image_mobile: imageMobile,
+  }).eq("id", id)
+
   if (error) return { ok: false, error: error.message }
 
   revalidateBanners()

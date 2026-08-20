@@ -6,6 +6,7 @@ export type Banner = {
   bgColor: string
   textColor: "light" | "dark"
   image: string
+  imageMobile?: string
   href: string
   isVisible: boolean
   sort: number

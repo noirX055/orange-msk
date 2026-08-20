@@ -9,13 +9,14 @@ export type BannerRow = {
   bg_color: string
   text_color: string
   image: string | null
+  image_mobile?: string | null
   href: string | null
   is_visible: boolean
   sort: number
 }
 
 const BANNER_COLUMNS =
-  "id, title, subtitle, bg_color, text_color, image, href, is_visible, sort"
+  "id, title, subtitle, bg_color, text_color, image, image_mobile, href, is_visible, sort"
 
 export function mapBanner(row: BannerRow): Banner {
   return {
@@ -25,6 +26,7 @@ export function mapBanner(row: BannerRow): Banner {
     bgColor: row.bg_color,
     textColor: row.text_color === "dark" ? "dark" : "light",
     image: row.image ?? "",
+    imageMobile: row.image_mobile ?? "",
     href: row.href ?? "",
     isVisible: row.is_visible,
     sort: row.sort,

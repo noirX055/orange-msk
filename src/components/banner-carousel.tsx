@@ -12,7 +12,7 @@ export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const touchStartXRef = useRef<number | null>(null)
 
-  const activeBanners = banners.filter((b) => b.isVisible && Boolean(b.image))
+  const activeBanners = banners.filter((b) => b.isVisible && Boolean(b.image || b.imageMobile))
 
   // Автопрокрутка слайдера каждые 5 секунд
   useEffect(() => {
@@ -69,21 +69,50 @@ export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Адаптивный пропорциональный контейнер: на мобильных идеально масштабируется по ширинe 2.2:1 без вылетов */}
-      <div className="relative aspect-[2.2/1] w-full sm:aspect-auto sm:h-72 md:h-88 lg:h-[380px]">
+      {/* Адаптивный пропорциональный контейнер: на мобильных 16:10 или 2.2:1 */}
+      <div className="relative aspect-[16/10] w-full sm:aspect-auto sm:h-72 md:h-88 lg:h-[380px]">
         {activeBanners.map((banner, index) => {
           const isActive = index === currentIndex
 
           const slideContent = (
             <div className="relative h-full w-full overflow-hidden">
-              <Image
-                src={banner.image}
-                alt={banner.title || "Баннер"}
-                fill
-                priority={index === 0}
-                sizes="(max-width: 1280px) 100vw, 1280px"
-                className="object-cover object-center"
-              />
+              {banner.imageMobile ? (
+                <>
+                  {/* Мобильная версия фото (телефоны < 640px) */}
+                  <div className="relative h-full w-full sm:hidden">
+                    <Image
+                      src={banner.imageMobile}
+                      alt={banner.title || "Баннер"}
+                      fill
+                      priority={index === 0}
+                      sizes="100vw"
+                      className="object-cover object-center"
+                    />
+                  </div>
+                  {/* Десктопная версия фото (ПК >= 640px) */}
+                  <div className="relative hidden h-full w-full sm:block">
+                    <Image
+                      src={banner.image || banner.imageMobile}
+                      alt={banner.title || "Баннер"}
+                      fill
+                      priority={index === 0}
+                      sizes="(max-width: 1280px) 100vw, 1280px"
+                      className="object-cover object-center"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="relative h-full w-full">
+                  <Image
+                    src={banner.image}
+                    alt={banner.title || "Баннер"}
+                    fill
+                    priority={index === 0}
+                    sizes="(max-width: 1280px) 100vw, 1280px"
+                    className="object-cover object-center"
+                  />
+                </div>
+              )}
             </div>
           )
 
@@ -106,7 +135,7 @@ export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
         })}
       </div>
 
-      {/* Боковые кнопки-стрелки (скрыты на совсем мелких экранах для чистоты UI, кликабельны на планшетах/ПК) */}
+      {/* Боковые кнопки-стрелки (скрыты на мелких экранах, доступны на планшетах/ПК) */}
       {activeBanners.length > 1 && (
         <>
           <button

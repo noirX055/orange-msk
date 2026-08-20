@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useRef, useState } from "react"
-import { Save, Upload, X, Link as LinkIcon } from "lucide-react"
+import { Save, Upload, X, Link as LinkIcon, Smartphone, Monitor } from "lucide-react"
 import { createBanner, updateBanner, type BannerActionState } from "@/app/admin/banner-actions"
 import type { Banner } from "@/lib/banners/types"
 
@@ -20,11 +20,16 @@ export function BannerForm({ banner }: { banner?: Banner }) {
   const [newImage, setNewImage] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const [existingMobileImage, setExistingMobileImage] = useState(banner?.imageMobile ?? "")
+  const [newMobileImage, setNewMobileImage] = useState<string>("")
+  const mobileFileInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     return () => {
       if (newImage) URL.revokeObjectURL(newImage)
+      if (newMobileImage) URL.revokeObjectURL(newMobileImage)
     }
-  }, [newImage])
+  }, [newImage, newMobileImage])
 
   function onPickFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -32,21 +37,34 @@ export function BannerForm({ banner }: { banner?: Banner }) {
     setNewImage(URL.createObjectURL(file))
   }
 
+  function onPickMobileFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setNewMobileImage(URL.createObjectURL(file))
+  }
+
   const previewImage = newImage || existingImage
+  const previewMobileImage = newMobileImage || existingMobileImage
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <form action={formAction} className="flex flex-col gap-6">
         {isEdit && <input type="hidden" name="id" value={banner!.id} />}
         <input type="hidden" name="existing_image" value={existingImage} />
+        <input type="hidden" name="existing_image_mobile" value={existingMobileImage} />
         <input type="hidden" name="title" value={banner?.title || "Баннер"} />
 
-        <section className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <section className="flex flex-col gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-bold">Настройки баннера</h2>
 
-          {/* 1. Загрузка фото */}
+          {/* 1. Десктопное фото */}
           <div className="flex flex-col gap-3">
-            <label className={labelBase}>Фото баннера *</label>
+            <label className={labelBase}>
+              <span className="flex items-center gap-1.5">
+                <Monitor size={16} className="text-primary" />
+                Фото баннера для ПК (Десктоп) *
+              </span>
+            </label>
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -54,7 +72,7 @@ export function BannerForm({ banner }: { banner?: Banner }) {
                 className="flex items-center gap-2 rounded-xl border border-border bg-muted/60 px-5 py-2.5 text-sm font-semibold transition-all hover:border-primary hover:bg-primary/5 hover:text-primary"
               >
                 <Upload size={18} />
-                {previewImage ? "Заменить фото" : "Загрузить фото"}
+                {previewImage ? "Заменить фото ПК" : "Загрузить фото ПК"}
               </button>
               {previewImage && (
                 <button
@@ -80,16 +98,61 @@ export function BannerForm({ banner }: { banner?: Banner }) {
               className="hidden"
             />
             <p className="text-xs text-muted-foreground">
-              Рекомендуемый размер: 2400 × 770 px (или 1920 × 615 px). Формат: PNG, JPG, WebP.
+              Размер для ПК: <strong>2400 × 770 px</strong> (пропорция 3.1:1).
             </p>
           </div>
 
-          {/* 2. Ссылка URL */}
+          {/* 2. Мобильное фото */}
+          <div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-muted/30 p-4">
+            <label className={labelBase}>
+              <span className="flex items-center gap-1.5">
+                <Smartphone size={16} className="text-primary" />
+                Фото баннера для смартфонов (Мобильное фото)
+              </span>
+            </label>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => mobileFileInputRef.current?.click()}
+                className="flex items-center gap-2 rounded-xl border border-border bg-white px-5 py-2.5 text-sm font-semibold transition-all hover:border-primary hover:text-primary dark:bg-card"
+              >
+                <Upload size={18} />
+                {previewMobileImage ? "Заменить фото для телефонов" : "Загрузить фото для телефонов"}
+              </button>
+              {previewMobileImage && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExistingMobileImage("")
+                    setNewMobileImage("")
+                    if (mobileFileInputRef.current) mobileFileInputRef.current.value = ""
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
+                >
+                  <X size={16} />
+                  Удалить
+                </button>
+              )}
+            </div>
+            <input
+              ref={mobileFileInputRef}
+              type="file"
+              name="image_mobile"
+              accept="image/*"
+              onChange={onPickMobileFile}
+              className="hidden"
+            />
+            <p className="text-xs text-muted-foreground">
+              Размер для телефонов: <strong>1080 × 675 px</strong> (пропорция 16:10) или <strong>1080 × 1080 px</strong>. Если не загружено, используется версия для ПК.
+            </p>
+          </div>
+
+          {/* 3. Ссылка URL */}
           <div className="flex flex-col gap-2">
             <label htmlFor="href" className={labelBase}>
               <span className="flex items-center gap-1.5">
                 <LinkIcon size={16} className="text-primary" />
-                Ссылка перепада / перехода (URL)
+                Ссылка перехода (URL)
               </span>
             </label>
             <input
@@ -101,7 +164,7 @@ export function BannerForm({ banner }: { banner?: Banner }) {
             />
           </div>
 
-          {/* 3. Флаг видимости */}
+          {/* 4. Флаг видимости */}
           <label className="mt-2 flex items-center gap-3 text-sm font-medium">
             <input
               type="checkbox"
@@ -138,22 +201,45 @@ export function BannerForm({ banner }: { banner?: Banner }) {
       </form>
 
       {/* Живой предпросмотр */}
-      <div className="lg:sticky lg:top-6 lg:self-start">
-        <p className={`${labelBase} mb-2`}>Предпросмотр</p>
-        <div className="aspect-[16/6] w-full overflow-hidden rounded-2xl border border-border bg-muted/40 shadow-sm">
-          {previewImage ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={previewImage}
-              alt="Превью"
-              className="h-full w-full object-cover object-center"
-            />
-          ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-6 text-center text-xs text-muted-foreground">
-              <Upload size={24} className="opacity-40" />
-              <span>Загрузите фото баннера</span>
-            </div>
-          )}
+      <div className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
+        <div>
+          <p className={`${labelBase} mb-1.5 flex items-center gap-1.5`}>
+            <Monitor size={15} /> ПК версия (Десктоп)
+          </p>
+          <div className="aspect-[16/5] w-full overflow-hidden rounded-xl border border-border bg-muted/40 shadow-sm">
+            {previewImage ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={previewImage}
+                alt="Превью ПК"
+                className="h-full w-full object-cover object-center"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center p-3 text-center text-xs text-muted-foreground">
+                Фото ПК не загружено
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <p className={`${labelBase} mb-1.5 flex items-center gap-1.5`}>
+            <Smartphone size={15} /> Мобильная версия (Смартфоны)
+          </p>
+          <div className="aspect-[16/10] w-full max-w-[200px] overflow-hidden rounded-xl border border-border bg-muted/40 shadow-sm">
+            {previewMobileImage || previewImage ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={previewMobileImage || previewImage}
+                alt="Превью Телефон"
+                className="h-full w-full object-cover object-center"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center p-3 text-center text-xs text-muted-foreground">
+                Мобильное фото не загружено
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -14,12 +14,15 @@ create table if not exists public.banners (
   bg_color text not null default '#22303f',
   text_color text not null default 'light' check (text_color in ('light', 'dark')),
   image text not null default '',
+  image_mobile text not null default '',
   href text not null default '',
   is_visible boolean not null default true,
   sort integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.banners add column if not exists image_mobile text not null default '';
 
 create index if not exists banners_sort_idx on public.banners (sort);
 
