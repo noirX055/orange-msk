@@ -42,9 +42,9 @@ async function resolveImage(
   const file = formData.get("image")
 
   if (file instanceof File && file.size > 0) {
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
-    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
-    const path = `${titleSlug}/${Date.now()}_${safeName}`
+    const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg"
+    // Чистый ASCII ключ для Supabase Storage без кириллицы
+    const path = `banner_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`
 
     // Пытаемся автоматически гарантировать наличие бакета 'banner-images'
     try {
