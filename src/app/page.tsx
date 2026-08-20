@@ -151,15 +151,6 @@ export default async function HomePage() {
             </li>
           ))}
         </ul>
-      </section>lassName="object-contain mix-blend-multiply dark:mix-blend-normal"
-                      priority
-                    />
-                  </div>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
       </section>
 
       <section aria-labelledby="brands-title">
