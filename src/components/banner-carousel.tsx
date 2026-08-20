@@ -10,6 +10,7 @@ export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const touchStartXRef = useRef<number | null>(null)
 
   const activeBanners = banners.filter((b) => b.isVisible && Boolean(b.image))
 
@@ -36,15 +37,40 @@ export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
     setCurrentIndex((prev) => (prev + 1) % activeBanners.length)
   }
 
+  // Нативные touch-жесты для мобильных устройств (свайп пальцем)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true)
+    touchStartXRef.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setIsPaused(false)
+    if (touchStartXRef.current === null) return
+
+    const touchEndX = e.changedTouches[0].clientX
+    const deltaX = touchStartXRef.current - touchEndX
+
+    // Порог свайпа 40px
+    if (deltaX > 40) {
+      handleNext()
+    } else if (deltaX < -40) {
+      handlePrev()
+    }
+
+    touchStartXRef.current = null
+  }
+
   return (
     <section
       aria-label="Баннеры и акции"
-      className="group relative w-full overflow-hidden rounded-2xl bg-muted shadow-md"
+      className="group relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-muted shadow-md"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
-      {/* Контейнер баннера с закруглением rounded-2xl */}
-      <div className="relative h-52 w-full sm:h-72 md:h-88 lg:h-[380px]">
+      {/* Адаптивный пропорциональный контейнер: на мобильных идеально масштабируется по ширинe 2.2:1 без вылетов */}
+      <div className="relative aspect-[2.2/1] w-full sm:aspect-auto sm:h-72 md:h-88 lg:h-[380px]">
         {activeBanners.map((banner, index) => {
           const isActive = index === currentIndex
 
@@ -80,14 +106,14 @@ export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
         })}
       </div>
 
-      {/* Боковые кнопки-стрелки */}
+      {/* Боковые кнопки-стрелки (скрыты на совсем мелких экранах для чистоты UI, кликабельны на планшетах/ПК) */}
       {activeBanners.length > 1 && (
         <>
           <button
             type="button"
             onClick={handlePrev}
             aria-label="Предыдущий баннер"
-            className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-black/70 group-hover:opacity-100 sm:left-4 sm:h-11 sm:w-11"
+            className="absolute left-2 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-black/70 group-hover:opacity-100 sm:flex sm:left-4 sm:h-11 sm:w-11"
           >
             <ChevronLeft size={22} />
           </button>
@@ -95,13 +121,13 @@ export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
             type="button"
             onClick={handleNext}
             aria-label="Следующий баннер"
-            className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-black/70 group-hover:opacity-100 sm:right-4 sm:h-11 sm:w-11"
+            className="absolute right-2 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-black/70 group-hover:opacity-100 sm:flex sm:right-4 sm:h-11 sm:w-11"
           >
             <ChevronRight size={22} />
           </button>
 
-          {/* Индикаторы-полоски */}
-          <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-2">
+          {/* Индикаторы-точки внизу */}
+          <div className="absolute bottom-2.5 left-0 right-0 z-20 flex items-center justify-center gap-1.5 sm:bottom-4 sm:gap-2">
             {activeBanners.map((_, index) => (
               <button
                 key={index}
@@ -109,7 +135,7 @@ export function BannerCarousel({ banners = [] }: { banners?: Banner[] }) {
                 onClick={() => setCurrentIndex(index)}
                 aria-label={`Перейти к слайду ${index + 1}`}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  index === currentIndex ? "w-7 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
+                  index === currentIndex ? "w-6 sm:w-7 bg-white" : "w-1.5 sm:w-2 bg-white/50 hover:bg-white/80"
                 }`}
               />
             ))}
