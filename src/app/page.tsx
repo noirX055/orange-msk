@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import {
   ArrowRight,
   BadgeCheck,
@@ -19,12 +20,12 @@ import { getProducts } from "@/lib/products/queries"
 import { getBanners } from "@/lib/banners/queries"
 
 const categoryCards = [
-  { slug: "smartphones", name: "Смартфоны", count: "320 товаров", Icon: Smartphone },
-  { slug: "laptops", name: "Ноутбуки", count: "180 товаров", Icon: Laptop },
-  { slug: "monitors", name: "Мониторы", count: "95 товаров", Icon: Monitor },
-  { slug: "audio", name: "Аудио", count: "240 товаров", Icon: Headphones },
-  { slug: "wearables", name: "Гаджеты", count: "150 товаров", Icon: Watch },
-  { slug: "home", name: "Техника для дома", count: "210 товаров", Icon: WashingMachine },
+  { slug: "smartphones", name: "Смартфоны", count: "320 товаров", Icon: Smartphone, color: "bg-blue-50 text-blue-500", image: "/products/smartphones/1.png" },
+  { slug: "laptops", name: "Ноутбуки", count: "180 товаров", Icon: Laptop, color: "bg-purple-50 text-purple-500", image: "/products/laptops/1.png" },
+  { slug: "monitors", name: "Мониторы", count: "95 товаров", Icon: Monitor, color: "bg-emerald-50 text-emerald-500", image: "/products/monitors/1.png" },
+  { slug: "audio", name: "Аудио", count: "240 товаров", Icon: Headphones, color: "bg-orange-50 text-orange-500", image: "/products/audio/1.png" },
+  { slug: "wearables", name: "Гаджеты", count: "150 товаров", Icon: Watch, color: "bg-pink-50 text-pink-500", image: "/products/wearables/1.png" },
+  { slug: "home", name: "Техника для дома", count: "210 товаров", Icon: WashingMachine, color: "bg-sky-50 text-sky-500", image: "/products/home/1.png" },
 ]
 
 const brandOrder = ["Apple", "Samsung", "Xiaomi", "ASUS", "LG", "Sony", "Dyson"]
@@ -54,18 +55,35 @@ export default async function HomePage() {
         <h2 id="categories-title" className="mb-6 text-2xl font-bold tracking-tight">
           Категории
         </h2>
-        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-          {categoryCards.map(({ slug, name, count, Icon }) => (
+        <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          {categoryCards.map(({ slug, name, count, Icon, color, image }) => (
             <li key={slug}>
               <Link
                 href={`/catalog?category=${slug}`}
-                className="flex h-full flex-col items-start gap-3 rounded-card border border-border bg-card p-4 transition-colors hover:border-primary"
+                className="group relative flex min-h-[180px] flex-col justify-between overflow-hidden rounded-2xl p-5 transition-shadow hover:shadow-lg"
+                style={{ background: `linear-gradient(135deg, var(--background) 0%, hsl(from currentColor h s l / 0.06) 100%)` }}
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-muted text-navy">
-                  <Icon size={22} strokeWidth={1.5} />
-                </span>
-                <span className="text-sm font-semibold leading-relaxed">{name}</span>
-                <span className="text-xs text-muted-foreground">{count}</span>
+                <div className="flex flex-col gap-3 relative z-10">
+                  <span className={`flex h-11 w-11 items-center justify-center rounded-xl shadow-sm ${color.split(' ')[0]}`}>
+                    <Icon size={22} strokeWidth={1.5} className={color.split(' ')[1]} />
+                  </span>
+                  <span className="text-base font-bold leading-tight">{name}</span>
+                  <span className="text-sm text-muted-foreground">{count}</span>
+                </div>
+                <div className="relative z-10 mt-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <ArrowRight size={18} />
+                  </span>
+                </div>
+                <div className="absolute -bottom-2 -right-2 h-[70%] w-[50%] opacity-90 transition-transform duration-300 group-hover:scale-105">
+                  <Image
+                    src={image}
+                    alt={name}
+                    fill
+                    sizes="200px"
+                    className="object-contain object-right-bottom mix-blend-multiply"
+                  />
+                </div>
               </Link>
             </li>
           ))}
