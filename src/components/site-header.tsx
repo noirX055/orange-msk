@@ -1,9 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
-import { Menu, Phone, ShoppingCart, User, X } from "lucide-react"
-import { categories } from "@/lib/products"
+import { Phone, ShoppingCart } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { Logo } from "@/components/logo"
 import { SearchBox } from "@/components/search-box"
@@ -12,10 +10,10 @@ import { MegaMenu } from "@/components/mega-menu"
 
 export function SiteHeader() {
   const { totalItems } = useCart()
-  const [open, setOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
+      {/* Top bar — desktop only */}
       <div className="hidden bg-navy text-navy-foreground md:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-2 text-xs">
           <p className="text-navy-foreground/80">Доставка по Москве за 2 часа — бесплатно от 5 000 ₽</p>
@@ -31,81 +29,46 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4">
+      {/* Mobile header: logo + search + login */}
+      <div className="flex items-center gap-3 px-3 py-2.5 md:hidden">
+        <Link href="/" className="shrink-0" aria-label="Orange MSK — на главную">
+          <Logo />
+        </Link>
+        <div className="flex-1">
+          <SearchBox placeholder="Поиск" />
+        </div>
+        <AccountMenu />
+      </div>
+
+      {/* Desktop header: logo + search + account + cart */}
+      <div className="mx-auto hidden max-w-7xl items-center gap-4 px-4 py-4 md:flex">
         <Link href="/" className="shrink-0" aria-label="Orange MSK — на главную">
           <Logo />
         </Link>
 
-        <div className="ml-2 hidden flex-1 md:block">
+        <div className="ml-2 flex-1">
           <SearchBox />
         </div>
 
-        <div className="ml-auto flex items-center gap-1 md:gap-2">
+        <div className="ml-auto flex items-center gap-2">
           <AccountMenu />
           <Link
             href="/cart"
             className="relative flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
             <ShoppingCart size={18} />
-            <span className="hidden sm:inline">Корзина</span>
+            Корзина
             {totalItems > 0 && (
               <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-navy px-1 text-xs font-bold text-navy-foreground">
                 {totalItems}
               </span>
             )}
           </Link>
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            className="flex items-center justify-center rounded-full p-2.5 text-foreground transition-colors hover:bg-muted md:hidden"
-            aria-label={open ? "Закрыть меню" : "Открыть меню"}
-            aria-expanded={open}
-          >
-            {open ? <X size={20} /> : <Menu size={20} />}
-          </button>
         </div>
       </div>
 
+      {/* Category mega-menu — desktop only */}
       <MegaMenu />
-
-      {open && (
-        <div className="border-t border-border bg-background md:hidden">
-          <div className="border-b border-border p-3">
-            <SearchBox placeholder="Поиск товаров" onNavigate={() => setOpen(false)} />
-          </div>
-          <ul className="flex flex-col p-2">
-            <li>
-              <Link
-                href="/account"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
-              >
-                <User size={17} />
-                Личный кабинет
-              </Link>
-            </li>
-            {categories.map((category) => (
-              <li key={category.slug}>
-                <Link
-                  href={`/catalog?category=${category.slug}`}
-                  onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
-                >
-                  {category.name}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <a
-                href="tel:+74951234567"
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-primary"
-              >
-                +7 (495) 123-45-67
-              </a>
-            </li>
-          </ul>
-        </div>
-      )}
     </header>
   )
 }

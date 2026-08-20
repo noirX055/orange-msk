@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
+import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 
 // Админка (/admin) — самостоятельная панель со своей оболочкой,
 // поэтому витринные хедер и футер на её маршрутах не показываем.
@@ -17,8 +18,9 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <SiteHeader />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pb-16 md:pb-0">{children}</main>
       <SiteFooter />
+      <MobileBottomNav />
     </>
   )
 }
