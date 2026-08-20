@@ -9,9 +9,9 @@ import type { Banner } from "@/lib/banners/types"
 const defaultBanners: Banner[] = [
   {
     id: "dyson-hero",
-    title: "Инновационная техника Dyson",
-    subtitle: "Мощь, стиль и безупречный результат в каждом устройстве",
-    bgColor: "#0F172A",
+    title: "Dyson",
+    subtitle: "",
+    bgColor: "#DF3873",
     textColor: "light",
     image: "/banners/dyson.png",
     href: "/catalog?brand=Dyson",
@@ -20,9 +20,9 @@ const defaultBanners: Banner[] = [
   },
   {
     id: "smartphone-hero",
-    title: "Новый флагманский уровень",
-    subtitle: "Смартфоны последнего поколения по лучшим ценам",
-    bgColor: "#1E293B",
+    title: "Смартфоны",
+    subtitle: "",
+    bgColor: "#080808",
     textColor: "light",
     image: "/banners/smartphones.png",
     href: "/catalog?category=smartphones",
@@ -31,9 +31,9 @@ const defaultBanners: Banner[] = [
   },
   {
     id: "laptop-hero",
-    title: "Мощность без компромиссов",
-    subtitle: "Профессиональные ноутбуки для работы и творчества",
-    bgColor: "#0F172A",
+    title: "Ноутбуки",
+    subtitle: "",
+    bgColor: "#5BC4E7",
     textColor: "light",
     image: "/banners/laptops.png",
     href: "/catalog?category=laptops",
@@ -42,9 +42,9 @@ const defaultBanners: Banner[] = [
   },
   {
     id: "audio-hero",
-    title: "Погружение в звук",
-    subtitle: "Наушники с умным активным шумоподавлением",
-    bgColor: "#18181B",
+    title: "Аудио",
+    subtitle: "",
+    bgColor: "#080808",
     textColor: "light",
     image: "/banners/audio.png",
     href: "/catalog?category=audio",
@@ -53,13 +53,13 @@ const defaultBanners: Banner[] = [
   },
 ]
 
-export function BannerCarousel({ banners }: { banners: Banner[] }) {
+export function BannerCarousel({ banners }: { banners?: Banner[] }) {
   const displayBanners = banners && banners.length > 0 ? banners : defaultBanners
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Auto-play slider every 5 seconds
+  // Автопрокрутка слайдера каждые 5 секунд
   useEffect(() => {
     if (isPaused || displayBanners.length <= 1) return
 
@@ -85,57 +85,30 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
   return (
     <section
       aria-label="Баннеры и акции"
-      className="group relative w-full overflow-hidden rounded-3xl bg-[#0F172A] shadow-xl"
+      className="group relative w-full overflow-hidden rounded-2xl bg-muted shadow-md"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Banner Slide Container */}
-      <div className="relative h-56 w-full sm:h-72 md:h-80 lg:h-96">
+      {/* Контейнер слайдов с умеренным скруглением (rounded-2xl) */}
+      <div className="relative h-56 w-full sm:h-72 md:h-88 lg:h-[400px]">
         {displayBanners.map((banner, index) => {
           const isActive = index === currentIndex
-          const darkText = banner.textColor === "dark"
 
           const slideContent = (
-            <div className="relative h-full w-full overflow-hidden" style={{ backgroundColor: banner.bgColor }}>
-              {/* Full Image background / banner graphic */}
+            <div
+              className="relative h-full w-full overflow-hidden"
+              style={{ backgroundColor: banner.bgColor || "transparent" }}
+            >
               {banner.image && (
-                <div className="absolute inset-0">
-                  <Image
-                    src={banner.image}
-                    alt={banner.title}
-                    fill
-                    priority={index === 0}
-                    sizes="(max-width: 1280px) 100vw, 1280px"
-                    className="object-cover object-center"
-                  />
-                  {/* Subtle dark gradient overlay on left for text legibility */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent md:w-3/4" />
-                </div>
+                <Image
+                  src={banner.image}
+                  alt={banner.title || "Баннер"}
+                  fill
+                  priority={index === 0}
+                  sizes="(max-width: 1280px) 100vw, 1280px"
+                  className="object-cover object-center transition-transform duration-700 group-hover:scale-102"
+                />
               )}
-
-              {/* Text overlay */}
-              <div
-                className={`relative z-10 flex h-full max-w-xl flex-col justify-center p-6 sm:p-10 md:p-12 ${
-                  darkText ? "text-slate-900" : "text-white"
-                }`}
-              >
-                <span className="mb-2 inline-flex w-fit rounded-full bg-primary/90 px-3 py-1 text-xs font-bold text-primary-foreground backdrop-blur-md">
-                  Акция
-                </span>
-                <h2 className="text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-                  {banner.title}
-                </h2>
-                {banner.subtitle && (
-                  <p className="mt-2 text-sm font-medium leading-relaxed opacity-90 sm:text-base md:text-lg">
-                    {banner.subtitle}
-                  </p>
-                )}
-                {banner.href && (
-                  <span className="mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-bold text-slate-900 shadow-md transition-transform hover:scale-105 sm:text-sm">
-                    Подробнее
-                  </span>
-                )}
-              </div>
             </div>
           )
 
@@ -158,27 +131,27 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
         })}
       </div>
 
-      {/* Navigation Buttons (Left & Right arrows) */}
+      {/* Кнопки навигации стрелками */}
       {displayBanners.length > 1 && (
         <>
           <button
             type="button"
             onClick={handlePrev}
             aria-label="Предыдущий баннер"
-            className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-black/70 group-hover:opacity-100 sm:left-4 sm:h-12 sm:w-12"
+            className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-black/70 group-hover:opacity-100 sm:left-4 sm:h-11 sm:w-11"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft size={22} />
           </button>
           <button
             type="button"
             onClick={handleNext}
             aria-label="Следующий баннер"
-            className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-black/70 group-hover:opacity-100 sm:right-4 sm:h-12 sm:w-12"
+            className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-black/70 group-hover:opacity-100 sm:right-4 sm:h-11 sm:w-11"
           >
-            <ChevronRight size={24} />
+            <ChevronRight size={22} />
           </button>
 
-          {/* Indicator Pagination Dots */}
+          {/* Полоски-индикаторы (пагинация) */}
           <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-2">
             {displayBanners.map((_, index) => (
               <button
@@ -186,8 +159,8 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
                 type="button"
                 onClick={() => setCurrentIndex(index)}
                 aria-label={`Перейти к слайду ${index + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  index === currentIndex ? "w-8 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  index === currentIndex ? "w-7 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
                 }`}
               />
             ))}

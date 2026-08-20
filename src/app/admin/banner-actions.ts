@@ -21,8 +21,9 @@ function slugifyTitle(value: string) {
 
 function parseBannerForm(formData: FormData) {
   const textColor = String(formData.get("text_color") ?? "light")
+  const rawTitle = String(formData.get("title") ?? "").trim()
   return {
-    title: String(formData.get("title") ?? "").trim(),
+    title: rawTitle || "Баннер",
     subtitle: String(formData.get("subtitle") ?? "").trim(),
     bg_color: String(formData.get("bg_color") ?? "").trim() || "#22303f",
     text_color: textColor === "dark" ? "dark" : "light",
@@ -42,8 +43,8 @@ async function resolveImage(
 
   if (file instanceof File && file.size > 0) {
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
-    // Стабильное имя без Date.now(): slug заголовка + размер файла
-    const path = `${titleSlug}/${file.size}.${ext}`
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
+    const path = `${titleSlug}/${Date.now()}_${safeName}`
     const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
       upsert: true,
       contentType: file.type || undefined,
@@ -69,9 +70,8 @@ export async function createBanner(
   const { supabase } = await requireAdmin()
   const fields = parseBannerForm(formData)
 
-  if (!fields.title) return { ok: false, error: "Укажите заголовок" }
-
   const image = await resolveImage(formData, supabase, slugifyTitle(fields.title))
+  if (!image) return { ok: false, error: "Пожалуйста, загрузите изображение баннера" }
 
   // Новый баннер — в конец списка
   const { data: last } = await supabase
@@ -98,7 +98,6 @@ export async function updateBanner(
   if (!id) return { ok: false, error: "Не указан баннер" }
 
   const fields = parseBannerForm(formData)
-  if (!fields.title) return { ok: false, error: "Укажите заголовок" }
 
   const image = await resolveImage(formData, supabase, slugifyTitle(fields.title))
 

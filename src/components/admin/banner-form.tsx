@@ -49,15 +49,14 @@ export function BannerForm({ banner }: { banner?: Banner }) {
           <h2 className="text-lg font-bold">Содержимое</h2>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="title" className={labelBase}>Заголовок *</label>
+            <label htmlFor="title" className={labelBase}>Название баннера</label>
             <input
               id="title"
               name="title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              required
               className={inputBase}
-              placeholder="напр. MacBook Neo"
+              placeholder="напр. Dyson Airwrap"
             />
           </div>
 
@@ -196,39 +195,22 @@ export function BannerForm({ banner }: { banner?: Banner }) {
         </div>
       </form>
 
-      {/* Живое превью плитки */}
+      {/* Живое превью слайда */}
       <div className="lg:sticky lg:top-6 lg:self-start">
-        <p className={`${labelBase} mb-2`}>Предпросмотр</p>
-        <div className="aspect-[3/4.2] w-full max-w-[290px]">
-          <div
-            className="relative flex h-full w-full flex-col overflow-hidden rounded-card"
-            style={{ backgroundColor: bgColor }}
-          >
-            {/* Мягкое свечение сверху — объём, как на референсе */}
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),transparent_45%)]" />
-
-            {previewImage && (
-              <div className="pointer-events-none absolute inset-x-3 -bottom-[3%] top-[34%]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={previewImage}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-contain object-bottom"
-                />
-              </div>
-            )}
-
-            <div className={`relative z-10 flex flex-col gap-2 p-6 ${dark ? "text-navy" : "text-white"}`}>
-              <h3 className="text-2xl font-bold leading-tight tracking-tight text-balance">
-                {title || "Заголовок"}
-              </h3>
-              {subtitle && (
-                <p className="whitespace-pre-line text-sm font-medium leading-relaxed opacity-90">
-                  {subtitle}
-                </p>
-              )}
+        <p className={`${labelBase} mb-2`}>Предпросмотр баннера</p>
+        <div className="aspect-[16/9] w-full max-w-[320px] overflow-hidden rounded-2xl border border-border shadow-md" style={{ backgroundColor: bgColor }}>
+          {previewImage ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={previewImage}
+              alt=""
+              className="h-full w-full object-cover object-center"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center p-4 text-center text-xs text-muted-foreground">
+              Загрузите фото баннера
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
