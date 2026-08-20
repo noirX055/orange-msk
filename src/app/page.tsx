@@ -25,9 +25,10 @@ const categoryCards = [
     name: "Смартфоны",
     count: "320 товаров",
     Icon: Smartphone,
-    color: "text-[#2563EB]",
-    circleBg: "bg-[#DFECFD]",
-    arrowColor: "text-[#2563EB]",
+    color: "text-blue-600 dark:text-blue-400",
+    bgGradient: "from-blue-50/80 to-blue-100/30 dark:from-blue-950/20 dark:to-muted/30",
+    borderColor: "hover:border-blue-200 dark:hover:border-blue-800",
+    arrowBg: "bg-blue-600 text-white",
     image: "/categories/smartphone.png",
   },
   {
@@ -35,9 +36,10 @@ const categoryCards = [
     name: "Ноутбуки",
     count: "180 товаров",
     Icon: Laptop,
-    color: "text-[#7C3AED]",
-    circleBg: "bg-[#F1E8FF]",
-    arrowColor: "text-[#7C3AED]",
+    color: "text-purple-600 dark:text-purple-400",
+    bgGradient: "from-purple-50/80 to-purple-100/30 dark:from-purple-950/20 dark:to-muted/30",
+    borderColor: "hover:border-purple-200 dark:hover:border-purple-800",
+    arrowBg: "bg-purple-600 text-white",
     image: "/categories/laptop.png",
   },
   {
@@ -45,9 +47,10 @@ const categoryCards = [
     name: "Мониторы",
     count: "95 товаров",
     Icon: Monitor,
-    color: "text-[#059669]",
-    circleBg: "bg-[#E6F7F0]",
-    arrowColor: "text-[#059669]",
+    color: "text-emerald-600 dark:text-emerald-400",
+    bgGradient: "from-emerald-50/80 to-emerald-100/30 dark:from-emerald-950/20 dark:to-muted/30",
+    borderColor: "hover:border-emerald-200 dark:hover:border-emerald-800",
+    arrowBg: "bg-emerald-600 text-white",
     image: "/categories/monitors.png",
   },
   {
@@ -55,19 +58,21 @@ const categoryCards = [
     name: "Аудио",
     count: "240 товаров",
     Icon: Headphones,
-    color: "text-[#D97706]",
-    circleBg: "bg-[#FFF2E2]",
-    arrowColor: "text-[#D97706]",
-    image: "/categories/audio.png",
+    color: "text-amber-600 dark:text-amber-400",
+    bgGradient: "from-amber-50/80 to-amber-100/30 dark:from-amber-950/20 dark:to-muted/30",
+    borderColor: "hover:border-amber-200 dark:hover:border-amber-800",
+    arrowBg: "bg-amber-600 text-white",
+    image: "/categories/audi.png",
   },
   {
     slug: "wearables",
     name: "Гаджеты",
     count: "150 товаров",
     Icon: Watch,
-    color: "text-[#E11D48]",
-    circleBg: "bg-[#FFEBEF]",
-    arrowColor: "text-[#E11D48]",
+    color: "text-rose-600 dark:text-rose-400",
+    bgGradient: "from-rose-50/80 to-rose-100/30 dark:from-rose-950/20 dark:to-muted/30",
+    borderColor: "hover:border-rose-200 dark:hover:border-rose-800",
+    arrowBg: "bg-rose-600 text-white",
     image: "/categories/whatch.png",
   },
   {
@@ -75,9 +80,10 @@ const categoryCards = [
     name: "Техника для дома",
     count: "210 товаров",
     Icon: WashingMachine,
-    color: "text-[#0284C7]",
-    circleBg: "bg-[#E0F2FE]",
-    arrowColor: "text-[#0284C7]",
+    color: "text-sky-600 dark:text-sky-400",
+    bgGradient: "from-sky-50/80 to-sky-100/30 dark:from-sky-950/20 dark:to-muted/30",
+    borderColor: "hover:border-sky-200 dark:hover:border-sky-800",
+    arrowBg: "bg-sky-600 text-white",
     image: "/categories/homedevice.png",
   },
 ]
@@ -109,34 +115,30 @@ export default async function HomePage() {
         <h2 id="categories-title" className="mb-4 text-xl font-bold tracking-tight text-foreground md:text-2xl">
           Категории
         </h2>
-        <ul className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-3">
-          {categoryCards.map(({ slug, name, count, Icon, color, circleBg, arrowColor, image }) => (
+        <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          {categoryCards.map(({ slug, name, count, Icon, color, bgGradient, borderColor, arrowBg, image }) => (
             <li key={slug}>
               <Link
                 href={`/catalog?category=${slug}`}
-                className="group relative flex h-36 sm:h-40 md:h-44 w-full flex-col justify-between overflow-hidden rounded-2xl bg-[#F6F8FC] p-4 md:p-5 transition-all duration-300 hover:shadow-md dark:bg-muted/30"
+                className={`group relative flex h-40 sm:h-44 md:h-48 w-full flex-col justify-between overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br ${bgGradient} p-5 md:p-6 transition-all duration-300 ${borderColor} hover:-translate-y-1 hover:shadow-xl`}
               >
                 {/* Left Info */}
                 <div className="z-10 flex h-full flex-col justify-between">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-card">
-                    <Icon size={18} strokeWidth={1.75} className={color} />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-card">
+                    <Icon size={20} strokeWidth={1.8} className={color} />
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight">{name}</h3>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{count}</p>
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground leading-tight tracking-tight">{name}</h3>
+                    <p className="mt-1 text-xs font-medium text-muted-foreground">{count}</p>
                   </div>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-foreground shadow-sm transition-transform duration-200 group-hover:scale-110 dark:bg-card">
-                    <ArrowRight size={14} className={arrowColor} />
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${arrowBg} shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:translate-x-0.5`}>
+                    <ArrowRight size={15} strokeWidth={2.5} />
                   </div>
                 </div>
 
-                {/* Right Circle & Product Image */}
-                <div className="absolute right-0 top-0 bottom-0 w-1/2 overflow-hidden pointer-events-none">
-                  {/* Soft Background Circle */}
-                  <div className={`absolute -right-4 top-1/2 h-36 w-36 sm:h-44 sm:w-44 -translate-y-1/2 rounded-full ${circleBg} opacity-90 dark:opacity-20`} />
-                  
-                  {/* Transparent Floating Product Image */}
-                  <div className="absolute right-1 top-1/2 h-32 w-32 sm:h-40 sm:w-40 -translate-y-1/2 transition-transform duration-300 group-hover:scale-105">
+                {/* Right Product Image without circle */}
+                <div className="absolute right-2 bottom-2 top-2 w-1/2 overflow-hidden pointer-events-none flex items-center justify-end">
+                  <div className="relative h-32 w-32 sm:h-36 sm:w-36 md:h-40 md:w-40 transition-transform duration-300 group-hover:scale-105">
                     <Image
                       src={image}
                       alt={name}
