@@ -9,7 +9,7 @@ export type Profile = {
   created_at: string
 }
 
-export type OrderStatus = "new" | "processing" | "shipping" | "done" | "cancelled"
+export type OrderStatus = "new" | "pending_payment" | "processing" | "shipping" | "done" | "cancelled"
 
 export type OrderItem = {
   id: string
@@ -24,6 +24,7 @@ export type OrderItem = {
 export type Order = {
   id: string
   status: OrderStatus
+  payment_id: string | null
   subtotal: number
   delivery: number
   total: number
@@ -53,6 +54,7 @@ export type Address = {
 
 export const ORDER_STATUS: Record<OrderStatus, { label: string; tone: string }> = {
   new: { label: "Новый", tone: "bg-muted text-muted-foreground" },
+  pending_payment: { label: "Ожидает оплаты", tone: "bg-yellow-100 text-yellow-700" },
   processing: { label: "В обработке", tone: "bg-amber-100 text-amber-700" },
   shipping: { label: "В доставке", tone: "bg-blue-100 text-blue-700" },
   done: { label: "Доставлен", tone: "bg-green-100 text-green-700" },

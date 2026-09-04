@@ -25,7 +25,7 @@ export async function getOrders(): Promise<Order[]> {
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, subtotal, delivery, total, recipient_name, phone, address, created_at, order_items(id, product_slug, name, category, color, price, quantity)"
+      "id, status, payment_id, subtotal, delivery, total, recipient_name, phone, address, created_at, order_items(id, product_slug, name, category, color, price, quantity)"
     )
     .order("created_at", { ascending: false })
 

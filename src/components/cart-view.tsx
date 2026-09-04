@@ -6,7 +6,6 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { ProductVisual } from "@/components/product-visual"
 import { formatPrice } from "@/lib/products"
-import { createOrder } from "@/app/account/actions"
 
 const DELIVERY_THRESHOLD = 5000
 const DELIVERY_PRICE = 490
@@ -23,31 +22,44 @@ export function CartView() {
     setError("")
     setLoading(true)
 
-    const result = await createOrder({
-      items: items.map((item) => ({
-        product_slug: item.slug,
-        name: item.name,
-        category: item.category,
-        color: item.color,
-        price: item.price,
-        quantity: item.quantity,
-      })),
-      subtotal: totalPrice,
-      delivery,
-      total: totalPrice + delivery,
-    })
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            product_slug: item.slug,
+            name: item.name,
+            category: item.category,
+            color: item.color,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          subtotal: totalPrice,
+          delivery,
+          total: totalPrice + delivery,
+        }),
+      })
 
-    // Гость перенаправляется на /login самим экшеном (redirect),
-    // до сюда доходит только авторизованный пользователь.
-    if (!result.ok) {
-      setError(result.error ?? "Не удалось оформить заказ")
+      const data = await res.json()
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          // Не авторизован — перенаправляем на логин
+          window.location.href = "/login"
+          return
+        }
+        setError(data.error ?? "Не удалось оформить заказ")
+        setLoading(false)
+        return
+      }
+
+      // Редирект на страницу оплаты с виджетом ЮКасса
+      window.location.href = `/checkout?token=${data.confirmationToken}&orderId=${data.orderId}`
+    } catch {
+      setError("Ошибка сети. Проверьте подключение к интернету.")
       setLoading(false)
-      return
     }
-
-    clear()
-    setSubmitted(true)
-    setLoading(false)
   }
 
   if (submitted) {
@@ -204,7 +216,7 @@ export function CartView() {
             {loading ? (
               <span className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
             ) : (
-              "Оформить заказ"
+              "Перейти к оплате"
             )}
           </button>
           {error && (
