@@ -63,6 +63,15 @@ async function parseYooKassaError(res: Response, context: string): Promise<never
   throw new Error(message)
 }
 
+type YooKassaReceiptLineItem = {
+  description: string
+  quantity: string
+  amount: { value: string; currency: string }
+  vat_code: number
+  payment_subject: "commodity" | "service"
+  payment_mode: "full_payment"
+}
+
 /**
  * Создаёт платёж в ЮКасса (embedded-виджет).
  * Возвращает confirmation_token для инициализации виджета на клиенте.
@@ -76,7 +85,7 @@ export async function createPayment(input: {
   delivery?: number
   customerEmail?: string
 }): Promise<{ paymentId: string; confirmationToken: string }> {
-  const receiptItems = input.items.map((item) => ({
+  const receiptItems: YooKassaReceiptLineItem[] = input.items.map((item) => ({
     description: item.name.slice(0, 128),
     quantity: String(item.quantity),
     amount: {
@@ -84,8 +93,8 @@ export async function createPayment(input: {
       currency: "RUB",
     },
     vat_code: 1, // НДС не облагается
-    payment_subject: "commodity" as const,
-    payment_mode: "full_payment" as const,
+    payment_subject: "commodity",
+    payment_mode: "full_payment",
   }))
 
   if (input.delivery && input.delivery > 0) {
