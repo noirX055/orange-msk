@@ -168,17 +168,18 @@ export function ProductForm({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="variant_group" className={labelBase}>Группа цветовых вариантов</label>
+          <label htmlFor="variant_group" className={labelBase}>Группа вариантов модели (мэтчинг)</label>
           <input
             id="variant_group"
             name="variant_group"
             defaultValue={product?.variantGroup ?? ""}
-            placeholder="iphone-16-pro-256"
+            placeholder="iphone-17-pro-max"
             className={inputBase}
           />
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Одинаковый ключ для всех цветов одной модели и объёма памяти. На витрине переключение
-            цвета откроет другой товар (slug). У каждого варианта — один цвет в блоке «Цвета».
+            Общий ключ для всех модификаций одной модели (например: <code className="rounded bg-muted px-1">iphone-17-pro-max</code>).
+            Товары с одной группой или одной серией автоматически объединяются на витрине в одну карточку
+            с удобным переключением по <strong>цветам</strong>, <strong>памяти</strong> и <strong>SIM-картам</strong>.
           </p>
         </div>
 

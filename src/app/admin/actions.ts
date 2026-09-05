@@ -47,6 +47,7 @@ function parseProductForm(formData: FormData) {
   return {
     name,
     slug,
+    code: slug,
     brand: String(formData.get("brand") ?? "").trim(),
     series: String(formData.get("series") ?? "").trim() || null,
     variant_group: String(formData.get("variant_group") ?? "").trim() || null,

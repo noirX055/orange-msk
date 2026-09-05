@@ -112,6 +112,30 @@ export async function getProductVariantCandidates(product: Product): Promise<Pro
     }
   }
 
+  // Если серия и группа не заданы или найден только 1 товар, пробуем найти по базовой модели в названии
+  if (results.length === 1 && product.name) {
+    const modelMatch = product.name.match(
+      /(iPhone\s+\d+(?:\s+(?:Pro\s+Max|Pro|Plus|mini))?|Galaxy\s+S\d+(?:\s+(?:Ultra|Plus|\+|FE))?|Galaxy\s+Z\s+(?:Fold|Flip)\d*|MacBook\s+(?:Air|Pro)\s+\d+|Dyson\s+[a-zA-Z0-9\s]+)/i
+    )
+    if (modelMatch && modelMatch[1]) {
+      const modelName = modelMatch[1].trim()
+      const { data } = await supabase
+        .from("products")
+        .select(PRODUCT_COLUMNS)
+        .eq("category", product.category)
+        .eq("is_visible", true)
+        .ilike("name", `%${modelName}%`)
+
+      for (const row of (data as ProductRow[] | null) ?? []) {
+        const mapped = mapProduct(row)
+        if (!ids.has(mapped.id)) {
+          ids.add(mapped.id)
+          results.push(mapped)
+        }
+      }
+    }
+  }
+
   return results
 }
 

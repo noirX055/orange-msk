@@ -173,3 +173,25 @@ BEGIN
     (attr_id, '64 ГБ',  '64gb',  NULL, 110)
   ON CONFLICT DO NOTHING;
 END$$;
+
+
+-- ============================================================
+-- 6. Конфигурация SIM (select type)
+-- ============================================================
+INSERT INTO product_attributes (name, slug, type, category_slug, sort)
+VALUES ('Конфигурация SIM', 'konfiguraciya-sim', 'select', 'smartphones', 40)
+ON CONFLICT (slug) DO NOTHING;
+
+DO $$
+DECLARE attr_id int;
+BEGIN
+  SELECT id INTO attr_id FROM product_attributes WHERE slug = 'konfiguraciya-sim';
+
+  INSERT INTO product_attribute_values (attribute_id, label, value, color_hex, sort) VALUES
+    (attr_id, 'nano-SIM + eSIM', 'nano-sim-esim', NULL, 10),
+    (attr_id, '2x nano-SIM',     '2x-nano-sim',   NULL, 20),
+    (attr_id, 'eSIM',            'esim',          NULL, 30),
+    (attr_id, 'Dual eSIM',       'dual-esim',     NULL, 40)
+  ON CONFLICT DO NOTHING;
+END$$;
+
