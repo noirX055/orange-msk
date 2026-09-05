@@ -24,9 +24,9 @@ export default function RegisterPage() {
     }
 
     setLoading(true)
-
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -35,12 +35,20 @@ export default function RegisterPage() {
     })
 
     if (error) {
-      setError(error.message)
+      if (error.message.toLowerCase().includes("confirmation email")) {
+        setError(
+          "Ошибка отправки письма подтверждения. Отключите «Confirm email» в настройках Supabase: Authentication → Providers → Email."
+        )
+      } else if (error.message.toLowerCase().includes("already registered")) {
+        setError("Пользователь с таким email уже зарегистрирован.")
+      } else {
+        setError(error.message)
+      }
       setLoading(false)
       return
     }
 
-    router.push("/")
+    router.push("/account")
     router.refresh()
   }
 

@@ -6,11 +6,6 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { AuthAlert, AuthField, AuthSubmit } from "@/components/auth-ui"
 
-const testAccounts = [
-  { label: "Пользователь", email: "user@orange-msk.ru", password: "user1234" },
-  { label: "Админ", email: "admin@orange-msk.ru", password: "admin1234" },
-]
-
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
@@ -94,32 +89,6 @@ export default function LoginPage() {
       >
         Создать аккаунт
       </Link>
-
-      {/* TODO: удалить перед выпуском в прод */}
-      <div className="mt-8 rounded-xl border border-dashed border-primary/30 bg-primary/[0.03] p-4">
-        <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-primary/70">
-          🛠 Dev · тестовые аккаунты
-        </p>
-        <div className="flex flex-col gap-2">
-          {testAccounts.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              onClick={() => {
-                setEmail(account.email)
-                setPassword(account.password)
-              }}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white px-3 py-2 text-left text-xs transition-colors hover:border-primary/40 hover:bg-primary/5"
-            >
-              <span>
-                <span className="font-semibold text-foreground/80">{account.label}</span>{" "}
-                <span className="text-muted-foreground">— {account.email}</span>
-              </span>
-              <span className="shrink-0 font-medium text-primary">Заполнить</span>
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
