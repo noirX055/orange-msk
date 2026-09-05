@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { requireAdmin } from "@/lib/admin/guard"
 import type { AdminActionState } from "@/app/admin/actions"
 import type { AttributeType } from "@/lib/admin/attributes-types"
@@ -19,8 +20,9 @@ function parseAttributeType(raw: string): AttributeType | null {
   return null
 }
 
-function revalidateAttributes() {
+function revalidateAttributes(attributeId?: number) {
   revalidatePath("/admin/attributes")
+  if (attributeId) revalidatePath(`/admin/attributes/${attributeId}`)
   revalidatePath("/admin/products")
   revalidatePath("/admin/products/new")
 }
@@ -40,13 +42,13 @@ export async function createAttribute(
   if (!name) return { ok: false, error: "Укажите название" }
   if (!type) return { ok: false, error: "Выберите тип" }
 
-  const { error } = await supabase.from("product_attributes").insert({
+  const { data, error } = await supabase.from("product_attributes").insert({
     name,
     slug,
     type,
     category_slug: categorySlug,
     sort,
-  })
+  }).select("id").single()
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Характеристика с таким slug уже есть" }
@@ -54,7 +56,7 @@ export async function createAttribute(
   }
 
   revalidateAttributes()
-  return { ok: true, message: "Характеристика создана" }
+  redirect(`/admin/attributes/${data.id}`)
 }
 
 export async function updateAttribute(
@@ -84,7 +86,7 @@ export async function updateAttribute(
     return { ok: false, error: error.message }
   }
 
-  revalidateAttributes()
+  revalidateAttributes(id)
   return { ok: true, message: "Сохранено" }
 }
 
@@ -95,6 +97,7 @@ export async function deleteAttribute(formData: FormData): Promise<void> {
 
   await supabase.from("product_attributes").delete().eq("id", id)
   revalidateAttributes()
+  redirect("/admin/attributes")
 }
 
 export async function createAttributeValue(
@@ -135,7 +138,7 @@ export async function createAttributeValue(
     return { ok: false, error: error.message }
   }
 
-  revalidateAttributes()
+  revalidateAttributes(attributeId)
   return { ok: true, message: "Значение добавлено" }
 }
 
@@ -180,15 +183,16 @@ export async function updateAttributeValue(
     return { ok: false, error: error.message }
   }
 
-  revalidateAttributes()
+  revalidateAttributes(attributeId)
   return { ok: true, message: "Сохранено" }
 }
 
 export async function deleteAttributeValue(formData: FormData): Promise<void> {
   const { supabase } = await requireAdmin()
   const id = Number(formData.get("id"))
+  const attributeId = Number(formData.get("attribute_id"))
   if (!id) return
 
   await supabase.from("product_attribute_values").delete().eq("id", id)
-  revalidateAttributes()
+  revalidateAttributes(attributeId || undefined)
 }

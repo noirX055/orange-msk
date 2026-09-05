@@ -315,14 +315,13 @@ export function AttributesManager({
               return (
                 <tr key={attr.id} className="align-top">
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedId(isOpen ? null : attr.id)}
+                    <Link
+                      href={`/admin/attributes/${attr.id}`}
                       className="flex items-center gap-2 font-semibold hover:text-primary"
                     >
-                      {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      <ChevronRight size={16} />
                       {attr.name}
-                    </button>
+                    </Link>
                     <p className="mt-0.5 pl-6 text-xs text-muted-foreground">{attr.slug}</p>
                   </td>
                   <td className="px-4 py-3">{ATTRIBUTE_TYPE_LABELS[attr.type]}</td>
@@ -330,13 +329,12 @@ export function AttributesManager({
                   <td className="px-4 py-3">{attr.values.length}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
-                      <button
-                        type="button"
-                        onClick={() => startEditAttribute(attr)}
+                      <Link
+                        href={`/admin/attributes/${attr.id}`}
                         className="rounded-full px-3 py-1.5 text-xs font-medium hover:bg-muted"
                       >
                         Изменить
-                      </button>
+                      </Link>
                       <button
                         type="button"
                         onClick={() => removeAttribute(attr.id)}

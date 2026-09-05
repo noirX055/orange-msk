@@ -192,3 +192,28 @@ export async function getAllAttributesWithValues(): Promise<ProductAttribute[]> 
     values: valuesByAttr.get(attr.id) ?? [],
   }))
 }
+
+export async function getAttributeById(id: number): Promise<ProductAttribute | null> {
+  const supabase = await createClient()
+
+  const { data: attribute, error } = await supabase
+    .from("product_attributes")
+    .select("id, slug, name, type, category_slug, sort")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (error || !attribute) return null
+
+  const { data: values } = await supabase
+    .from("product_attribute_values")
+    .select("id, attribute_id, label, value, color_hex, sort")
+    .eq("attribute_id", id)
+    .order("sort", { ascending: true })
+    .order("label", { ascending: true })
+
+  return {
+    ...(attribute as Omit<ProductAttribute, "values">),
+    type: attribute.type as ProductAttribute["type"],
+    values: (values as ProductAttributeValue[] | null) ?? [],
+  }
+}
