@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { mapProduct, type ProductRow } from "@/lib/products/queries"
 import type { Order, OrderStatus } from "@/lib/account/queries"
 import type { ProductAttribute, ProductAttributeValue } from "@/lib/admin/attributes-types"
+import type { Product } from "@/lib/products"
 
 const PRODUCT_COLUMNS =
   "id, slug, name, brand, series, variant_group, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort"
