@@ -9,7 +9,14 @@ export type Profile = {
   created_at: string
 }
 
-export type OrderStatus = "new" | "pending_payment" | "processing" | "shipping" | "done" | "cancelled"
+export type OrderStatus =
+  | "new"
+  | "pending_payment"
+  | "processing"
+  | "shipping"
+  | "done"
+  | "cancelled"
+  | "refunded"
 
 export type OrderItem = {
   id: string
@@ -59,4 +66,8 @@ export const ORDER_STATUS: Record<OrderStatus, { label: string; tone: string }> 
   shipping: { label: "В доставке", tone: "bg-blue-100 text-blue-700" },
   done: { label: "Доставлен", tone: "bg-green-100 text-green-700" },
   cancelled: { label: "Отменён", tone: "bg-red-100 text-red-700" },
+  refunded: { label: "Возвращён", tone: "bg-purple-100 text-purple-700" },
 }
+
+/** Заказы, по которым можно оформить возврат через ЮKassa */
+export const REFUNDABLE_ORDER_STATUSES: OrderStatus[] = ["processing", "shipping", "done"]

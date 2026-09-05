@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       // Удаляем заказ если позиции не добавились
       await supabase.from("orders").delete().eq("id", order.id)
       return NextResponse.json(
-        { error: "Не удалось добавить товары" },
+        { error: `Не удалось добавить товары: ${itemsError.message}` },
         { status: 500 }
       )
     }
@@ -84,6 +84,13 @@ export async function POST(request: Request) {
       orderId: order.id,
       description: description.slice(0, 128), // ЮКасса ограничивает 128 символов
       returnUrl: `${siteUrl}/checkout/success?orderId=${order.id}`,
+      items: items.map((item: { name: string; price: number; quantity: number }) => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      delivery: delivery ?? 0,
+      customerEmail: user.email,
     })
 
     // 4. Сохраняем payment_id в заказе
@@ -99,7 +106,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[Checkout] Непредвиденная ошибка:", error)
     return NextResponse.json(
-      { error: "Ошибка сервера при создании платежа" },
+      { error: `Ошибка сервера при создании платежа: ${error instanceof Error ? error.message : String(error)}` },
       { status: 500 }
     )
   }

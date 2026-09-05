@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       status: order.status,
-      paid: order.status !== "pending_payment" && order.status !== "cancelled",
+      paid: order.status !== "pending_payment" && order.status !== "cancelled" && order.status !== "refunded",
       total: order.total,
     })
   } catch (error) {

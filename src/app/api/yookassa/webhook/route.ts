@@ -10,31 +10,54 @@ export async function POST(request: Request) {
     const body = await request.json()
 
     const event = body.event as string | undefined
-    const paymentId = body.object?.id as string | undefined
-    const paymentStatus = body.object?.status as string | undefined
+    const objectId = body.object?.id as string | undefined
+    const objectStatus = body.object?.status as string | undefined
 
-    if (!event || !paymentId) {
+    if (!event || !objectId) {
       return NextResponse.json({ error: "Неверный формат" }, { status: 400 })
     }
 
-    console.log(`[YooKassa Webhook] event=${event} paymentId=${paymentId} status=${paymentStatus}`)
+    console.log(`[YooKassa Webhook] event=${event} objectId=${objectId} status=${objectStatus}`)
 
     const supabase = await createClient()
 
-    // Находим заказ по payment_id
-    const { data: order } = await supabase
-      .from("orders")
-      .select("id, status")
-      .eq("payment_id", paymentId)
-      .single()
+    // refund.succeeded: object.id — ID возврата, payment_id — ID исходного платежа
+    if (event === "refund.succeeded") {
+      const refundPaymentId = body.object?.payment_id as string | undefined
+      if (refundPaymentId) {
+        const { data: refundOrder } = await supabase
+          .from("orders")
+          .select("id, status")
+          .eq("payment_id", refundPaymentId)
+          .single()
 
-    if (!order) {
-      console.warn(`[YooKassa Webhook] Заказ с payment_id=${paymentId} не найден`)
-      // Возвращаем 200 чтобы ЮКасса не повторяла запрос
+        if (refundOrder && refundOrder.status !== "refunded") {
+          await supabase
+            .from("orders")
+            .update({ status: "refunded" })
+            .eq("id", refundOrder.id)
+
+          console.log(`[YooKassa Webhook] Заказ ${refundOrder.id} → refunded`)
+        } else if (!refundOrder) {
+          console.warn(`[YooKassa Webhook] Заказ с payment_id=${refundPaymentId} не найден`)
+        }
+      }
+
       return NextResponse.json({ ok: true })
     }
 
-    // Обновляем статус заказа
+    // payment.*: object.id — ID платежа
+    const { data: order } = await supabase
+      .from("orders")
+      .select("id, status")
+      .eq("payment_id", objectId)
+      .single()
+
+    if (!order) {
+      console.warn(`[YooKassa Webhook] Заказ с payment_id=${objectId} не найден`)
+      return NextResponse.json({ ok: true })
+    }
+
     if (event === "payment.succeeded" && order.status === "pending_payment") {
       await supabase
         .from("orders")
@@ -53,11 +76,9 @@ export async function POST(request: Request) {
       console.log(`[YooKassa Webhook] Заказ ${order.id} → cancelled`)
     }
 
-    // Всегда возвращаем 200 — иначе ЮКасса будет повторять запрос
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("[YooKassa Webhook] Ошибка:", error)
-    // Даже при ошибке возвращаем 200 чтобы не было бесконечных ретраев
     return NextResponse.json({ ok: true })
   }
 }

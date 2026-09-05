@@ -104,7 +104,7 @@ export async function getAllOrders(status?: OrderStatus): Promise<AdminOrder[]> 
   let query = supabase
     .from("orders")
     .select(
-      "id, user_id, status, subtotal, delivery, total, recipient_name, phone, address, created_at, order_items(id, product_slug, name, category, color, price, quantity)",
+      "id, user_id, status, payment_id, subtotal, delivery, total, recipient_name, phone, address, created_at, order_items(id, product_slug, name, category, color, price, quantity)",
     )
     .order("created_at", { ascending: false })
 
@@ -140,7 +140,7 @@ export async function getOrderById(id: string): Promise<AdminOrder | null> {
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, user_id, status, subtotal, delivery, total, recipient_name, phone, address, created_at, order_items(id, product_slug, name, category, color, price, quantity)",
+      "id, user_id, status, payment_id, subtotal, delivery, total, recipient_name, phone, address, created_at, order_items(id, product_slug, name, category, color, price, quantity)",
     )
     .eq("id", id)
     .maybeSingle()

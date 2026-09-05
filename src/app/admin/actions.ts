@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { requireAdmin } from "@/lib/admin/guard"
 import type { OrderStatus } from "@/lib/account/queries"
+import { REFUNDABLE_ORDER_STATUSES } from "@/lib/account/types"
+import { createRefund, getPayment } from "@/lib/yookassa"
 
 export type AdminActionState = { ok: boolean; error?: string; message?: string }
 
@@ -229,6 +231,72 @@ export async function removeOrderItem(formData: FormData): Promise<void> {
 
   revalidatePath(`/admin/orders/${orderId}`)
   revalidatePath("/admin/orders")
+}
+
+export async function refundOrder(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  const id = String(formData.get("id") ?? "")
+  if (!id) return { ok: false, error: "Не указан заказ" }
+
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .select("id, status, payment_id, total")
+    .eq("id", id)
+    .single()
+
+  if (orderError || !order) return { ok: false, error: "Заказ не найден" }
+  if (!order.payment_id) return { ok: false, error: "У заказа нет привязанного платежа" }
+  if (order.status === "refunded") return { ok: false, error: "Возврат по этому заказу уже оформлен" }
+  if (!REFUNDABLE_ORDER_STATUSES.includes(order.status as OrderStatus)) {
+    return { ok: false, error: "Возврат доступен только для оплаченных заказов" }
+  }
+
+  try {
+    const payment = await getPayment(order.payment_id)
+    if (payment.status !== "succeeded") {
+      return { ok: false, error: "Платёж не был успешно завершён — возврат невозможен" }
+    }
+
+    const refund = await createRefund({
+      paymentId: order.payment_id,
+      amount: order.total,
+      orderId: order.id,
+    })
+
+    if (refund.status === "succeeded" || refund.status === "pending") {
+      await supabase.from("orders").update({ status: "refunded" }).eq("id", id)
+    }
+
+    revalidatePath("/admin/orders")
+    revalidatePath(`/admin/orders/${id}`)
+    revalidatePath("/account/orders")
+
+    const receiptNote =
+      refund.receipt_registration === "pending"
+        ? " Чек возврата регистрируется."
+        : ""
+
+    return {
+      ok: true,
+      message: `Возврат ${formatRefundAmount(order.total)} оформлен.${receiptNote} Деньги вернутся покупателю в срок, установленный банком.`,
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Не удалось оформить возврат",
+    }
+  }
+}
+
+function formatRefundAmount(amount: number): string {
+  return new Intl.NumberFormat("ru-RU", {
+    style: "currency",
+    currency: "RUB",
+    maximumFractionDigits: 0,
+  }).format(amount)
 }
 
 export async function deleteOrder(formData: FormData): Promise<void> {

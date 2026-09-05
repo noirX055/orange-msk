@@ -9,6 +9,8 @@ import { StatusSelect } from "@/components/admin/status-select"
 import { removeOrderItem, deleteOrder } from "@/app/admin/actions"
 import { DeleteButton } from "@/components/admin/delete-button"
 import { ConfirmSubmit } from "@/components/admin/confirm-submit"
+import { RefundButton } from "@/components/admin/refund-button"
+import { REFUNDABLE_ORDER_STATUSES } from "@/lib/account/types"
 
 export default async function AdminOrderPage({
   params,
@@ -19,6 +21,10 @@ export default async function AdminOrderPage({
   const order = await getOrderById(id)
 
   if (!order) notFound()
+
+  const canRefund =
+    Boolean(order.payment_id) &&
+    REFUNDABLE_ORDER_STATUSES.includes(order.status)
 
   return (
     <div className="flex flex-col gap-6">
@@ -138,6 +144,8 @@ export default async function AdminOrderPage({
               </div>
             </dl>
           </div>
+
+          {canRefund && <RefundButton orderId={order.id} total={order.total} />}
 
           <form action={deleteOrder} className="rounded-card border border-red-200 bg-red-50/50 p-5">
             <input type="hidden" name="id" value={order.id} />

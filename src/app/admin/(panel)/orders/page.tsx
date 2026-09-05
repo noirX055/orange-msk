@@ -10,6 +10,7 @@ const filters: { value: string; label: string }[] = [
   { value: "processing", label: "В обработке" },
   { value: "shipping", label: "В доставке" },
   { value: "done", label: "Доставлены" },
+  { value: "refunded", label: "Возвращённые" },
   { value: "cancelled", label: "Отменённые" },
 ]
 
