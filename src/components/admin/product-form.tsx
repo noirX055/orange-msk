@@ -152,35 +152,31 @@ export function ProductForm({
             </select>
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="series" className={labelBase}>Серия / модель</label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="series" className={labelBase}>Группа товаров (модель)</label>
+              <Link
+                href="/admin/settings"
+                target="_blank"
+                className="text-xs text-primary hover:underline"
+              >
+                Настройки групп →
+              </Link>
+            </div>
             <select
               id="series"
               name="series"
               defaultValue={product?.series || ""}
               className={inputBase}
             >
-              <option value="">Без серии</option>
+              <option value="">Без группы</option>
               {filteredGroups.map((g) => (
                 <option key={g.id} value={g.name}>{g.name}</option>
               ))}
             </select>
+            <p className="text-xs text-muted-foreground">
+              Все товары с одинаковой группой (например: «iPhone 17 Pro Max») автоматически объединяются на витрине в одну карточку с переключением по цветам, памяти и SIM.
+            </p>
           </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label htmlFor="variant_group" className={labelBase}>Группа вариантов модели (мэтчинг)</label>
-          <input
-            id="variant_group"
-            name="variant_group"
-            defaultValue={product?.variantGroup ?? ""}
-            placeholder="iphone-17-pro-max"
-            className={inputBase}
-          />
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            Общий ключ для всех модификаций одной модели (например: <code className="rounded bg-muted px-1">iphone-17-pro-max</code>).
-            Товары с одной группой или одной серией автоматически объединяются на витрине в одну карточку
-            с удобным переключением по <strong>цветам</strong>, <strong>памяти</strong> и <strong>SIM-картам</strong>.
-          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
