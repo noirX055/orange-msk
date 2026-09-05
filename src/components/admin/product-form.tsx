@@ -1,9 +1,19 @@
 "use client"
 
-import { useActionState, useEffect, useRef, useState } from "react"
+import { useActionState, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Plus, Save, Trash2, X } from "lucide-react"
 import { createProduct, updateProduct, type AdminActionState } from "@/app/admin/actions"
+import {
+  buildSpecsAndColors,
+  filterAttributesForCategory,
+  getExtraSpecs,
+  initAttributeValuesFromProduct,
+  type ColorRow,
+  type SpecRow,
+} from "@/lib/admin/attribute-helpers"
+import type { ProductAttribute } from "@/lib/admin/attributes-types"
 import { type Product } from "@/lib/products"
 
 const inputBase =
@@ -14,36 +24,64 @@ const badges = ["", "Хит", "Новинка", "Скидка"]
 
 const initial: AdminActionState = { ok: false }
 
-type ColorRow = { name: string; hex: string }
-type SpecRow = { label: string; value: string }
-
 export function ProductForm({
   product,
   categories,
   brands,
   groups = [],
+  attributes = [],
 }: {
   product?: Product
   categories: { slug: string; name: string }[]
   brands: { id: number; slug: string; name: string }[]
   groups?: { id: number; name: string; brand_id: number; category_slug: string }[]
+  attributes?: ProductAttribute[]
 }) {
   const isEdit = Boolean(product)
   const action = isEdit ? updateProduct : createProduct
   const [state, formAction, pending] = useActionState(action, initial)
 
-  const [colors, setColors] = useState<ColorRow[]>(
+  const initialCategory = product?.category || categories[0]?.slug || ""
+
+  const [legacyColors, setLegacyColors] = useState<ColorRow[]>(
     product?.colors?.length ? product.colors : [{ name: "", hex: "#22303f" }],
   )
-  const [specs, setSpecs] = useState<SpecRow[]>(
+  const [legacySpecs, setLegacySpecs] = useState<SpecRow[]>(
     product?.specs?.length ? product.specs : [{ label: "", value: "" }],
+  )
+  const [attributeValues, setAttributeValues] = useState<Record<string, string>>(() =>
+    initAttributeValuesFromProduct(
+      product,
+      filterAttributesForCategory(attributes, initialCategory),
+    ),
+  )
+  const [extraSpecs, setExtraSpecs] = useState<SpecRow[]>(() =>
+    getExtraSpecs(product, attributes),
   )
   const [existingImages, setExistingImages] = useState<string[]>(product?.images ?? [])
   const [newFiles, setNewFiles] = useState<{ file: File; url: string }[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [selectedBrand, setSelectedBrand] = useState(product?.brand || "")
-  const [selectedCategory, setSelectedCategory] = useState(product?.category || categories[0]?.slug || "")
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory)
+
+  const categoryAttributes = useMemo(
+    () => filterAttributesForCategory(attributes, selectedCategory),
+    [attributes, selectedCategory],
+  )
+  const hasDictionary = categoryAttributes.length > 0
+
+  const { colors: dictionaryColors, specs: dictionarySpecs } = useMemo(
+    () => buildSpecsAndColors(categoryAttributes, attributeValues, extraSpecs),
+    [categoryAttributes, attributeValues, extraSpecs],
+  )
+
+  const outputColors = hasDictionary
+    ? dictionaryColors
+    : legacyColors.filter((row) => row.name)
+  const outputSpecs = hasDictionary
+    ? dictionarySpecs
+    : legacySpecs.filter((row) => row.label)
 
   const currentBrandId = brands.find((b) => b.name === selectedBrand)?.id
   const filteredGroups = groups.filter(
@@ -70,8 +108,8 @@ export function ProductForm({
   return (
     <form action={formAction} className="flex flex-col gap-6">
       {isEdit && <input type="hidden" name="id" value={product!.id} />}
-      <input type="hidden" name="colors" value={JSON.stringify(colors.filter((c) => c.name))} />
-      <input type="hidden" name="specs" value={JSON.stringify(specs.filter((s) => s.label))} />
+      <input type="hidden" name="colors" value={JSON.stringify(outputColors)} />
+      <input type="hidden" name="specs" value={JSON.stringify(outputSpecs)} />
       <input type="hidden" name="existing_images" value={JSON.stringify(existingImages)} />
 
       {/* Основное */}
@@ -127,6 +165,21 @@ export function ProductForm({
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="variant_group" className={labelBase}>Группа цветовых вариантов</label>
+          <input
+            id="variant_group"
+            name="variant_group"
+            defaultValue={product?.variantGroup ?? ""}
+            placeholder="iphone-16-pro-256"
+            className={inputBase}
+          />
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Одинаковый ключ для всех цветов одной модели и объёма памяти. На витрине переключение
+            цвета откроет другой товар (slug). У каждого варианта — один цвет в блоке «Цвета».
+          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -204,94 +257,250 @@ export function ProductForm({
         </label>
       </section>
 
-      {/* Цвета */}
-      <section className="flex flex-col gap-4 rounded-card border border-border p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Цвета</h2>
-          <button
-            type="button"
-            onClick={() => setColors((c) => [...c, { name: "", hex: "#22303f" }])}
-            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:border-primary hover:text-primary"
-          >
-            <Plus size={14} /> Добавить
-          </button>
-        </div>
-        <div className="flex flex-col gap-3">
-          {colors.map((color, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <input
-                type="color"
-                value={color.hex}
-                onChange={(e) =>
-                  setColors((c) => c.map((row, i) => (i === index ? { ...row, hex: e.target.value } : row)))
-                }
-                className="h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-border"
-                aria-label="Цвет"
-              />
-              <input
-                value={color.name}
-                onChange={(e) =>
-                  setColors((c) => c.map((row, i) => (i === index ? { ...row, name: e.target.value } : row)))
-                }
-                placeholder="Название цвета"
-                className={inputBase}
-              />
-              <button
-                type="button"
-                onClick={() => setColors((c) => c.filter((_, i) => i !== index))}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
-                aria-label="Удалить цвет"
-              >
-                <Trash2 size={16} />
-              </button>
+      {/* Характеристики из справочника */}
+      {hasDictionary ? (
+        <section className="flex flex-col gap-4 rounded-card border border-border p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold">Характеристики</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Значения из справочника{" "}
+                <Link href="/admin/attributes" className="font-medium text-primary hover:underline">
+                  Характеристики
+                </Link>
+              </p>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
 
-      {/* Характеристики */}
-      <section className="flex flex-col gap-4 rounded-card border border-border p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Характеристики</h2>
-          <button
-            type="button"
-            onClick={() => setSpecs((s) => [...s, { label: "", value: "" }])}
-            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:border-primary hover:text-primary"
-          >
-            <Plus size={14} /> Добавить
-          </button>
-        </div>
-        <div className="flex flex-col gap-3">
-          {specs.map((spec, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <input
-                value={spec.label}
-                onChange={(e) =>
-                  setSpecs((s) => s.map((row, i) => (i === index ? { ...row, label: e.target.value } : row)))
-                }
-                placeholder="Параметр"
-                className={inputBase}
-              />
-              <input
-                value={spec.value}
-                onChange={(e) =>
-                  setSpecs((s) => s.map((row, i) => (i === index ? { ...row, value: e.target.value } : row)))
-                }
-                placeholder="Значение"
-                className={inputBase}
-              />
+          <div className="flex flex-col gap-4">
+            {categoryAttributes.map((attr) => (
+              <div key={attr.id} className="flex flex-col gap-2">
+                <label className={labelBase}>{attr.name}</label>
+
+                {attr.type === "color" && (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <select
+                      value={attributeValues[attr.slug] ?? ""}
+                      onChange={(e) =>
+                        setAttributeValues((current) => ({
+                          ...current,
+                          [attr.slug]: e.target.value,
+                        }))
+                      }
+                      className={inputBase}
+                    >
+                      <option value="">— не выбран —</option>
+                      {attr.values.map((item) => (
+                        <option key={item.id} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                    {attributeValues[attr.slug] && (
+                      <span
+                        className="h-10 w-10 shrink-0 rounded-full border border-border shadow-inner"
+                        style={{
+                          backgroundColor:
+                            attr.values.find((v) => v.value === attributeValues[attr.slug])
+                              ?.color_hex ?? "#ccc",
+                        }}
+                        title={
+                          attr.values.find((v) => v.value === attributeValues[attr.slug])?.label
+                        }
+                      />
+                    )}
+                  </div>
+                )}
+
+                {attr.type === "select" && (
+                  <select
+                    value={attributeValues[attr.slug] ?? ""}
+                    onChange={(e) =>
+                      setAttributeValues((current) => ({
+                        ...current,
+                        [attr.slug]: e.target.value,
+                      }))
+                    }
+                    className={inputBase}
+                  >
+                    <option value="">— не выбрано —</option>
+                    {attr.values.map((item) => (
+                      <option key={item.id} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {attr.type === "text" && (
+                  <input
+                    value={attributeValues[attr.slug] ?? ""}
+                    onChange={(e) =>
+                      setAttributeValues((current) => ({
+                        ...current,
+                        [attr.slug]: e.target.value,
+                      }))
+                    }
+                    className={inputBase}
+                    placeholder={`Введите ${attr.name.toLowerCase()}`}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Дополнительные параметры</h3>
               <button
                 type="button"
-                onClick={() => setSpecs((s) => s.filter((_, i) => i !== index))}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
-                aria-label="Удалить характеристику"
+                onClick={() => setExtraSpecs((rows) => [...rows, { label: "", value: "" }])}
+                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:border-primary hover:text-primary"
               >
-                <Trash2 size={16} />
+                <Plus size={14} /> Добавить
               </button>
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="flex flex-col gap-3">
+              {extraSpecs.map((spec, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <input
+                    value={spec.label}
+                    onChange={(e) =>
+                      setExtraSpecs((rows) =>
+                        rows.map((row, i) => (i === index ? { ...row, label: e.target.value } : row)),
+                      )
+                    }
+                    placeholder="Параметр"
+                    className={inputBase}
+                  />
+                  <input
+                    value={spec.value}
+                    onChange={(e) =>
+                      setExtraSpecs((rows) =>
+                        rows.map((row, i) => (i === index ? { ...row, value: e.target.value } : row)),
+                      )
+                    }
+                    placeholder="Значение"
+                    className={inputBase}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setExtraSpecs((rows) => rows.filter((_, i) => i !== index))}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
+                    aria-label="Удалить"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : (
+        <>
+          <section className="flex flex-col gap-4 rounded-card border border-border p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">Цвета</h2>
+              <button
+                type="button"
+                onClick={() => setLegacyColors((c) => [...c, { name: "", hex: "#22303f" }])}
+                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:border-primary hover:text-primary"
+              >
+                <Plus size={14} /> Добавить
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Для выпадающих списков создайте характеристики в{" "}
+              <Link href="/admin/attributes" className="font-medium text-primary hover:underline">
+                разделе «Характеристики»
+              </Link>
+              .
+            </p>
+            <div className="flex flex-col gap-3">
+              {legacyColors.map((color, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={color.hex}
+                    onChange={(e) =>
+                      setLegacyColors((c) =>
+                        c.map((row, i) => (i === index ? { ...row, hex: e.target.value } : row)),
+                      )
+                    }
+                    className="h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-border"
+                    aria-label="Цвет"
+                  />
+                  <input
+                    value={color.name}
+                    onChange={(e) =>
+                      setLegacyColors((c) =>
+                        c.map((row, i) => (i === index ? { ...row, name: e.target.value } : row)),
+                      )
+                    }
+                    placeholder="Название цвета"
+                    className={inputBase}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setLegacyColors((c) => c.filter((_, i) => i !== index))}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
+                    aria-label="Удалить цвет"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="flex flex-col gap-4 rounded-card border border-border p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">Характеристики</h2>
+              <button
+                type="button"
+                onClick={() => setLegacySpecs((s) => [...s, { label: "", value: "" }])}
+                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:border-primary hover:text-primary"
+              >
+                <Plus size={14} /> Добавить
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {legacySpecs.map((spec, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <input
+                    value={spec.label}
+                    onChange={(e) =>
+                      setLegacySpecs((s) =>
+                        s.map((row, i) => (i === index ? { ...row, label: e.target.value } : row)),
+                      )
+                    }
+                    placeholder="Параметр"
+                    className={inputBase}
+                  />
+                  <input
+                    value={spec.value}
+                    onChange={(e) =>
+                      setLegacySpecs((s) =>
+                        s.map((row, i) => (i === index ? { ...row, value: e.target.value } : row)),
+                      )
+                    }
+                    placeholder="Значение"
+                    className={inputBase}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setLegacySpecs((s) => s.filter((_, i) => i !== index))}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
+                    aria-label="Удалить характеристику"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
 
       {/* Фото */}
       <section className="flex flex-col gap-4 rounded-card border border-border p-6">

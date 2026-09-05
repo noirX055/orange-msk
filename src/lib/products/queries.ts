@@ -8,6 +8,7 @@ export type ProductRow = {
   name: string
   brand: string
   series: string | null
+  variant_group: string | null
   category: string
   price: number
   old_price: number | null
@@ -24,7 +25,7 @@ export type ProductRow = {
 }
 
 const PRODUCT_COLUMNS =
-  "id, slug, name, brand, series, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort"
+  "id, slug, name, brand, series, variant_group, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort"
 
 export function mapProduct(row: ProductRow): Product {
   return {
@@ -33,6 +34,7 @@ export function mapProduct(row: ProductRow): Product {
     name: row.name,
     brand: row.brand,
     series: row.series ?? undefined,
+    variantGroup: row.variant_group ?? undefined,
     category: row.category,
     price: row.price,
     oldPrice: row.old_price ?? undefined,
@@ -69,6 +71,48 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     .maybeSingle()
 
   return data ? mapProduct(data as ProductRow) : null
+}
+
+/** Соседние варианты для переключения цвета (slug) и памяти */
+export async function getProductVariantCandidates(product: Product): Promise<Product[]> {
+  const supabase = await createClient()
+  const ids = new Set<string>([product.id])
+  const results: Product[] = [product]
+
+  if (product.variantGroup) {
+    const { data } = await supabase
+      .from("products")
+      .select(PRODUCT_COLUMNS)
+      .eq("variant_group", product.variantGroup)
+      .eq("is_visible", true)
+
+    for (const row of (data as ProductRow[] | null) ?? []) {
+      const mapped = mapProduct(row)
+      if (!ids.has(mapped.id)) {
+        ids.add(mapped.id)
+        results.push(mapped)
+      }
+    }
+  }
+
+  if (product.series) {
+    const { data } = await supabase
+      .from("products")
+      .select(PRODUCT_COLUMNS)
+      .eq("series", product.series)
+      .eq("brand", product.brand)
+      .eq("is_visible", true)
+
+    for (const row of (data as ProductRow[] | null) ?? []) {
+      const mapped = mapProduct(row)
+      if (!ids.has(mapped.id)) {
+        ids.add(mapped.id)
+        results.push(mapped)
+      }
+    }
+  }
+
+  return results
 }
 
 export async function getProductById(id: string): Promise<Product | null> {

@@ -1,13 +1,14 @@
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { ProductForm } from "@/components/admin/product-form"
-import { getAllCategories, getAllBrands, getAllGroups } from "@/lib/admin/queries"
+import { getAllCategories, getAllBrands, getAllGroups, getAllAttributesWithValues } from "@/lib/admin/queries"
 
 export default async function NewProductPage() {
-  const [categories, brands, groups] = await Promise.all([
+  const [categories, brands, groups, attributes] = await Promise.all([
     getAllCategories(),
     getAllBrands(),
     getAllGroups(),
+    getAllAttributesWithValues(),
   ])
 
   return (
@@ -23,7 +24,7 @@ export default async function NewProductPage() {
         <h1 className="text-2xl font-bold tracking-tight">Новый товар</h1>
       </div>
 
-      <ProductForm categories={categories} brands={brands} groups={groups} />
+      <ProductForm categories={categories} brands={brands} groups={groups} attributes={attributes} />
     </div>
   )
 }

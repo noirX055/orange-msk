@@ -2,7 +2,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { BadgeCheck, CreditCard, RefreshCw, Star, Truck } from "lucide-react"
 import { getCategoryName, getProductImages } from "@/lib/products"
-import { getProductBySlug, getRelatedProducts } from "@/lib/products/queries"
+import { getProductBySlug, getRelatedProducts, getProductVariantCandidates } from "@/lib/products/queries"
+import { buildProductVariants } from "@/lib/products/variants"
 import { ProductGallery } from "@/components/product-gallery"
 import { BrandLogo } from "@/components/brand-logo"
 import { ProductBuyPanel } from "@/components/product-buy-panel"
@@ -35,6 +36,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   }
 
   const related = await getRelatedProducts(product)
+  const candidates = await getProductVariantCandidates(product)
+  const variants = buildProductVariants(product, candidates)
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-12 px-4 py-8">
@@ -83,7 +86,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
           </div>
 
-          <ProductBuyPanel product={product} />
+          <ProductBuyPanel product={product} variants={variants} />
 
           <ul className="grid gap-3 sm:grid-cols-2">
             {guarantees.map(({ title, text, Icon }) => (

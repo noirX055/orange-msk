@@ -14,6 +14,7 @@ create table if not exists public.products (
   name text not null,
   brand text not null,
   series text,
+  variant_group text,
   category text not null,
   price integer not null default 0,
   old_price integer,

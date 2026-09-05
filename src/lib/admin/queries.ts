@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { mapProduct, type ProductRow } from "@/lib/products/queries"
 import type { Order, OrderStatus } from "@/lib/account/queries"
-import type { Product } from "@/lib/products"
+import type { ProductAttribute, ProductAttributeValue } from "@/lib/admin/attributes-types"
 
 const PRODUCT_COLUMNS =
-  "id, slug, name, brand, series, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort"
+  "id, slug, name, brand, series, variant_group, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort"
 
 export type AdminStats = {
   products: number
@@ -159,4 +159,35 @@ export async function getOrderById(id: string): Promise<AdminOrder | null> {
     buyer_name: (profile as { full_name: string | null } | null)?.full_name ?? null,
     buyer_email_id: order.user_id,
   }
+}
+
+export async function getAllAttributesWithValues(): Promise<ProductAttribute[]> {
+  const supabase = await createClient()
+
+  const { data: attributes, error } = await supabase
+    .from("product_attributes")
+    .select("id, slug, name, type, category_slug, sort")
+    .order("sort", { ascending: true })
+    .order("name", { ascending: true })
+
+  if (error || !attributes?.length) return []
+
+  const { data: values } = await supabase
+    .from("product_attribute_values")
+    .select("id, attribute_id, label, value, color_hex, sort")
+    .order("sort", { ascending: true })
+    .order("label", { ascending: true })
+
+  const valuesByAttr = new Map<number, ProductAttributeValue[]>()
+  for (const row of (values as ProductAttributeValue[] | null) ?? []) {
+    const list = valuesByAttr.get(row.attribute_id) ?? []
+    list.push(row)
+    valuesByAttr.set(row.attribute_id, list)
+  }
+
+  return (attributes as Omit<ProductAttribute, "values">[]).map((attr) => ({
+    ...attr,
+    type: attr.type as ProductAttribute["type"],
+    values: valuesByAttr.get(attr.id) ?? [],
+  }))
 }

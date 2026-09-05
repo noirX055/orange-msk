@@ -49,6 +49,7 @@ function parseProductForm(formData: FormData) {
     slug,
     brand: String(formData.get("brand") ?? "").trim(),
     series: String(formData.get("series") ?? "").trim() || null,
+    variant_group: String(formData.get("variant_group") ?? "").trim() || null,
     category: String(formData.get("category") ?? "").trim(),
     price: parseNum(String(formData.get("price") ?? "0")),
     old_price: oldPriceRaw ? parseNum(oldPriceRaw) : null,

@@ -9,6 +9,8 @@ export type Product = {
   name: string
   brand: string
   series?: string
+  /** Общий ключ для цветовых вариантов одной модели/памяти */
+  variantGroup?: string
   category: string
   price: number
   oldPrice?: number
