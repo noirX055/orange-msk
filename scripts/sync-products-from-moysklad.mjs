@@ -235,7 +235,7 @@ async function main() {
 
     dbRows.push({
       moysklad_id: p.id,
-      code: p.code || null,
+      code: p.code || p.id.split("-")[0], // Fallback to part of ID if code is missing
       sku: p.article || null,
       path_name: p.pathName || null,
       name: p.name,

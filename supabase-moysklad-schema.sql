@@ -10,7 +10,8 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS sku text;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS path_name text;
 
 -- Уникальный индекс по moysklad_id для быстрого upsert при вебхуках
-CREATE UNIQUE INDEX IF NOT EXISTS idx_products_moysklad_id ON public.products(moysklad_id) WHERE moysklad_id IS NOT NULL;
+DROP INDEX IF EXISTS idx_products_moysklad_id;
+ALTER TABLE public.products ADD CONSTRAINT products_moysklad_id_key UNIQUE (moysklad_id);
 CREATE INDEX IF NOT EXISTS idx_products_code ON public.products(code);
 CREATE INDEX IF NOT EXISTS idx_products_sku ON public.products(sku);
 
