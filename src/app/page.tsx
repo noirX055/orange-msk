@@ -1,17 +1,10 @@
 import Link from "next/link"
-import Image from "next/image"
 import {
   ArrowRight,
   BadgeCheck,
   CreditCard,
-  Headphones,
-  Laptop,
-  Monitor,
   RefreshCw,
-  Smartphone,
   Truck,
-  WashingMachine,
-  Watch,
 } from "lucide-react"
 import { BannerCarousel } from "@/components/banner-carousel"
 import { ProductCard } from "@/components/product-card"
@@ -19,43 +12,21 @@ import { BrandLogo } from "@/components/brand-logo"
 import { getProducts } from "@/lib/products/queries"
 import { getBanners } from "@/lib/banners/queries"
 
-const categoryCards = [
-  {
-    slug: "smartphones",
-    name: "Смартфоны",
-    Icon: Smartphone,
-    image: "/categories/smartphone.png",
-  },
-  {
-    slug: "laptops",
-    name: "Ноутбуки",
-    Icon: Laptop,
-    image: "/categories/laptop.png",
-  },
-  {
-    slug: "monitors",
-    name: "Мониторы",
-    Icon: Monitor,
-    image: "/categories/monitorsnew.png",
-  },
-  {
-    slug: "audio",
-    name: "Аудио",
-    Icon: Headphones,
-    image: "/categories/audi.png",
-  },
-  {
-    slug: "wearables",
-    name: "Гаджеты",
-    Icon: Watch,
-    image: "/categories/whatch.png",
-  },
-  {
-    slug: "home",
-    name: "Техника для дома",
-    Icon: WashingMachine,
-    image: "/categories/homedevice.png",
-  },
+const botCategories = [
+  { name: "Lego", href: "/catalog?brand=Lego" },
+  { name: "Dyson", href: "/catalog?brand=Dyson" },
+  { name: "Samsung", href: "/catalog?brand=Samsung", fullWidth: true },
+  { name: "Игровые консоли", href: "/catalog?search=PlayStation" },
+  { name: "Аксессуары и Адаптеры", href: "/catalog?search=Адаптер" },
+  { name: "AirPods", href: "/catalog?brand=Apple&search=AirPods" },
+  { name: "Apple Watch", href: "/catalog?brand=Apple&search=Watch" },
+  { name: "iPad", href: "/catalog?brand=Apple&search=iPad" },
+  { name: "MacBook", href: "/catalog?brand=Apple&search=MacBook" },
+  { name: "14", href: "/catalog?brand=Apple&search=14" },
+  { name: "15", href: "/catalog?brand=Apple&search=15" },
+  { name: "16", href: "/catalog?brand=Apple&search=16" },
+  { name: "17", href: "/catalog?brand=Apple&search=17" },
+  { name: "18", href: "/catalog?brand=Apple&search=18", fullWidth: true },
 ]
 
 const brandOrder = ["Apple", "Samsung", "Xiaomi", "ASUS", "LG", "Sony", "Dyson"]
@@ -83,49 +54,30 @@ export default async function HomePage() {
 
       <section aria-labelledby="categories-title">
         <h2 id="categories-title" className="mb-4 text-xl font-bold tracking-tight text-foreground md:text-2xl">
-          Категории
+          Каталог
         </h2>
-        <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-          {categoryCards.map(({ slug, name, Icon, image }) => (
-            <li key={slug}>
-              <Link
-                href={`/catalog?category=${slug}`}
-                className="group relative flex h-36 sm:h-40 md:h-44 w-full justify-between overflow-hidden rounded-2xl border border-border/70 bg-card p-4 sm:p-5 transition-colors hover:border-foreground/30 hover:bg-muted/30"
-              >
-                {/* Левый блок с заглавием и иконкой перехода */}
-                <div className="z-10 flex h-full w-[55%] flex-col justify-between pr-2">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80">
-                    <Icon size={18} strokeWidth={1.8} />
-                  </div>
-                  
-                  <div className="my-auto py-1">
-                    <h3 className="text-sm sm:text-base font-semibold text-foreground tracking-tight leading-snug line-clamp-2">
-                      {name}
-                    </h3>
-                  </div>
-
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-foreground/70 transition-colors group-hover:bg-navy group-hover:text-navy-foreground">
-                    <ArrowRight size={14} strokeWidth={2} />
-                  </div>
-                </div>
-
-                {/* Правый блок с изображением без вылетов и подскакиваний */}
-                <div className="absolute right-2 bottom-2 top-2 w-[45%] overflow-hidden pointer-events-none flex items-end justify-end">
-                  <div className="relative h-28 w-28 sm:h-32 sm:w-32 md:h-36 md:w-36">
-                    <Image
-                      src={image}
-                      alt={name}
-                      fill
-                      sizes="(max-width: 640px) 110px, 160px"
-                      className="object-contain object-right-bottom"
-                      priority
-                    />
-                  </div>
-                </div>
-              </Link>
-            </li>
+        {/* Telegram-style grid */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          {botCategories.map(({ name, href, fullWidth }) => (
+            <Link
+              key={name}
+              href={href}
+              className={`group relative flex h-14 sm:h-16 items-center justify-center rounded-xl bg-[#1c2433] text-white shadow-sm transition-all hover:bg-[#253043] ${
+                fullWidth ? "col-span-2 lg:col-span-2" : "col-span-1"
+              }`}
+            >
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-base sm:text-lg">🍊</span>
+                <span className="text-sm font-semibold tracking-tight sm:text-base">{name}</span>
+                <span className="text-base sm:text-lg">🍊</span>
+              </div>
+              <ArrowRight
+                size={14}
+                className="absolute right-3 top-3 text-white/50 -rotate-45 transition-transform group-hover:text-white group-hover:scale-110"
+              />
+            </Link>
           ))}
-        </ul>
+        </div>
       </section>
 
       <section aria-labelledby="brands-title">

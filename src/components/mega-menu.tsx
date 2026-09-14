@@ -3,13 +3,32 @@
 import Link from "next/link"
 import { useState, useRef, useEffect } from "react"
 import { createPortal } from "react-dom"
-import { categories } from "@/lib/products"
 
-type NavTree = Record<string, Record<string, string[]>>
+const customMenu = [
+  {
+    name: "Apple",
+    href: "/catalog?brand=Apple",
+    dropdown: [
+      { name: "14", href: "/catalog?brand=Apple&search=14" },
+      { name: "15", href: "/catalog?brand=Apple&search=15" },
+      { name: "16", href: "/catalog?brand=Apple&search=16" },
+      { name: "17", href: "/catalog?brand=Apple&search=17" },
+      { name: "18", href: "/catalog?brand=Apple&search=18" },
+      { name: "MacBook", href: "/catalog?brand=Apple&search=MacBook" },
+      { name: "iPad", href: "/catalog?brand=Apple&search=iPad" },
+      { name: "AirPods", href: "/catalog?brand=Apple&search=AirPods" },
+      { name: "Apple Watch", href: "/catalog?brand=Apple&search=Watch" },
+    ],
+  },
+  { name: "Samsung", href: "/catalog?brand=Samsung" },
+  { name: "Dyson", href: "/catalog?brand=Dyson" },
+  { name: "Lego", href: "/catalog?brand=Lego" },
+  { name: "Игровые консоли", href: "/catalog?search=PlayStation" },
+  { name: "Аксессуары", href: "/catalog?search=Адаптер" },
+]
 
 export function MegaMenu() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
-  const [tree, setTree] = useState<NavTree>({})
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navRef = useRef<HTMLElement>(null)
   const [dropdownTop, setDropdownTop] = useState(0)
@@ -17,15 +36,11 @@ export function MegaMenu() {
 
   useEffect(() => {
     setMounted(true)
-    fetch("/api/navigation")
-      .then((res) => res.json())
-      .then((data) => setTree(data))
-      .catch(() => {})
   }, [])
 
-  const handleEnter = (slug: string) => {
+  const handleEnter = (name: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    setActiveCategory(slug)
+    setActiveCategory(name)
     if (navRef.current) {
       const rect = navRef.current.getBoundingClientRect()
       setDropdownTop(rect.bottom)
@@ -36,11 +51,10 @@ export function MegaMenu() {
     timeoutRef.current = setTimeout(() => setActiveCategory(null), 200)
   }
 
-  const brands = activeCategory && tree[activeCategory]
-    ? Object.entries(tree[activeCategory])
-    : []
+  const activeItem = customMenu.find((item) => item.name === activeCategory)
+  const hasDropdown = activeItem?.dropdown && activeItem.dropdown.length > 0
 
-  const dropdown = activeCategory && brands.length > 0 ? (
+  const dropdown = activeCategory && hasDropdown ? (
     <div
       className="fixed left-0 right-0 z-[9999] border-b border-border bg-background shadow-xl"
       style={{ top: dropdownTop }}
@@ -49,33 +63,20 @@ export function MegaMenu() {
       }}
       onMouseLeave={handleLeave}
     >
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-8 gap-y-6 px-8 py-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {brands.map(([brand, seriesList]) => (
-          <div key={brand} className="flex flex-col gap-2">
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {activeItem.dropdown!.map((sub) => (
             <Link
-              href={`/catalog?category=${activeCategory}&brand=${encodeURIComponent(brand)}`}
+              key={sub.name}
+              href={sub.href}
               onClick={() => setActiveCategory(null)}
-              className="text-sm font-bold text-foreground transition-colors hover:text-primary"
+              className="flex items-center gap-2 rounded-xl border border-border/50 bg-muted/30 p-4 font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary"
             >
-              {brand}
+              <span className="text-xl">🍊</span>
+              {sub.name}
             </Link>
-            {seriesList.length > 0 && (
-              <ul className="flex flex-col gap-1">
-                {seriesList.map((series) => (
-                  <li key={series}>
-                    <Link
-                      href={`/catalog?category=${activeCategory}&brand=${encodeURIComponent(brand)}&series=${encodeURIComponent(series)}`}
-                      onClick={() => setActiveCategory(null)}
-                      className="block text-sm text-muted-foreground transition-colors hover:text-primary"
-                    >
-                      {series}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   ) : null
@@ -90,30 +91,30 @@ export function MegaMenu() {
       >
         <div className="mx-auto max-w-7xl px-4">
           <ul className="flex items-center gap-1">
-            {categories.map((category) => (
+            {customMenu.map((item) => (
               <li
-                key={category.slug}
-                onMouseEnter={() => handleEnter(category.slug)}
+                key={item.name}
+                onMouseEnter={() => handleEnter(item.name)}
               >
                 <Link
-                  href={`/catalog?category=${category.slug}`}
+                  href={item.href}
                   onClick={() => setActiveCategory(null)}
-                  className={`block whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
-                    activeCategory === category.slug
+                  className={`block whitespace-nowrap border-b-2 px-4 py-3 text-[15px] font-semibold transition-colors ${
+                    activeCategory === item.name
                       ? "border-primary text-foreground"
                       : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {category.name}
+                  {item.name}
                 </Link>
               </li>
             ))}
             <li className="ml-auto">
               <Link
                 href="/catalog?sale=1"
-                className="block whitespace-nowrap px-3 py-3 text-sm font-semibold text-primary"
+                className="block whitespace-nowrap px-3 py-3 text-[15px] font-bold text-primary hover:opacity-80 transition-opacity"
               >
-                Скидки
+                🔥 Скидки
               </Link>
             </li>
           </ul>
