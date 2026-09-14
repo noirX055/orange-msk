@@ -13,7 +13,12 @@ import path from "node:path"
 import { createClient } from "@supabase/supabase-js"
 
 function loadEnv() {
-  const envFiles = [".env.local", ".env"]
+  const envFiles = [
+    ".env.production.local",
+    ".env.local",
+    ".env.production",
+    ".env",
+  ]
   for (const file of envFiles) {
     const fullPath = path.resolve(process.cwd(), file)
     if (fs.existsSync(fullPath)) {
@@ -41,8 +46,8 @@ const urlArg = args.find((a) => a.startsWith("--url="))?.split("=")[1]
 const limitArg = args.find((a) => a.startsWith("--limit="))?.split("=")[1]
 
 const TOKEN = tokenArg || process.env.MOYSKLAD_API_TOKEN
-const SUPABASE_URL = urlArg || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const SUPABASE_KEY = keyArg || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+const SUPABASE_URL = urlArg || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "https://db.orangemsk.ru"
+const SUPABASE_KEY = keyArg || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 const MOYSKLAD_API = "https://api.moysklad.ru/api/remap/1.2"
 
@@ -155,9 +160,17 @@ function detectCategory(product) {
 async function main() {
   if (isClean) {
     console.log("\n1. Очистка старых товаров в базе Supabase...")
-    const { error: delError } = await supabase.from("products").delete().neq("id", "00000000-0000-0000-0000-000000000000")
+    // id — integer, поэтому сравниваем с числом
+    const { error: delError } = await supabase.from("products").delete().gt("id", 0)
     if (delError) {
-      console.warn("  ⚠️ Ошибка при очистке (возможно, нужен SERVICE_ROLE_KEY):", delError.message)
+      console.warn("  ⚠️ Ошибка при очистке:", delError.message)
+      console.warn("  Попытка удалить через neq...")
+      const { error: delError2 } = await supabase.from("products").delete().neq("name", "")
+      if (delError2) {
+        console.warn("  ⚠️ Повторная ошибка:", delError2.message)
+      } else {
+        console.log("  ✓ Существующие товары удалены (через neq).")
+      }
     } else {
       console.log("  ✓ Существующие товары успешно удалены.")
     }
