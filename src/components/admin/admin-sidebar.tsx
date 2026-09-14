@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ImageIcon, LayoutGrid, ListChecks, LogOut, Package, Settings, ShoppingBag, Store } from "lucide-react"
+import { FolderTree, ImageIcon, LayoutGrid, ListChecks, LogOut, Package, Settings, ShoppingBag, Store } from "lucide-react"
 import { signOut } from "@/app/account/actions"
 
 const links = [
   { href: "/admin", label: "Обзор", icon: LayoutGrid, exact: true },
   { href: "/admin/products", label: "Товары", icon: Package },
+  { href: "/admin/categories", label: "Категории и группы", icon: FolderTree },
   { href: "/admin/attributes", label: "Характеристики", icon: ListChecks },
   { href: "/admin/orders", label: "Заказы", icon: ShoppingBag },
   { href: "/admin/banners", label: "Баннеры", icon: ImageIcon },

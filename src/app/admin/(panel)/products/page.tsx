@@ -1,12 +1,13 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
-import { getAllProducts, getAllCategories } from "@/lib/admin/queries"
+import { getAllProducts, getAllCategories, getAllGroups } from "@/lib/admin/queries"
 import { ProductsTable } from "@/components/admin/products-table"
 
 export default async function AdminProductsPage() {
-  const [products, categories] = await Promise.all([
+  const [products, categories, groups] = await Promise.all([
     getAllProducts(),
     getAllCategories(),
+    getAllGroups(),
   ])
 
   return (
@@ -25,7 +26,7 @@ export default async function AdminProductsPage() {
         </Link>
       </div>
 
-      <ProductsTable products={products} categories={categories} />
+      <ProductsTable products={products} categories={categories} groups={groups} />
     </div>
   )
 }

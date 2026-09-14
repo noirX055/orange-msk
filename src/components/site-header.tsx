@@ -8,7 +8,19 @@ import { SearchBox } from "@/components/search-box"
 import { AccountMenu } from "@/components/account/account-menu"
 import { MegaMenu } from "@/components/mega-menu"
 
-export function SiteHeader() {
+import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
+
+type Brand = { id: number; name: string }
+
+export function SiteHeader({
+  categories,
+  groups,
+  brands,
+}: {
+  categories: AdminCategory[]
+  groups: AdminGroup[]
+  brands: Brand[]
+}) {
   const { totalItems } = useCart()
 
   return (
@@ -68,7 +80,7 @@ export function SiteHeader() {
       </div>
 
       {/* Category mega-menu — desktop only */}
-      <MegaMenu />
+      <MegaMenu categories={categories} groups={groups} />
     </header>
   )
 }

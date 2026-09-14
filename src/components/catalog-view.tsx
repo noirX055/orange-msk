@@ -19,12 +19,14 @@ export function CatalogView({
   initialSaleOnly = false,
   initialBrand,
   initialQuery = "",
+  initialSeries,
 }: {
   products: Product[]
   initialCategory?: string
   initialSaleOnly?: boolean
   initialBrand?: string
   initialQuery?: string
+  initialSeries?: string
 }) {
   const brands = useMemo(
     () => Array.from(new Set(products.map((product) => product.brand))).sort(),
@@ -34,7 +36,9 @@ export function CatalogView({
   const [selectedBrands, setSelectedBrands] = useState<string[]>(
     initialBrand && brands.includes(initialBrand) ? [initialBrand] : [],
   )
-  const [selectedSeries, setSelectedSeries] = useState<string[]>([])
+  const [selectedSeries, setSelectedSeries] = useState<string[]>(
+    initialSeries ? [initialSeries] : []
+  )
   const [maxPrice, setMaxPrice] = useState(150000)
   const [inStockOnly, setInStockOnly] = useState(false)
   const [saleOnly, setSaleOnly] = useState(initialSaleOnly)

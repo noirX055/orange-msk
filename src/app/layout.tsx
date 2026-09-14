@@ -5,6 +5,7 @@ import { CartProvider } from "@/components/cart-provider"
 import { FavoritesProvider } from "@/components/favorites-provider"
 import { SiteChrome } from "@/components/site-chrome"
 import { OrganizationJsonLd } from "@/components/json-ld"
+import { getCategoriesWithGroups } from "@/lib/admin/queries"
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -93,11 +94,13 @@ export const viewport: Viewport = {
   themeColor: "#22303f",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const { categories, groups, brands } = await getCategoriesWithGroups()
+
   return (
     <html
       lang="ru"
@@ -109,7 +112,9 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <CartProvider>
           <FavoritesProvider>
-            <SiteChrome>{children}</SiteChrome>
+            <SiteChrome categories={categories} groups={groups} brands={brands}>
+              {children}
+            </SiteChrome>
           </FavoritesProvider>
         </CartProvider>
       </body>

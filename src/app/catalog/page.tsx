@@ -10,7 +10,7 @@ export const revalidate = 60
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; sale?: string; brand?: string; q?: string }>
+  searchParams: Promise<{ category?: string; sale?: string; brand?: string; q?: string; series?: string }>
 }): Promise<Metadata> {
   const params = await searchParams
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orangemsk.ru"
@@ -21,7 +21,10 @@ export async function generateMetadata({
 
   if (params.category && params.category !== "all") {
     const catName = getCategoryName(params.category)
-    if (params.brand) {
+    if (params.series) {
+      title = `${catName} ${params.series} — купить в Москве | Каталог Orange MSK`
+      description = `Большой выбор ${catName} серии ${params.series} по выгодным ценам в Москве. Официальная гарантия, быстрая доставка.`
+    } else if (params.brand) {
       title = `${catName} ${params.brand} — купить в Москве | Каталог Orange MSK`
       description = `Большой выбор ${catName} бренда ${params.brand} по выгодным ценам в Москве. Официальная гарантия, быстрая доставка.`
     } else {
@@ -39,9 +42,10 @@ export async function generateMetadata({
     description = `Результаты поиска по запросу «${params.q}» в каталоге электроники Orange MSK.`
   }
 
-  const canonicalUrl = `${siteUrl}/catalog${
-    params.category ? `?category=${params.category}` : ""
-  }`
+  let canonicalUrl = `${siteUrl}/catalog${params.category ? `?category=${params.category}` : ""}`
+  if (params.series) {
+    canonicalUrl += `${params.category ? "&" : "?"}series=${encodeURIComponent(params.series)}`
+  }
 
   return {
     title,
@@ -71,7 +75,7 @@ export async function generateMetadata({
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; sale?: string; brand?: string; q?: string }>
+  searchParams: Promise<{ category?: string; sale?: string; brand?: string; q?: string; series?: string }>
 }) {
   const params = await searchParams
   const products = await getProducts()
@@ -86,6 +90,9 @@ export default async function CatalogPage({
     { name: "Каталог", url: `${siteUrl}/catalog` },
     ...(categoryName
       ? [{ name: categoryName, url: `${siteUrl}/catalog?category=${params.category}` }]
+      : []),
+    ...(categoryName && params.series
+      ? [{ name: params.series, url: `${siteUrl}/catalog?category=${params.category}&series=${encodeURIComponent(params.series)}` }]
       : []),
   ]
 
@@ -109,7 +116,20 @@ export default async function CatalogPage({
             {categoryName && (
               <>
                 <li aria-hidden="true">/</li>
-                <li className="text-foreground">{categoryName}</li>
+                <li>
+                  <Link
+                    href={`/catalog?category=${params.category}`}
+                    className={params.series ? "hover:text-primary" : "text-foreground"}
+                  >
+                    {categoryName}
+                  </Link>
+                </li>
+              </>
+            )}
+            {categoryName && params.series && (
+              <>
+                <li aria-hidden="true">/</li>
+                <li className="text-foreground">{params.series}</li>
               </>
             )}
           </ol>
@@ -121,6 +141,7 @@ export default async function CatalogPage({
           initialSaleOnly={params.sale === "1"}
           initialBrand={params.brand}
           initialQuery={params.q ?? ""}
+          initialSeries={params.series}
         />
       </div>
     </>

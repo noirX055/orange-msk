@@ -3,13 +3,24 @@
 import { useMemo, useState, Fragment, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Pencil, Search } from "lucide-react"
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Pencil,
+  Search,
+} from "lucide-react"
 import { formatPrice, getProductImages, type Product } from "@/lib/products"
-import { deleteProduct } from "@/app/admin/actions"
+import { bulkUpdateProducts, deleteProduct } from "@/app/admin/actions"
 import { DeleteButton } from "@/components/admin/delete-button"
 import { VisibilityToggle } from "@/components/admin/visibility-toggle"
 
 type SortKey = "name" | "category" | "price" | "stock" | "visible"
+
+type Category = { slug: string; name: string }
+type Group = { id: number; name: string; brand_id: number; category_slug: string }
 
 const controlBase =
   "h-10 rounded-xl border border-border bg-muted/50 px-3 text-sm outline-none transition-colors focus:border-primary"
@@ -17,21 +28,31 @@ const controlBase =
 export function ProductsTable({
   products,
   categories,
+  groups,
 }: {
   products: Product[]
-  categories: { slug: string; name: string }[]
+  categories: Category[]
+  groups: Group[]
 }) {
   const getCategoryName = useCallback(
     (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug,
-    [categories]
+    [categories],
   )
+
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("all")
+  const [groupFilter, setGroupFilter] = useState("all")
   const [brand, setBrand] = useState("all")
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const [groupByBrand, setGroupByBrand] = useState(false)
   const [page, setPage] = useState(1)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkCategory, setBulkCategory] = useState("")
+  const [bulkGroup, setBulkGroup] = useState("")
+  const [bulkLoading, setBulkLoading] = useState(false)
+  const [bulkMessage, setBulkMessage] = useState("")
+  const [bulkError, setBulkError] = useState("")
   const PAGE_SIZE = 40
 
   const brands = useMemo(
@@ -39,11 +60,27 @@ export function ProductsTable({
     [products],
   )
 
+  const filteredGroups = useMemo(() => {
+    if (category === "all") return groups
+    return groups.filter((g) => g.category_slug === category)
+  }, [groups, category])
+
+  const bulkGroups = useMemo(() => {
+    if (!bulkCategory) return groups
+    return groups.filter((g) => g.category_slug === bulkCategory)
+  }, [groups, bulkCategory])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
+    const selectedGroup = groupFilter !== "all" ? groups.find((g) => String(g.id) === groupFilter) : null
+
     const list = products.filter((product) => {
       if (category !== "all" && product.category !== category) return false
       if (brand !== "all" && product.brand !== brand) return false
+      if (selectedGroup) {
+        if (product.category !== selectedGroup.category_slug) return false
+        if ((product.series ?? "") !== selectedGroup.name) return false
+      }
       if (q) {
         const haystack = [product.name, product.brand, product.slug, product.series ?? ""]
           .join(" ")
@@ -78,15 +115,15 @@ export function ProductsTable({
     }
 
     return list
-  }, [products, query, category, brand, sortKey, sortDir])
+  }, [products, query, category, brand, groupFilter, groups, sortKey, sortDir, getCategoryName])
 
-  // Reset page when filters change
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
   const paginatedFiltered = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+  const pageIds = paginatedFiltered.map((p) => p.id)
+  const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id))
 
-  // Группировка по бренду (когда включена) — секции с заголовками
-  const groups = useMemo(() => {
+  const brandGroups = useMemo(() => {
     if (!groupByBrand) return [{ brand: null as string | null, items: paginatedFiltered }]
     const map = new Map<string, Product[]>()
     for (const product of paginatedFiltered) {
@@ -99,10 +136,69 @@ export function ProductsTable({
       .map((name) => ({ brand: name, items: map.get(name)! }))
   }, [paginatedFiltered, groupByBrand])
 
-  // Reset page on filter change
-  const handleQuery = useCallback((v: string) => { setQuery(v); setPage(1) }, [])
-  const handleCategory = useCallback((v: string) => { setCategory(v); setPage(1) }, [])
-  const handleBrand = useCallback((v: string) => { setBrand(v); setPage(1) }, [])
+  const handleQuery = useCallback((v: string) => {
+    setQuery(v)
+    setPage(1)
+  }, [])
+  const handleCategory = useCallback((v: string) => {
+    setCategory(v)
+    setGroupFilter("all")
+    setPage(1)
+  }, [])
+  const handleGroupFilter = useCallback((v: string) => {
+    setGroupFilter(v)
+    setPage(1)
+  }, [])
+  const handleBrand = useCallback((v: string) => {
+    setBrand(v)
+    setPage(1)
+  }, [])
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectPage = () => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (allPageSelected) {
+        for (const id of pageIds) next.delete(id)
+      } else {
+        for (const id of pageIds) next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleBulkApply = async () => {
+    setBulkLoading(true)
+    setBulkMessage("")
+    setBulkError("")
+
+    const selectedGroup = bulkGroup ? groups.find((g) => String(g.id) === bulkGroup) : null
+
+    const formData = new FormData()
+    formData.append("ids", JSON.stringify(Array.from(selected)))
+    if (bulkCategory) formData.append("category", bulkCategory)
+    if (selectedGroup) formData.append("series", selectedGroup.name)
+
+    const result = await bulkUpdateProducts({ ok: false }, formData)
+
+    if (!result.ok) {
+      setBulkError(result.error || "Ошибка обновления")
+    } else {
+      setBulkMessage(result.message || "Готово")
+      setSelected(new Set())
+      setBulkCategory("")
+      setBulkGroup("")
+    }
+    setBulkLoading(false)
+  }
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -136,8 +232,19 @@ export function ProductsTable({
 
   const renderRow = (product: Product) => {
     const image = getProductImages(product)[0]
+    const isChecked = selected.has(product.id)
+
     return (
-      <tr key={product.id} className="transition-colors hover:bg-muted/30">
+      <tr key={product.id} className={`transition-colors hover:bg-muted/30 ${isChecked ? "bg-primary/5" : ""}`}>
+        <td className="px-4 py-3">
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onChange={() => toggleSelect(product.id)}
+            className="h-4 w-4 accent-[var(--primary)]"
+            aria-label={`Выбрать ${product.name}`}
+          />
+        </td>
         <td className="px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
@@ -155,8 +262,11 @@ export function ProductsTable({
         <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">
           {getCategoryName(product.category)}
         </td>
+        <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+          {product.series || "—"}
+        </td>
         <td className="px-4 py-3 font-semibold">{formatPrice(product.price)}</td>
-        <td className="hidden px-4 py-3 md:table-cell">
+        <td className="hidden px-4 py-3 lg:table-cell">
           {product.inStock ? (
             <span className="whitespace-nowrap rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
               В наличии
@@ -191,7 +301,6 @@ export function ProductsTable({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Панель поиска и фильтров */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-56 flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -208,6 +317,19 @@ export function ProductsTable({
           <option value="all">Все категории</option>
           {categories.map((item) => (
             <option key={item.slug} value={item.slug}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={groupFilter}
+          onChange={(event) => handleGroupFilter(event.target.value)}
+          className={controlBase}
+        >
+          <option value="all">Все группы</option>
+          {filteredGroups.map((item) => (
+            <option key={item.id} value={String(item.id)}>
               {item.name}
             </option>
           ))}
@@ -233,26 +355,105 @@ export function ProductsTable({
         </label>
       </div>
 
-      <p className="text-sm text-muted-foreground">Найдено: {filtered.length} · Страница {safePage} из {totalPages}</p>
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+          <span className="text-sm font-medium">Выбрано: {selected.size}</span>
+
+          <select
+            value={bulkCategory}
+            onChange={(e) => {
+              setBulkCategory(e.target.value)
+              setBulkGroup("")
+            }}
+            className={controlBase}
+          >
+            <option value="">Категория — не менять</option>
+            {categories.map((item) => (
+              <option key={item.slug} value={item.slug}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={bulkGroup}
+            onChange={(e) => setBulkGroup(e.target.value)}
+            className={controlBase}
+          >
+            <option value="">Группа — не менять</option>
+            {bulkGroups.map((item) => (
+              <option key={item.id} value={String(item.id)}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={handleBulkApply}
+            disabled={bulkLoading || (!bulkCategory && !bulkGroup)}
+            className="h-10 rounded-xl bg-navy px-4 text-sm font-semibold text-navy-foreground transition-all hover:brightness-110 disabled:opacity-50"
+          >
+            {bulkLoading ? "Сохранение…" : "Применить"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelected(new Set())}
+            className="text-sm text-muted-foreground underline-offset-2 hover:underline"
+          >
+            Снять выделение
+          </button>
+        </div>
+      )}
+
+      {(bulkMessage || bulkError) && (
+        <p
+          className={`rounded-xl px-4 py-3 text-sm ${
+            bulkError
+              ? "border border-red-200 bg-red-50 text-red-700"
+              : "border border-green-200 bg-green-50 text-green-700"
+          }`}
+        >
+          {bulkError || bulkMessage}
+        </p>
+      )}
+
+      <p className="text-sm text-muted-foreground">
+        Найдено: {filtered.length} · Страница {safePage} из {totalPages}
+      </p>
 
       <div className="overflow-x-auto rounded-card border border-border">
         <table className="w-full text-sm">
           <thead className="border-b border-border bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
+              <th className="w-10 px-4 py-3">
+                <input
+                  type="checkbox"
+                  checked={allPageSelected}
+                  onChange={toggleSelectPage}
+                  className="h-4 w-4 accent-[var(--primary)]"
+                  aria-label="Выбрать все на странице"
+                />
+              </th>
               {sortHeader("Товар", "name")}
               {sortHeader("Категория", "category", "hidden sm:table-cell")}
+              <th className="hidden px-4 py-3 font-semibold md:table-cell">Группа</th>
               {sortHeader("Цена", "price")}
-              {sortHeader("Наличие", "stock", "hidden md:table-cell")}
+              {sortHeader("Наличие", "stock", "hidden lg:table-cell")}
               {sortHeader("Показ", "visible")}
               <th className="px-4 py-3 text-right font-semibold">Действия</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {groups.map((group) => (
+            {brandGroups.map((group) => (
               <Fragment key={group.brand ?? "__all"}>
                 {group.brand && (
                   <tr className="bg-muted/40">
-                    <td colSpan={6} className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    <td
+                      colSpan={8}
+                      className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-muted-foreground"
+                    >
                       {group.brand} · {group.items.length}
                     </td>
                   </tr>
@@ -270,7 +471,6 @@ export function ProductsTable({
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button
@@ -284,13 +484,15 @@ export function ProductsTable({
           {Array.from({ length: totalPages }, (_, i) => i + 1)
             .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2)
             .reduce<(number | string)[]>((acc, p, i, arr) => {
-              if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...')
+              if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...")
               acc.push(p)
               return acc
             }, [])
             .map((p, i) =>
-              typeof p === 'string' ? (
-                <span key={`dots-${i}`} className="px-1 text-sm text-muted-foreground">…</span>
+              typeof p === "string" ? (
+                <span key={`dots-${i}`} className="px-1 text-sm text-muted-foreground">
+                  …
+                </span>
               ) : (
                 <button
                   key={p}
@@ -298,8 +500,8 @@ export function ProductsTable({
                   onClick={() => setPage(p)}
                   className={`flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-sm font-medium transition-colors ${
                     p === safePage
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border hover:bg-muted'
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:bg-muted"
                   }`}
                 >
                   {p}

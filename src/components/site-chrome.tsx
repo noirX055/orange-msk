@@ -4,10 +4,21 @@ import { usePathname } from "next/navigation"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
+import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
 
-// Админка (/admin) — самостоятельная панель со своей оболочкой,
-// поэтому витринные хедер и футер на её маршрутах не показываем.
-export function SiteChrome({ children }: { children: React.ReactNode }) {
+type Brand = { id: number; name: string }
+
+export function SiteChrome({
+  children,
+  categories,
+  groups,
+  brands,
+}: {
+  children: React.ReactNode
+  categories: AdminCategory[]
+  groups: AdminGroup[]
+  brands: Brand[]
+}) {
   const pathname = usePathname()
   const isAdmin = pathname?.startsWith("/admin")
 
@@ -17,7 +28,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader categories={categories} groups={groups} brands={brands} />
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
       <SiteFooter />
       <MobileBottomNav />

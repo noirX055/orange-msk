@@ -79,10 +79,46 @@ export async function getAllGroups(): Promise<{ id: number; name: string; brand_
   return (data as { id: number; name: string; brand_id: number; category_slug: string }[] | null) ?? []
 }
 
-export async function getAllCategories(): Promise<{ slug: string; name: string }[]> {
+export type AdminCategory = {
+  id: number
+  slug: string
+  name: string
+  is_visible: boolean
+}
+
+export type AdminGroup = {
+  id: number
+  name: string
+  brand_id: number
+  category_slug: string
+}
+
+export async function getAllCategories(): Promise<AdminCategory[]> {
   const supabase = await createClient()
-  const { data } = await supabase.from("categories").select("slug, name").order("name")
-  return (data as { slug: string; name: string }[] | null) ?? []
+  const { data } = await supabase
+    .from("categories")
+    .select("id, slug, name, is_visible")
+    .order("name")
+  return (data as AdminCategory[] | null) ?? []
+}
+
+export async function getCategoriesWithGroups(): Promise<{
+  categories: AdminCategory[]
+  groups: AdminGroup[]
+  brands: { id: number; name: string }[]
+}> {
+  const supabase = await createClient()
+  const [categoriesRes, groupsRes, brandsRes] = await Promise.all([
+    supabase.from("categories").select("id, slug, name, is_visible").order("name"),
+    supabase.from("product_groups").select("id, name, brand_id, category_slug").order("name"),
+    supabase.from("brands").select("id, name").order("name"),
+  ])
+
+  return {
+    categories: (categoriesRes.data as AdminCategory[] | null) ?? [],
+    groups: (groupsRes.data as AdminGroup[] | null) ?? [],
+    brands: (brandsRes.data as { id: number; name: string }[] | null) ?? [],
+  }
 }
 
 export async function getProductById(id: string): Promise<Product | null> {

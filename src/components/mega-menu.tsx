@@ -1,46 +1,35 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { createPortal } from "react-dom"
+import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
 
-const customMenu = [
-  {
-    name: "Apple",
-    href: "/catalog?brand=Apple",
-    dropdown: [
-      { name: "iPhone 14", href: "/catalog?category=iphone-14" },
-      { name: "iPhone 15", href: "/catalog?category=iphone-15" },
-      { name: "iPhone 16", href: "/catalog?category=iphone-16" },
-      { name: "iPhone 17", href: "/catalog?category=iphone-17" },
-      { name: "iPhone 18", href: "/catalog?category=iphone-18" },
-      { name: "MacBook", href: "/catalog?category=macbook" },
-      { name: "iPad", href: "/catalog?category=ipad" },
-      { name: "AirPods", href: "/catalog?category=airpods" },
-      { name: "Apple Watch", href: "/catalog?category=apple-watch" },
-    ],
-  },
-  { name: "Samsung", href: "/catalog?category=samsung" },
-  { name: "Dyson", href: "/catalog?category=dyson" },
-  { name: "Lego", href: "/catalog?category=lego" },
-  { name: "Игровые консоли", href: "/catalog?category=consoles" },
-  { name: "Аксессуары", href: "/catalog?category=accessories" },
-]
-
-export function MegaMenu() {
+export function MegaMenu({
+  categories,
+  groups,
+}: {
+  categories: AdminCategory[]
+  groups: AdminGroup[]
+}) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navRef = useRef<HTMLElement>(null)
   const [dropdownTop, setDropdownTop] = useState(0)
   const [mounted, setMounted] = useState(false)
 
+  const visibleCategories = useMemo(
+    () => categories.filter((c) => c.is_visible),
+    [categories]
+  )
+
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const handleEnter = (name: string) => {
+  const handleEnter = (slug: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    setActiveCategory(name)
+    setActiveCategory(slug)
     if (navRef.current) {
       const rect = navRef.current.getBoundingClientRect()
       setDropdownTop(rect.bottom)
@@ -51,8 +40,11 @@ export function MegaMenu() {
     timeoutRef.current = setTimeout(() => setActiveCategory(null), 200)
   }
 
-  const activeItem = customMenu.find((item) => item.name === activeCategory)
-  const hasDropdown = activeItem?.dropdown && activeItem.dropdown.length > 0
+  const activeItem = visibleCategories.find((item) => item.slug === activeCategory)
+  const categoryGroups = activeItem
+    ? groups.filter((g) => g.category_slug === activeItem.slug)
+    : []
+  const hasDropdown = categoryGroups.length > 0
 
   const dropdown = activeCategory && hasDropdown ? (
     <div
@@ -65,10 +57,10 @@ export function MegaMenu() {
     >
       <div className="mx-auto max-w-7xl px-8 py-8">
         <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
-          {activeItem.dropdown!.map((sub) => (
+          {categoryGroups.map((sub) => (
             <Link
-              key={sub.name}
-              href={sub.href}
+              key={sub.id}
+              href={`/catalog?category=${activeItem!.slug}&series=${encodeURIComponent(sub.name)}`}
               onClick={() => setActiveCategory(null)}
               className="block text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
@@ -89,17 +81,17 @@ export function MegaMenu() {
         onMouseLeave={handleLeave}
       >
         <div className="mx-auto max-w-7xl px-4">
-          <ul className="flex items-center gap-1">
-            {customMenu.map((item) => (
+          <ul className="flex flex-wrap items-center gap-1">
+            {visibleCategories.map((item) => (
               <li
-                key={item.name}
-                onMouseEnter={() => handleEnter(item.name)}
+                key={item.slug}
+                onMouseEnter={() => handleEnter(item.slug)}
               >
                 <Link
-                  href={item.href}
+                  href={`/catalog?category=${item.slug}`}
                   onClick={() => setActiveCategory(null)}
                   className={`block whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
-                    activeCategory === item.name
+                    activeCategory === item.slug
                       ? "border-primary text-foreground"
                       : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}

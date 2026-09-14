@@ -391,6 +391,7 @@ export async function createGroup(
   }
 
   revalidatePath("/admin/settings")
+  revalidatePath("/admin/categories")
   return { ok: true, message: "Группа успешно добавлена" }
 }
 
@@ -417,6 +418,7 @@ export async function updateGroup(
   }
 
   revalidatePath("/admin/settings")
+  revalidatePath("/admin/categories")
   return { ok: true, message: "Группа успешно обновлена" }
 }
 
@@ -427,4 +429,112 @@ export async function deleteGroup(formData: FormData): Promise<void> {
 
   await supabase.from("product_groups").delete().eq("id", id)
   revalidatePath("/admin/settings")
+  revalidatePath("/admin/categories")
+}
+
+// ---------- Категории ----------
+
+export async function createCategory(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  const name = String(formData.get("name") ?? "").trim()
+  const slug = String(formData.get("slug") ?? "").trim() || slugify(name)
+
+  if (!name) return { ok: false, error: "Укажите название категории" }
+
+  const { error } = await supabase.from("categories").insert({ name, slug, is_visible: true })
+
+  if (error) {
+    if (error.code === "23505") return { ok: false, error: "Категория с таким slug уже существует" }
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath("/admin/categories")
+  revalidatePath("/admin/products")
+  return { ok: true, message: "Категория добавлена" }
+}
+
+export async function updateCategory(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  const id = Number(formData.get("id"))
+  const name = String(formData.get("name") ?? "").trim()
+  const slug = String(formData.get("slug") ?? "").trim()
+
+  if (!id) return { ok: false, error: "Не указана категория" }
+  if (!name) return { ok: false, error: "Укажите название категории" }
+
+  const { error } = await supabase.from("categories").update({ name, slug }).eq("id", id)
+
+  if (error) {
+    if (error.code === "23505") return { ok: false, error: "Категория с таким slug уже существует" }
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath("/admin/categories")
+  revalidatePath("/admin/products")
+  return { ok: true, message: "Категория обновлена" }
+}
+
+export async function deleteCategory(formData: FormData): Promise<void> {
+  const { supabase } = await requireAdmin()
+  const id = Number(formData.get("id"))
+  if (!id) return
+
+  await supabase.from("categories").delete().eq("id", id)
+  revalidatePath("/admin/categories")
+  revalidatePath("/admin/products")
+}
+
+export async function toggleCategoryVisibility(formData: FormData): Promise<void> {
+  const { supabase } = await requireAdmin()
+  const id = Number(formData.get("id"))
+  const visible = String(formData.get("visible") ?? "") === "1"
+  if (!id) return
+
+  await supabase.from("categories").update({ is_visible: visible }).eq("id", id)
+  revalidatePath("/admin/categories")
+}
+
+export async function bulkUpdateProducts(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+
+  let ids: string[] = []
+  try {
+    ids = JSON.parse(String(formData.get("ids") ?? "[]"))
+  } catch {
+    return { ok: false, error: "Некорректный список товаров" }
+  }
+
+  if (!ids.length) return { ok: false, error: "Выберите хотя бы один товар" }
+
+  const category = String(formData.get("category") ?? "").trim()
+  const series = String(formData.get("series") ?? "").trim()
+
+  if (!category && !series) {
+    return { ok: false, error: "Выберите категорию или группу для назначения" }
+  }
+
+  const update: Record<string, string | null> = {}
+  if (category) update.category = category
+  if (series) {
+    update.series = series
+    update.variant_group = slugify(series)
+  }
+
+  const { error } = await supabase.from("products").update(update).in("id", ids)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath("/admin/products")
+  revalidatePath("/catalog")
+  revalidatePath("/")
+  return { ok: true, message: `Обновлено товаров: ${ids.length}` }
 }
