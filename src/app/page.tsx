@@ -1,10 +1,18 @@
 import Link from "next/link"
+import Image from "next/image"
 import {
   ArrowRight,
   BadgeCheck,
   CreditCard,
+  Gamepad2,
+  Headphones,
+  Laptop,
+  Plug,
   RefreshCw,
+  Smartphone,
+  Tablet,
   Truck,
+  Watch,
 } from "lucide-react"
 import { BannerCarousel } from "@/components/banner-carousel"
 import { ProductCard } from "@/components/product-card"
@@ -12,21 +20,77 @@ import { BrandLogo } from "@/components/brand-logo"
 import { getProducts } from "@/lib/products/queries"
 import { getBanners } from "@/lib/banners/queries"
 
-const botCategories = [
-  { name: "Lego", href: "/catalog?category=lego" },
-  { name: "Dyson", href: "/catalog?category=dyson" },
-  { name: "Samsung", href: "/catalog?category=samsung", fullWidth: true },
-  { name: "Игровые консоли", href: "/catalog?category=consoles" },
-  { name: "Аксессуары и Адаптеры", href: "/catalog?category=accessories" },
-  { name: "AirPods", href: "/catalog?category=airpods" },
-  { name: "Apple Watch", href: "/catalog?category=apple-watch" },
-  { name: "iPad", href: "/catalog?category=ipad" },
-  { name: "MacBook", href: "/catalog?category=macbook" },
-  { name: "14", href: "/catalog?category=iphone-14" },
-  { name: "15", href: "/catalog?category=iphone-15" },
-  { name: "16", href: "/catalog?category=iphone-16" },
-  { name: "17", href: "/catalog?category=iphone-17" },
-  { name: "18", href: "/catalog?category=iphone-18", fullWidth: true },
+const categoryCards = [
+  {
+    slug: "iphone-16",
+    name: "iPhone 16",
+    Icon: Smartphone,
+    image: "/categories/smartphone.png",
+    href: "/catalog?category=iphone-16",
+  },
+  {
+    slug: "iphone-15",
+    name: "iPhone 15",
+    Icon: Smartphone,
+    image: "/categories/smartphone.png",
+    href: "/catalog?category=iphone-15",
+  },
+  {
+    slug: "macbook",
+    name: "MacBook",
+    Icon: Laptop,
+    image: "/categories/laptop.png",
+    href: "/catalog?category=macbook",
+  },
+  {
+    slug: "ipad",
+    name: "iPad",
+    Icon: Tablet,
+    image: "/categories/laptop.png",
+    href: "/catalog?category=ipad",
+  },
+  {
+    slug: "apple-watch",
+    name: "Apple Watch",
+    Icon: Watch,
+    image: "/categories/whatch.png",
+    href: "/catalog?category=apple-watch",
+  },
+  {
+    slug: "airpods",
+    name: "AirPods",
+    Icon: Headphones,
+    image: "/categories/audi.png",
+    href: "/catalog?category=airpods",
+  },
+  {
+    slug: "samsung",
+    name: "Samsung",
+    Icon: Smartphone,
+    image: "/categories/smartphone.png",
+    href: "/catalog?category=samsung",
+  },
+  {
+    slug: "dyson",
+    name: "Dyson",
+    Icon: Plug,
+    image: "/categories/homedevice.png",
+    href: "/catalog?category=dyson",
+  },
+  {
+    slug: "consoles",
+    name: "Игровые консоли",
+    Icon: Gamepad2,
+    image: "/categories/monitorsnew.png",
+    href: "/catalog?category=consoles",
+  },
+  {
+    slug: "accessories",
+    name: "Аксессуары",
+    Icon: Plug,
+    image: "/categories/audi.png",
+    href: "/catalog?category=accessories",
+  },
 ]
 
 const brandOrder = ["Apple", "Samsung", "Xiaomi", "ASUS", "LG", "Sony", "Dyson"]
@@ -56,28 +120,47 @@ export default async function HomePage() {
         <h2 id="categories-title" className="mb-4 text-xl font-bold tracking-tight text-foreground md:text-2xl">
           Каталог
         </h2>
-        {/* Telegram-style grid */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-          {botCategories.map(({ name, href, fullWidth }) => (
-            <Link
-              key={name}
-              href={href}
-              className={`group relative flex h-14 sm:h-16 items-center justify-center rounded-xl bg-[#1c2433] text-white shadow-sm transition-all hover:bg-[#253043] ${
-                fullWidth ? "col-span-2 lg:col-span-2" : "col-span-1"
-              }`}
-            >
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="text-base sm:text-lg">🍊</span>
-                <span className="text-sm font-semibold tracking-tight sm:text-base">{name}</span>
-                <span className="text-base sm:text-lg">🍊</span>
-              </div>
-              <ArrowRight
-                size={14}
-                className="absolute right-3 top-3 text-white/50 -rotate-45 transition-transform group-hover:text-white group-hover:scale-110"
-              />
-            </Link>
+        <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+          {categoryCards.map(({ slug, name, Icon, image, href }) => (
+            <li key={slug}>
+              <Link
+                href={href}
+                className="group relative flex h-36 sm:h-40 md:h-44 w-full justify-between overflow-hidden rounded-2xl border border-border/70 bg-card p-4 sm:p-5 transition-colors hover:border-foreground/30 hover:bg-muted/30"
+              >
+                {/* Левый блок с заглавием и иконкой перехода */}
+                <div className="z-10 flex h-full w-[55%] flex-col justify-between pr-2">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80">
+                    <Icon size={18} strokeWidth={1.8} />
+                  </div>
+                  
+                  <div className="my-auto py-1">
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground tracking-tight leading-snug line-clamp-2">
+                      {name}
+                    </h3>
+                  </div>
+
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-foreground/70 transition-colors group-hover:bg-navy group-hover:text-navy-foreground">
+                    <ArrowRight size={14} strokeWidth={2} />
+                  </div>
+                </div>
+
+                {/* Правый блок с изображением */}
+                <div className="absolute right-2 bottom-2 top-2 w-[45%] overflow-hidden pointer-events-none flex items-end justify-end">
+                  <div className="relative h-28 w-28 sm:h-32 sm:w-32 md:h-36 md:w-36">
+                    <Image
+                      src={image}
+                      alt={name}
+                      fill
+                      sizes="(max-width: 640px) 110px, 160px"
+                      className="object-contain object-right-bottom"
+                      priority
+                    />
+                  </div>
+                </div>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
 
       <section aria-labelledby="brands-title">

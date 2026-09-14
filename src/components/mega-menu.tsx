@@ -9,11 +9,11 @@ const customMenu = [
     name: "Apple",
     href: "/catalog?brand=Apple",
     dropdown: [
-      { name: "14", href: "/catalog?category=iphone-14" },
-      { name: "15", href: "/catalog?category=iphone-15" },
-      { name: "16", href: "/catalog?category=iphone-16" },
-      { name: "17", href: "/catalog?category=iphone-17" },
-      { name: "18", href: "/catalog?category=iphone-18" },
+      { name: "iPhone 14", href: "/catalog?category=iphone-14" },
+      { name: "iPhone 15", href: "/catalog?category=iphone-15" },
+      { name: "iPhone 16", href: "/catalog?category=iphone-16" },
+      { name: "iPhone 17", href: "/catalog?category=iphone-17" },
+      { name: "iPhone 18", href: "/catalog?category=iphone-18" },
       { name: "MacBook", href: "/catalog?category=macbook" },
       { name: "iPad", href: "/catalog?category=ipad" },
       { name: "AirPods", href: "/catalog?category=airpods" },
@@ -63,16 +63,15 @@ export function MegaMenu() {
       }}
       onMouseLeave={handleLeave}
     >
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      <div className="mx-auto max-w-7xl px-8 py-8">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
           {activeItem.dropdown!.map((sub) => (
             <Link
               key={sub.name}
               href={sub.href}
               onClick={() => setActiveCategory(null)}
-              className="flex items-center gap-2 rounded-xl border border-border/50 bg-muted/30 p-4 font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary"
+              className="block text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
-              <span className="text-xl">🍊</span>
               {sub.name}
             </Link>
           ))}
@@ -99,7 +98,7 @@ export function MegaMenu() {
                 <Link
                   href={item.href}
                   onClick={() => setActiveCategory(null)}
-                  className={`block whitespace-nowrap border-b-2 px-4 py-3 text-[15px] font-semibold transition-colors ${
+                  className={`block whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
                     activeCategory === item.name
                       ? "border-primary text-foreground"
                       : "border-transparent text-muted-foreground hover:text-foreground"
@@ -112,9 +111,9 @@ export function MegaMenu() {
             <li className="ml-auto">
               <Link
                 href="/catalog?sale=1"
-                className="block whitespace-nowrap px-3 py-3 text-[15px] font-bold text-primary hover:opacity-80 transition-opacity"
+                className="block whitespace-nowrap px-3 py-3 text-sm font-semibold text-primary"
               >
-                🔥 Скидки
+                Скидки
               </Link>
             </li>
           </ul>
