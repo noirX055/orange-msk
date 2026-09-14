@@ -120,47 +120,40 @@ export default async function HomePage() {
         <h2 id="categories-title" className="mb-4 text-xl font-bold tracking-tight text-foreground md:text-2xl">
           Каталог
         </h2>
-        <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        {/* Горизонтальная карусель */}
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0">
           {categoryCards.map(({ slug, name, Icon, image, href }) => (
-            <li key={slug}>
-              <Link
-                href={href}
-                className="group relative flex h-36 sm:h-40 md:h-44 w-full justify-between overflow-hidden rounded-2xl border border-border/70 bg-card p-4 sm:p-5 transition-colors hover:border-foreground/30 hover:bg-muted/30"
-              >
-                {/* Левый блок с заглавием и иконкой перехода */}
-                <div className="z-10 flex h-full w-[55%] flex-col justify-between pr-2">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80">
-                    <Icon size={18} strokeWidth={1.8} />
-                  </div>
-                  
-                  <div className="my-auto py-1">
-                    <h3 className="text-sm sm:text-base font-semibold text-foreground tracking-tight leading-snug line-clamp-2">
-                      {name}
-                    </h3>
-                  </div>
+            <Link
+              key={slug}
+              href={href}
+              className="group relative flex h-40 w-36 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-border/70 bg-card p-4 transition-colors hover:border-foreground/30 hover:bg-muted/30 sm:h-44 sm:w-44"
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80">
+                <Icon size={16} strokeWidth={1.8} />
+              </div>
 
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-foreground/70 transition-colors group-hover:bg-navy group-hover:text-navy-foreground">
-                    <ArrowRight size={14} strokeWidth={2} />
-                  </div>
-                </div>
+              <h3 className="text-sm font-semibold text-foreground tracking-tight leading-snug">
+                {name}
+              </h3>
 
-                {/* Правый блок с изображением */}
-                <div className="absolute right-2 bottom-2 top-2 w-[45%] overflow-hidden pointer-events-none flex items-end justify-end">
-                  <div className="relative h-28 w-28 sm:h-32 sm:w-32 md:h-36 md:w-36">
-                    <Image
-                      src={image}
-                      alt={name}
-                      fill
-                      sizes="(max-width: 640px) 110px, 160px"
-                      className="object-contain object-right-bottom"
-                      priority
-                    />
-                  </div>
+              <div className="absolute right-2 bottom-2 pointer-events-none">
+                <div className="relative h-20 w-20 sm:h-24 sm:w-24">
+                  <Image
+                    src={image}
+                    alt={name}
+                    fill
+                    sizes="96px"
+                    className="object-contain object-right-bottom opacity-60"
+                  />
                 </div>
-              </Link>
-            </li>
+              </div>
+
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-foreground/70 transition-colors group-hover:bg-navy group-hover:text-navy-foreground">
+                <ArrowRight size={12} strokeWidth={2} />
+              </div>
+            </Link>
           ))}
-        </ul>
+        </div>
       </section>
 
       <section aria-labelledby="brands-title">

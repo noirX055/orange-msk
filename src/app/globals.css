@@ -49,3 +49,12 @@ body {
   background: var(--primary);
   color: var(--primary-foreground);
 }
+
+/* Скрытие скроллбара для каруселей */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
