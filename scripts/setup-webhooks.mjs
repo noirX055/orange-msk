@@ -12,7 +12,12 @@ import fs from "node:fs"
 import path from "node:path"
 
 function loadEnv() {
-  const envFiles = [".env.local", ".env"]
+  const envFiles = [
+    ".env.production.local",
+    ".env.local",
+    ".env.production",
+    ".env",
+  ]
   for (const file of envFiles) {
     const fullPath = path.resolve(process.cwd(), file)
     if (fs.existsSync(fullPath)) {
