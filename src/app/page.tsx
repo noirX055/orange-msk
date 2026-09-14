@@ -116,57 +116,93 @@ export default async function HomePage() {
       <h1 className="sr-only">Orange MSK — магазин электроники в Москве</h1>
       <BannerCarousel banners={banners} />
 
-      <section aria-labelledby="categories-title">
-        <h2 id="categories-title" className="mb-4 text-xl font-bold tracking-tight text-foreground md:text-2xl">
-          Каталог
-        </h2>
-        {/* Горизонтальная карусель */}
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0">
+      <section aria-labelledby="categories-title" className="pt-4">
+        {/* Заголовок блока */}
+        <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <div className="mb-3 h-1 w-8 rounded-full bg-primary" />
+            <h2 id="categories-title" className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              Каталог
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Техника, электроника и аксессуары — всё, что нужно, в одном месте
+            </p>
+          </div>
+          <Link
+            href="/catalog"
+            className="hidden shrink-0 items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted sm:flex"
+          >
+            Смотреть весь каталог <ArrowRight size={16} />
+          </Link>
+        </div>
+
+        {/* Горизонтальная карусель в фирменных цветах сайта */}
+        <div className="flex gap-4 overflow-x-auto pb-8 pt-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0">
           {categoryCards.map(({ slug, name, Icon, image, href }) => (
             <Link
               key={slug}
               href={href}
-              className="group relative flex h-40 w-36 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-border/70 bg-card p-4 transition-colors hover:border-foreground/30 hover:bg-muted/30 sm:h-44 sm:w-44"
+              className="group relative flex h-[260px] w-[200px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-[24px] border border-border bg-navy p-5 transition-all duration-300 hover:border-primary hover:shadow-[0_0_24px_rgba(245,150,12,0.25)] sm:h-[280px] sm:w-[220px]"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80">
-                <Icon size={16} strokeWidth={1.8} />
-              </div>
-
-              <h3 className="text-sm font-semibold text-foreground tracking-tight leading-snug">
-                {name}
-              </h3>
-
-              <div className="absolute right-2 bottom-2 pointer-events-none">
-                <div className="relative h-20 w-20 sm:h-24 sm:w-24">
-                  <Image
-                    src={image}
-                    alt={name}
-                    fill
-                    sizes="96px"
-                    className="object-contain object-right-bottom opacity-60"
-                  />
+              {/* Внутреннее свечение (видно только при наведении) */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
+              
+              <div className="relative z-10 flex flex-col items-start">
+                {/* Иконка */}
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-[10px] border border-white/10 bg-white/5 text-white shadow-sm transition-colors group-hover:bg-primary/20 group-hover:border-primary/50 group-hover:text-primary">
+                  <Icon size={20} strokeWidth={1.5} />
                 </div>
+                {/* Название */}
+                <h3 className="text-base font-medium tracking-wide text-white sm:text-lg">
+                  {name}
+                </h3>
               </div>
 
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-foreground/70 transition-colors group-hover:bg-navy group-hover:text-navy-foreground">
-                <ArrowRight size={12} strokeWidth={2} />
+              {/* Круглая кнопка со стрелкой внизу слева */}
+              <div className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
+                <ArrowRight size={14} strokeWidth={2} />
+              </div>
+
+              {/* Большое изображение справа внизу */}
+              <div className="absolute -bottom-2 -right-2 z-0 h-[150px] w-[150px] sm:h-[170px] sm:w-[170px]">
+                <Image
+                  src={image}
+                  alt={name}
+                  fill
+                  sizes="(max-width: 640px) 150px, 170px"
+                  className="object-contain object-right-bottom transition-transform duration-500 group-hover:scale-110"
+                />
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      <section aria-labelledby="brands-title">
-        <h2 id="brands-title" className="mb-6 text-2xl font-bold tracking-tight">
-          Официальные бренды
-        </h2>
+      <section aria-labelledby="brands-title" className="pt-4">
+        <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <div className="mb-3 h-1 w-8 rounded-full bg-primary" />
+            <h2 id="brands-title" className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              Официальные бренды
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Только проверенные производители и оригинальная продукция
+            </p>
+          </div>
+          <Link
+            href="/catalog"
+            className="hidden shrink-0 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+          >
+            <ArrowRight size={20} strokeWidth={1.5} />
+          </Link>
+        </div>
         <ul className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-7">
           {brandCards.map((brand) => (
             <li key={brand}>
               <Link
                 href={`/catalog?brand=${encodeURIComponent(brand)}`}
                 aria-label={brand}
-                className="flex h-20 items-center justify-center rounded-card border border-border bg-card px-3 transition-colors hover:border-primary"
+                className="flex h-20 items-center justify-center rounded-[20px] border border-border bg-card px-3 transition-colors hover:border-primary"
               >
                 <BrandLogo brand={brand} size={24} />
               </Link>
