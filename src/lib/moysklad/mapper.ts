@@ -42,60 +42,27 @@ export function detectBrand(product: MoySkladProduct): string {
 export function detectCategory(product: MoySkladProduct): string {
   const path = (product.pathName || "").toLowerCase()
   const name = product.name.toLowerCase()
+  const fullText = path + " " + name
 
-  // 1. Смартфоны
-  if (path.includes("iphone") || name.includes("iphone") || name.includes("смартфон")) {
-    return "smartphones"
+  if (fullText.includes("lego") || fullText.includes("лего")) return "lego"
+  if (fullText.includes("dyson") || fullText.includes("дайсон")) return "dyson"
+  if (fullText.includes("samsung") || fullText.includes("самсунг") || fullText.includes("galaxy")) return "samsung"
+  if (fullText.includes("playstation") || fullText.includes("xbox") || fullText.includes("nintendo") || fullText.includes("консоль")) return "consoles"
+  if (fullText.includes("airpods")) return "airpods"
+  if (fullText.includes("apple watch") || fullText.includes("watch")) return "apple-watch"
+  if (fullText.includes("ipad") || fullText.includes("айпад")) return "ipad"
+  if (fullText.includes("macbook") || fullText.includes("mac mini") || fullText.includes("imac")) return "macbook"
+
+  if (fullText.includes("iphone") || fullText.includes("айфон")) {
+    if (fullText.includes("18")) return "iphone-18"
+    if (fullText.includes("17")) return "iphone-17"
+    if (fullText.includes("16")) return "iphone-16"
+    if (fullText.includes("14")) return "iphone-14"
+    return "iphone-15" // fallback default for old or generic iphones to the middle
   }
 
-  // 2. Ноутбуки / Компьютеры
-  if (
-    path.includes("macbook") ||
-    path.includes("mac mini") ||
-    path.includes("mac studio") ||
-    path.includes("imac") ||
-    path.includes("ноутбук") ||
-    name.includes("macbook") ||
-    name.includes("ноутбук")
-  ) {
-    return "laptops"
-  }
-
-  // 3. Мониторы
-  if (path.includes("монитор") || path.includes("monitor") || name.includes("studio display") || name.includes("pro display")) {
-    return "monitors"
-  }
-
-  // 4. Аудио
-  if (
-    path.includes("airpods") ||
-    path.includes("audio") ||
-    path.includes("наушники") ||
-    path.includes("homepod") ||
-    name.includes("airpods") ||
-    name.includes("наушники")
-  ) {
-    return "audio"
-  }
-
-  // 5. Гаджеты / Часы / Планшеты
-  if (
-    path.includes("watch") ||
-    path.includes("ipad") ||
-    path.includes("часы") ||
-    name.includes("apple watch") ||
-    name.includes("ipad") ||
-    name.includes("vision pro")
-  ) {
-    return "wearables"
-  }
-
-  // 6. Техника для дома
-  if (path.includes("dyson") || name.includes("dyson") || path.includes("пылесос") || path.includes("фен")) {
-    return "home"
-  }
-
-  return "smartphones"
+  // If it's a charger, cable, adapter, or unknown
+  return "accessories"
 }
 
 /**

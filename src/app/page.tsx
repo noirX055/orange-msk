@@ -13,20 +13,20 @@ import { getProducts } from "@/lib/products/queries"
 import { getBanners } from "@/lib/banners/queries"
 
 const botCategories = [
-  { name: "Lego", href: "/catalog?brand=Lego" },
-  { name: "Dyson", href: "/catalog?brand=Dyson" },
-  { name: "Samsung", href: "/catalog?brand=Samsung", fullWidth: true },
-  { name: "Игровые консоли", href: "/catalog?search=PlayStation" },
-  { name: "Аксессуары и Адаптеры", href: "/catalog?search=Адаптер" },
-  { name: "AirPods", href: "/catalog?brand=Apple&search=AirPods" },
-  { name: "Apple Watch", href: "/catalog?brand=Apple&search=Watch" },
-  { name: "iPad", href: "/catalog?brand=Apple&search=iPad" },
-  { name: "MacBook", href: "/catalog?brand=Apple&search=MacBook" },
-  { name: "14", href: "/catalog?brand=Apple&search=14" },
-  { name: "15", href: "/catalog?brand=Apple&search=15" },
-  { name: "16", href: "/catalog?brand=Apple&search=16" },
-  { name: "17", href: "/catalog?brand=Apple&search=17" },
-  { name: "18", href: "/catalog?brand=Apple&search=18", fullWidth: true },
+  { name: "Lego", href: "/catalog?category=lego" },
+  { name: "Dyson", href: "/catalog?category=dyson" },
+  { name: "Samsung", href: "/catalog?category=samsung", fullWidth: true },
+  { name: "Игровые консоли", href: "/catalog?category=consoles" },
+  { name: "Аксессуары и Адаптеры", href: "/catalog?category=accessories" },
+  { name: "AirPods", href: "/catalog?category=airpods" },
+  { name: "Apple Watch", href: "/catalog?category=apple-watch" },
+  { name: "iPad", href: "/catalog?category=ipad" },
+  { name: "MacBook", href: "/catalog?category=macbook" },
+  { name: "14", href: "/catalog?category=iphone-14" },
+  { name: "15", href: "/catalog?category=iphone-15" },
+  { name: "16", href: "/catalog?category=iphone-16" },
+  { name: "17", href: "/catalog?category=iphone-17" },
+  { name: "18", href: "/catalog?category=iphone-18", fullWidth: true },
 ]
 
 const brandOrder = ["Apple", "Samsung", "Xiaomi", "ASUS", "LG", "Sony", "Dyson"]

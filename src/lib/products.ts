@@ -40,12 +40,20 @@ export function getBrandLogo(brand: string) {
 }
 
 export const categories: Category[] = [
-  { slug: "smartphones", name: "Смартфоны" },
-  { slug: "laptops", name: "Ноутбуки" },
-  { slug: "monitors", name: "Мониторы" },
-  { slug: "audio", name: "Аудио" },
-  { slug: "wearables", name: "Гаджеты" },
-  { slug: "home", name: "Техника для дома" },
+  { slug: "lego", name: "Lego" },
+  { slug: "dyson", name: "Dyson" },
+  { slug: "samsung", name: "Samsung" },
+  { slug: "consoles", name: "Игровые консоли" },
+  { slug: "accessories", name: "Аксессуары и Адаптеры" },
+  { slug: "airpods", name: "AirPods" },
+  { slug: "apple-watch", name: "Apple Watch" },
+  { slug: "ipad", name: "iPad" },
+  { slug: "macbook", name: "MacBook" },
+  { slug: "iphone-14", name: "iPhone 14" },
+  { slug: "iphone-15", name: "iPhone 15" },
+  { slug: "iphone-16", name: "iPhone 16" },
+  { slug: "iphone-17", name: "iPhone 17" },
+  { slug: "iphone-18", name: "iPhone 18" },
 ]
 
 export function formatPrice(value: number) {
