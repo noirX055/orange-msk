@@ -1,10 +1,19 @@
 import type { Product } from "@/lib/products"
+import type { ProductAttribute } from "@/lib/admin/attributes-types"
 
 export type VariantOption = {
   label: string
   product: Product
   active: boolean
   colorHex?: string
+}
+
+export type VariantDimension = {
+  id: string
+  name: string
+  type: "color" | "select" | "text"
+  activeValue: string
+  options: VariantOption[]
 }
 
 export type ProductVariants = {
@@ -14,6 +23,8 @@ export type ProductVariants = {
   memory: VariantOption[]
   /** Варианты конфигурации SIM-карт */
   sims: VariantOption[]
+  /** Динамические измерения на основе общих характеристик группы */
+  dimensions: VariantDimension[]
   /** Все найденные кандидаты модели */
   allCandidates: Product[]
 }
@@ -180,7 +191,72 @@ export function getSimOptionLabel(value: string): string {
  * 2. Если нет: совпадает целевое + одно из оставшихся
  * 3. Fallback: любой товар с этим свойством
  */
-export function buildProductVariants(current: Product, candidates: Product[]): ProductVariants {
+/**
+ * Извлечение значения атрибута из товара
+ */
+export function getProductAttributeValue(
+  product: Product,
+  attribute: ProductAttribute
+): { label: string; colorHex?: string } | null {
+  // 1. Если это цвет
+  if (attribute.type === "color" || attribute.slug.includes("color") || /цвет/i.test(attribute.name)) {
+    const color = getPrimaryColor(product)
+    if (color) {
+      return { label: color.name, colorHex: color.hex }
+    }
+  }
+
+  // 2. Если это память/накопитель
+  if (
+    attribute.slug === "storage" ||
+    attribute.slug === "rom" ||
+    /(?:память|встроенная|накопитель|хранилище|rom|storage|ssd)/i.test(attribute.name)
+  ) {
+    const mem = getMemoryLabel(product)
+    if (mem) {
+      return { label: getMemoryOptionLabel(mem) }
+    }
+  }
+
+  // 3. Если это SIM-карта
+  if (attribute.slug.includes("sim") || /(?:sim|сим)/i.test(attribute.name)) {
+    const sim = getSimLabel(product)
+    if (sim) {
+      return { label: sim }
+    }
+  }
+
+  // 4. Поиск в характеристиках specs
+  const spec = product.specs?.find(
+    (s) =>
+      s.label.toLowerCase() === attribute.name.toLowerCase() ||
+      s.label.toLowerCase().includes(attribute.name.toLowerCase()) ||
+      attribute.name.toLowerCase().includes(s.label.toLowerCase())
+  )
+  if (spec && spec.value?.trim()) {
+    const val = spec.value.trim()
+    const matchedVal = attribute.values?.find(
+      (v) => v.label.toLowerCase() === val.toLowerCase()
+    )
+    return {
+      label: val,
+      colorHex:
+        matchedVal?.color_hex ??
+        (attribute.type === "color" ? KNOWN_COLOR_HEXES[val.toLowerCase()] : undefined),
+    }
+  }
+
+  return null
+}
+
+/**
+ * Матрица вариантов (динамические атрибуты группы или стандартная Цвет x Память x SIM)
+ */
+export function buildProductVariants(
+  current: Product,
+  candidates: Product[],
+  groupAttributes?: ProductAttribute[]
+): ProductVariants {
   const allCandidates = candidates.length > 0 ? candidates : [current]
 
   // Свойства текущего просматриваемого товара
@@ -206,7 +282,84 @@ export function buildProductVariants(current: Product, candidates: Product[]): P
   })
 
   // -------------------------------------------------------------
-  // 1. ВАРИАНТЫ ЦВЕТА
+  // ДИНАМИЧЕСКИЕ ИЗМЕРЕНИЯ (если настроены общие характеристики группы)
+  // -------------------------------------------------------------
+  const dimensions: VariantDimension[] = []
+
+  if (groupAttributes && groupAttributes.length > 0) {
+    for (const attr of groupAttributes) {
+      const currentValObj = getProductAttributeValue(current, attr)
+      const currentVal = currentValObj?.label ?? ""
+
+      const uniqueValuesMap = new Map<string, { label: string; colorHex?: string }>()
+      for (const item of allCandidates) {
+        const val = getProductAttributeValue(item, attr)
+        if (val && val.label && !uniqueValuesMap.has(val.label)) {
+          uniqueValuesMap.set(val.label, val)
+        }
+      }
+
+      if (uniqueValuesMap.size > 0) {
+        let valueList = Array.from(uniqueValuesMap.values())
+
+        // Сортировка для памяти/накопителя
+        if (
+          attr.slug === "storage" ||
+          /(?:память|встроенная|накопитель|хранилище|rom|storage|ssd)/i.test(attr.name)
+        ) {
+          valueList.sort((a, b) => getMemoryInGb(a.label) - getMemoryInGb(b.label))
+        }
+
+        const options: VariantOption[] = []
+        for (const meta of valueList) {
+          const isActive = meta.label === currentVal
+
+          let bestMatch: Product = current
+          let bestScore = -1
+
+          for (const item of allCandidates) {
+            const candidateVal = getProductAttributeValue(item, attr)?.label
+            if (candidateVal !== meta.label) continue
+
+            let score = 100
+            for (const otherAttr of groupAttributes) {
+              if (otherAttr.id === attr.id) continue
+              const otherCurrent = getProductAttributeValue(current, otherAttr)?.label
+              const otherCandidate = getProductAttributeValue(item, otherAttr)?.label
+              if (otherCurrent && otherCandidate === otherCurrent) {
+                score += 30
+              }
+            }
+
+            if (item.inStock) score += 5
+
+            if (score > bestScore) {
+              bestScore = score
+              bestMatch = item
+            }
+          }
+
+          options.push({
+            label: meta.label,
+            product: bestMatch,
+            active: isActive,
+            colorHex: meta.colorHex,
+          })
+        }
+
+        dimensions.push({
+          id: attr.slug,
+          name: attr.name,
+          type: attr.type,
+          activeValue: currentVal,
+          options,
+        })
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 1. ВАРИАНТЫ ЦВЕТА (LEGACY / FALLBACK)
   // -------------------------------------------------------------
   const uniqueColorsMap = new Map<string, { label: string; hex: string }>()
   for (const item of parsedCandidates) {
@@ -245,7 +398,7 @@ export function buildProductVariants(current: Product, candidates: Product[]): P
   }
 
   // -------------------------------------------------------------
-  // 2. ВАРИАНТЫ ПАМЯТИ
+  // 2. ВАРИАНТЫ ПАМЯТИ (LEGACY / FALLBACK)
   // -------------------------------------------------------------
   const uniqueMemoryMap = new Map<string, { label: string; gb: number }>()
   for (const item of parsedCandidates) {
@@ -254,7 +407,6 @@ export function buildProductVariants(current: Product, candidates: Product[]): P
     }
   }
 
-  // Сортировка памяти по возрастанию объёма (128 -> 256 -> 512 -> 1024 -> 2048)
   const sortedMemories = Array.from(uniqueMemoryMap.values()).sort((a, b) => a.gb - b.gb)
 
   const memory: VariantOption[] = []
@@ -286,7 +438,7 @@ export function buildProductVariants(current: Product, candidates: Product[]): P
   }
 
   // -------------------------------------------------------------
-  // 3. ВАРИАНТЫ SIM-КАРТ
+  // 3. ВАРИАНТЫ SIM-КАРТ (LEGACY / FALLBACK)
   // -------------------------------------------------------------
   const uniqueSims = Array.from(
     new Set(parsedCandidates.map((i) => i.sim).filter(Boolean))
@@ -324,6 +476,7 @@ export function buildProductVariants(current: Product, candidates: Product[]): P
     colors: colors.length > 0 ? colors : (currentColor ? [{ label: currentColor, product: current, active: true, colorHex: currentColorObj?.hex }] : []),
     memory: memory.length > 0 ? memory : (currentMemory ? [{ label: currentMemory, product: current, active: true }] : []),
     sims: sims.length > 0 ? sims : (currentSim ? [{ label: currentSim, product: current, active: true }] : []),
+    dimensions,
     allCandidates,
   }
 }

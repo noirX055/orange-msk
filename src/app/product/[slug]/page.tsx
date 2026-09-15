@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { BadgeCheck, CreditCard, RefreshCw, Star, Truck } from "lucide-react"
 import { formatPrice, getCategoryName, getProductImages } from "@/lib/products"
 import { getProductBySlug, getRelatedProducts, getProductVariantCandidates } from "@/lib/products/queries"
+import { getGroupAttributes } from "@/lib/admin/queries"
 import { buildProductVariants } from "@/lib/products/variants"
 import { ProductGallery } from "@/components/product-gallery"
 import { ProductBuyPanel } from "@/components/product-buy-panel"
@@ -95,7 +96,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   const related = await getRelatedProducts(product)
   const candidates = await getProductVariantCandidates(product)
-  const variants = buildProductVariants(product, candidates)
+  const groupAttributes = await getGroupAttributes(product.series, product.category)
+  const variants = buildProductVariants(product, candidates, groupAttributes)
 
   const breadcrumbs = [
     { name: "Главная", url: siteUrl },

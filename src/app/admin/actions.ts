@@ -544,6 +544,49 @@ export async function dissolveParentGroup(formData: FormData): Promise<void> {
   revalidatePath("/")
 }
 
+export async function updateGroupAttributes(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  const groupId = Number(formData.get("group_id"))
+  const parentGroup = String(formData.get("parent_group") ?? "").trim()
+  const categorySlug = String(formData.get("category_slug") ?? "").trim()
+  const applyToAllInParent = formData.get("apply_to_all_in_parent") === "1"
+
+  let attributeIds: number[] = []
+  try {
+    attributeIds = JSON.parse(String(formData.get("attribute_ids") ?? "[]"))
+  } catch {
+    return { ok: false, error: "Некорректный список характеристик" }
+  }
+
+  if (applyToAllInParent && parentGroup && categorySlug) {
+    const { error } = await supabase
+      .from("product_groups")
+      .update({ attribute_ids: attributeIds })
+      .eq("category_slug", categorySlug)
+      .eq("parent_group", parentGroup)
+
+    if (error) return { ok: false, error: error.message }
+  } else if (groupId) {
+    const { error } = await supabase
+      .from("product_groups")
+      .update({ attribute_ids: attributeIds })
+      .eq("id", groupId)
+
+    if (error) return { ok: false, error: error.message }
+  } else {
+    return { ok: false, error: "Не указана группа" }
+  }
+
+  revalidatePath("/admin/categories")
+  revalidatePath("/admin/settings")
+  revalidatePath("/catalog")
+  revalidatePath("/")
+  return { ok: true, message: "Характеристики группы сохранены" }
+}
+
 // ---------- Категории ----------
 
 export async function createCategory(

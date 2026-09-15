@@ -78,22 +78,29 @@ export type AdminGroup = {
   brand_id: number
   category_slug: string
   parent_group?: string | null
+  attribute_ids?: number[]
 }
 
 export async function getAllGroups(): Promise<AdminGroup[]> {
   const supabase = await createClient()
   let { data, error } = await supabase
     .from("product_groups")
-    .select("id, name, brand_id, category_slug, parent_group")
+    .select("id, name, brand_id, category_slug, parent_group, attribute_ids")
     .order("name")
 
   if (error) {
-    // Fallback if parent_group column does not exist yet
-    const fallback = await supabase
+    const fb1 = await supabase
       .from("product_groups")
-      .select("id, name, brand_id, category_slug")
+      .select("id, name, brand_id, category_slug, parent_group")
       .order("name")
-    return (fallback.data as AdminGroup[] | null) ?? []
+    if (fb1.error) {
+      const fb2 = await supabase
+        .from("product_groups")
+        .select("id, name, brand_id, category_slug")
+        .order("name")
+      return (fb2.data as AdminGroup[] | null) ?? []
+    }
+    return (fb1.data as AdminGroup[] | null) ?? []
   }
   return (data as AdminGroup[] | null) ?? []
 }
@@ -121,30 +128,103 @@ export async function getCategoriesWithGroups(): Promise<{
 }> {
   const supabase = await createClient()
 
-  let groupsPromise = supabase
-    .from("product_groups")
-    .select("id, name, brand_id, category_slug, parent_group")
-    .order("name")
-    .then(async (res) => {
-      if (res.error) {
-        return supabase
-          .from("product_groups")
-          .select("id, name, brand_id, category_slug")
-          .order("name")
-      }
-      return res
-    })
+  const fetchGroups = async (): Promise<AdminGroup[]> => {
+    const res = await supabase
+      .from("product_groups")
+      .select("id, name, brand_id, category_slug, parent_group, attribute_ids")
+      .order("name")
 
-  const [categoriesRes, groupsRes, brandsRes] = await Promise.all([
+    if (!res.error && res.data) {
+      return res.data as AdminGroup[]
+    }
+
+    const fb1 = await supabase
+      .from("product_groups")
+      .select("id, name, brand_id, category_slug, parent_group")
+      .order("name")
+
+    if (!fb1.error && fb1.data) {
+      return fb1.data as AdminGroup[]
+    }
+
+    const fb2 = await supabase
+      .from("product_groups")
+      .select("id, name, brand_id, category_slug")
+      .order("name")
+
+    return (fb2.data as AdminGroup[] | null) ?? []
+  }
+
+  const [categoriesRes, groups, brandsRes] = await Promise.all([
     supabase.from("categories").select("id, slug, name, is_visible").order("name"),
-    groupsPromise,
+    fetchGroups(),
     supabase.from("brands").select("id, name").order("name"),
   ])
 
   return {
     categories: (categoriesRes.data as AdminCategory[] | null) ?? [],
-    groups: (groupsRes.data as AdminGroup[] | null) ?? [],
+    groups,
     brands: (brandsRes.data as { id: number; name: string }[] | null) ?? [],
+  }
+}
+
+/** Получение характеристик, привязанных к группе (серии) товара */
+export async function getGroupAttributes(
+  seriesName?: string | null,
+  categorySlug?: string | null
+): Promise<ProductAttribute[]> {
+  if (!seriesName) return []
+  const supabase = await createClient()
+
+  try {
+    let query = supabase
+      .from("product_groups")
+      .select("id, name, parent_group, attribute_ids")
+      .eq("name", seriesName)
+
+    if (categorySlug) {
+      query = query.eq("category_slug", categorySlug)
+    }
+
+    const { data: groups } = await query.limit(1)
+    const group = groups?.[0] as
+      | { id: number; name: string; parent_group?: string | null; attribute_ids?: number[] }
+      | undefined
+
+    let attributeIds: number[] = group?.attribute_ids ?? []
+
+    // Если у конкретной группы нет характеристик, но есть общая группа (parent_group) — проверяем родительскую группу
+    if ((!attributeIds || attributeIds.length === 0) && group?.parent_group) {
+      const { data: parentGroups } = await supabase
+        .from("product_groups")
+        .select("attribute_ids")
+        .eq("parent_group", group.parent_group)
+        .not("attribute_ids", "is", null)
+        .limit(5)
+
+      for (const pg of (parentGroups ?? []) as { attribute_ids?: number[] }[]) {
+        if (pg.attribute_ids && pg.attribute_ids.length > 0) {
+          attributeIds = pg.attribute_ids
+          break
+        }
+      }
+    }
+
+    if (!attributeIds || attributeIds.length === 0) {
+      return []
+    }
+
+    // Загружаем атрибуты со значениями
+    const allAttributes = await getAllAttributesWithValues()
+    const idMap = new Map(allAttributes.map((a) => [a.id, a]))
+
+    // Возвращаем в том порядке, в котором они сохранены в attributeIds
+    return attributeIds
+      .map((id) => idMap.get(id))
+      .filter((a): a is ProductAttribute => Boolean(a))
+  } catch (err) {
+    console.error("Error in getGroupAttributes:", err)
+    return []
   }
 }
 

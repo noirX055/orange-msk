@@ -9,6 +9,7 @@ import {
   Pencil,
   Plus,
   Save,
+  SlidersHorizontal,
   Trash2,
   Unlink,
   X,
@@ -23,8 +24,10 @@ import {
   bulkSetParentGroup,
   renameParentGroup,
   dissolveParentGroup,
+  updateGroupAttributes,
 } from "@/app/admin/actions"
 import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
+import type { ProductAttribute } from "@/lib/admin/attributes-types"
 import { CategoryVisibilityToggle } from "@/components/admin/category-visibility-toggle"
 
 type Brand = { id: number; name: string }
@@ -42,10 +45,12 @@ export function CategoriesManager({
   initialCategories,
   initialGroups,
   brands,
+  attributes = [],
 }: {
   initialCategories: AdminCategory[]
   initialGroups: AdminGroup[]
   brands: Brand[]
+  attributes?: ProductAttribute[]
 }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   const [editingCategory, setEditingCategory] = useState<EditingCategory | null>(null)
@@ -57,6 +62,15 @@ export function CategoriesManager({
     old_name: string
     new_name: string
   } | null>(null)
+  const [attrModal, setAttrModal] = useState<{
+    groupId?: number
+    groupName: string
+    parentGroup?: string
+    categorySlug: string
+    selectedAttributeIds: number[]
+    applyToAllInParent: boolean
+  } | null>(null)
+  const [attrSearch, setAttrSearch] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
@@ -242,6 +256,74 @@ export function CategoriesManager({
     setLoading(false)
   }
 
+  const handleOpenAttrModalForGroup = (group: AdminGroup) => {
+    setAttrModal({
+      groupId: group.id,
+      groupName: group.name,
+      parentGroup: group.parent_group ?? undefined,
+      categorySlug: group.category_slug,
+      selectedAttributeIds: group.attribute_ids ?? [],
+      applyToAllInParent: false,
+    })
+    setAttrSearch("")
+  }
+
+  const handleOpenAttrModalForParent = (parentName: string, categorySlug: string) => {
+    const parentGroups = initialGroups.filter(
+      (g) => g.category_slug === categorySlug && g.parent_group === parentName
+    )
+    const existingAttrIds = parentGroups.find((g) => g.attribute_ids?.length)?.attribute_ids ?? []
+
+    setAttrModal({
+      groupName: `Все группы «${parentName}»`,
+      parentGroup: parentName,
+      categorySlug,
+      selectedAttributeIds: existingAttrIds,
+      applyToAllInParent: true,
+    })
+    setAttrSearch("")
+  }
+
+  const handleSaveAttributes = async () => {
+    if (!attrModal) return
+    setLoading(true)
+    setError("")
+    setMessage("")
+
+    const formData = new FormData()
+    if (attrModal.groupId) {
+      formData.append("group_id", String(attrModal.groupId))
+    }
+    if (attrModal.parentGroup) {
+      formData.append("parent_group", attrModal.parentGroup)
+    }
+    formData.append("category_slug", attrModal.categorySlug)
+    formData.append("attribute_ids", JSON.stringify(attrModal.selectedAttributeIds))
+    if (attrModal.applyToAllInParent) {
+      formData.append("apply_to_all_in_parent", "1")
+    }
+
+    const res = await updateGroupAttributes({ ok: false }, formData)
+    if (!res.ok) {
+      setError(res.error || "Ошибка сохранения характеристик")
+    } else {
+      setMessage(res.message || "Характеристики группы сохранены")
+      setAttrModal(null)
+    }
+    setLoading(false)
+  }
+
+  const filteredAttrs = useMemo(() => {
+    if (!attrSearch.trim()) return attributes
+    const q = attrSearch.toLowerCase().trim()
+    return attributes.filter(
+      (a) =>
+        a.name.toLowerCase().includes(q) ||
+        a.slug.toLowerCase().includes(q) ||
+        a.values?.some((v) => v.label.toLowerCase().includes(q))
+    )
+  }, [attributes, attrSearch])
+
   const handleDeleteCategory = async (id: number, name: string) => {
     if (!confirm(`Удалить категорию «${name}»?`)) return
     setLoading(true)
@@ -398,6 +480,23 @@ export function CategoriesManager({
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAttrModalForGroup(group)}
+                        className={`flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium transition-colors ${
+                          (group.attribute_ids?.length ?? 0) > 0
+                            ? "bg-primary/10 text-primary hover:bg-primary/20"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                        title="Настроить характеристики спецификаций"
+                      >
+                        <SlidersHorizontal size={13} />
+                        {(group.attribute_ids?.length ?? 0) > 0 ? (
+                          <span>{group.attribute_ids?.length} хар.</span>
+                        ) : (
+                          <span className="hidden sm:inline">Хар-ки</span>
+                        )}
+                      </button>
                       <button
                         type="button"
                         onClick={() =>
@@ -664,6 +763,17 @@ export function CategoriesManager({
                                       <button
                                         type="button"
                                         onClick={() =>
+                                          handleOpenAttrModalForParent(parentName, category.slug)
+                                        }
+                                        title="Настроить характеристики для всех групп этого блока"
+                                        className="flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                                      >
+                                        <SlidersHorizontal size={13} />
+                                        <span>Характеристики</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
                                           setRenamingParent({
                                             category_slug: category.slug,
                                             old_name: parentName,
@@ -808,6 +918,132 @@ export function CategoriesManager({
           </tbody>
         </table>
       </div>
+
+      {attrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border border-border bg-background shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border p-5">
+              <div>
+                <h3 className="text-lg font-bold">Характеристики для спецификаций</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Группа: <span className="font-semibold text-foreground">{attrModal.groupName}</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAttrModal(null)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-5 flex-1 overflow-y-auto space-y-4">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Выберите характеристики из справочника, которые будут отображаться для переключения спецификаций в карточках товаров этой группы (например: Цвет, Память, SIM-карта, Размер, Процессор).
+              </p>
+
+              {attrModal.parentGroup && (
+                <label className="flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs font-medium cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={attrModal.applyToAllInParent}
+                    onChange={(e) =>
+                      setAttrModal({ ...attrModal, applyToAllInParent: e.target.checked })
+                    }
+                    className="h-4 w-4 rounded accent-primary cursor-pointer"
+                  />
+                  <span>Применить эти характеристики сразу ко всем группам в «{attrModal.parentGroup}»</span>
+                </label>
+              )}
+
+              <input
+                type="text"
+                value={attrSearch}
+                onChange={(e) => setAttrSearch(e.target.value)}
+                placeholder="Поиск по названию характеристики..."
+                className="h-9 w-full rounded-lg border border-border bg-background px-3 text-xs outline-none focus:border-primary"
+              />
+
+              <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                {filteredAttrs.length === 0 ? (
+                  <p className="text-center py-6 text-xs text-muted-foreground">
+                    Характеристики не найдены. Создайте их в разделе «Характеристики».
+                  </p>
+                ) : (
+                  filteredAttrs.map((attr) => {
+                    const isChecked = attrModal.selectedAttributeIds.includes(attr.id)
+                    return (
+                      <label
+                        key={attr.id}
+                        className={`flex items-center justify-between gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${
+                          isChecked
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-border hover:bg-muted/40"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              const next = isChecked
+                                ? attrModal.selectedAttributeIds.filter((id) => id !== attr.id)
+                                : [...attrModal.selectedAttributeIds, attr.id]
+                              setAttrModal({ ...attrModal, selectedAttributeIds: next })
+                            }}
+                            className="h-4 w-4 rounded accent-primary cursor-pointer"
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{attr.name}</span>
+                              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
+                                {attr.type === "color" ? "Цвет" : attr.type === "select" ? "Список" : "Текст"}
+                              </span>
+                            </div>
+                            {attr.values && attr.values.length > 0 && (
+                              <p className="text-[11px] text-muted-foreground truncate max-w-md mt-0.5">
+                                {attr.values.map((v) => v.label).join(", ")}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {isChecked && (
+                          <span className="text-xs font-semibold text-primary shrink-0">Выбрано</span>
+                        )}
+                      </label>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-border p-4 bg-muted/20">
+              <span className="text-xs text-muted-foreground">
+                Выбрано характеристик: <strong className="text-foreground">{attrModal.selectedAttributeIds.length}</strong>
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAttrModal(null)}
+                  disabled={loading}
+                  className="h-9 rounded-lg border border-border px-4 text-xs font-medium hover:bg-muted transition-colors disabled:opacity-50"
+                >
+                  Отмена
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveAttributes}
+                  disabled={loading}
+                  className="h-9 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground hover:brightness-110 transition-colors disabled:opacity-50"
+                >
+                  Сохранить
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
