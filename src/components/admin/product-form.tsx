@@ -34,6 +34,7 @@ type CardAttributeRow = {
   type: "color" | "select" | "text"
   values?: ProductAttributeValue[]
   colorHex?: string
+  isConfigurator: boolean
 }
 
 export function ProductForm({
@@ -65,7 +66,7 @@ export function ProductForm({
     const rows: CardAttributeRow[] = []
     const usedLabels = new Set<string>()
 
-    // 1. Цвета товара
+    // 1. Цвета товара (по умолчанию всегда в конфигураторе)
     if (product.colors && product.colors.length > 0) {
       for (const col of product.colors) {
         if (!col.name) continue
@@ -80,6 +81,7 @@ export function ProductForm({
           type: "color",
           values: colorAttr?.values,
           colorHex: col.hex,
+          isConfigurator: true,
         })
         usedLabels.add((colorAttr?.name || "цвет").toLowerCase())
       }
@@ -94,6 +96,11 @@ export function ProductForm({
         const matchedAttr = attributes.find(
           (a) => a.name.toLowerCase() === spec.label.toLowerCase()
         )
+
+        const isConf =
+          typeof spec.is_configurator === "boolean"
+            ? spec.is_configurator
+            : /цвет|память|storage|rom|накопитель|sim|сим/i.test(spec.label)
 
         if (matchedAttr) {
           const matchedVal = matchedAttr.values?.find(
@@ -111,6 +118,7 @@ export function ProductForm({
             colorHex:
               matchedVal?.color_hex ??
               (matchedAttr.type === "color" ? spec.value : undefined),
+            isConfigurator: isConf,
           })
         } else {
           rows.push({
@@ -118,6 +126,7 @@ export function ProductForm({
             label: spec.label,
             value: spec.value,
             type: "text",
+            isConfigurator: isConf,
           })
         }
         usedLabels.add(spec.label.toLowerCase())
@@ -199,13 +208,25 @@ export function ProductForm({
         }
 
         colorsList.push({ name: colorName, hex })
-        specsList.push({ label: item.label, value: colorName })
+        specsList.push({
+          label: item.label,
+          value: colorName,
+          is_configurator: item.isConfigurator,
+        })
       } else if (item.type === "select") {
         const foundVal = item.values?.find((v) => v.value === item.value)
         const displayVal = foundVal ? foundVal.label : item.value
-        specsList.push({ label: item.label, value: displayVal })
+        specsList.push({
+          label: item.label,
+          value: displayVal,
+          is_configurator: item.isConfigurator,
+        })
       } else {
-        specsList.push({ label: item.label, value: item.value })
+        specsList.push({
+          label: item.label,
+          value: item.value,
+          is_configurator: item.isConfigurator,
+        })
       }
     }
 
@@ -248,6 +269,7 @@ export function ProductForm({
         values: attr.values,
         colorHex:
           firstVal?.color_hex ?? (attr.type === "color" ? "#22303f" : undefined),
+        isConfigurator: true,
       })
     }
 
@@ -263,6 +285,7 @@ export function ProductForm({
         label: "",
         value: "",
         type: "text",
+        isConfigurator: false,
       },
     ])
   }
@@ -647,6 +670,29 @@ export function ProductForm({
                     </div>
                   )}
                 </div>
+
+                {/* Переключатель: Для конфигуратора */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = [...cardAttributes]
+                    next[index].isConfigurator = !next[index].isConfigurator
+                    setCardAttributes(next)
+                  }}
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all shrink-0 ${
+                    row.isConfigurator
+                      ? "bg-primary text-primary-foreground shadow-sm hover:brightness-110"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground border border-border/60"
+                  }`}
+                  title={
+                    row.isConfigurator
+                      ? "Участвует в конфигураторе товара (переключатель на витрине). Нажмите, чтобы сделать обычной."
+                      : "Обычная характеристика (только в описании). Нажмите, чтобы включить в конфигуратор."
+                  }
+                >
+                  <SlidersHorizontal size={13} />
+                  <span>{row.isConfigurator ? "В конфигураторе" : "Обычная"}</span>
+                </button>
 
                 {/* Удаление строки */}
                 <button

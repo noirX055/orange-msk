@@ -194,23 +194,28 @@ export function getSimOptionLabel(value: string): string {
 /**
  * Извлечение значения атрибута из товара
  */
-export function getProductAttributeValue(
+/**
+ * Извлечение значения атрибута или характеристики из товара
+ */
+export function getProductDimensionValue(
   product: Product,
-  attribute: ProductAttribute
+  dimensionName: string,
+  dimensionType?: "color" | "select" | "text",
+  knownAttribute?: ProductAttribute
 ): { label: string; colorHex?: string } | null {
-  // 1. Если это цвет
-  if (attribute.type === "color" || attribute.slug.includes("color") || /цвет/i.test(attribute.name)) {
+  // 1. Цвет
+  if (dimensionType === "color" || knownAttribute?.type === "color" || /цвет/i.test(dimensionName)) {
     const color = getPrimaryColor(product)
     if (color) {
       return { label: color.name, colorHex: color.hex }
     }
   }
 
-  // 2. Если это память/накопитель
+  // 2. Память
   if (
-    attribute.slug === "storage" ||
-    attribute.slug === "rom" ||
-    /(?:память|встроенная|накопитель|хранилище|rom|storage|ssd)/i.test(attribute.name)
+    knownAttribute?.slug === "storage" ||
+    knownAttribute?.slug === "rom" ||
+    /(?:память|встроенная|накопитель|хранилище|rom|storage|ssd)/i.test(dimensionName)
   ) {
     const mem = getMemoryLabel(product)
     if (mem) {
@@ -218,8 +223,11 @@ export function getProductAttributeValue(
     }
   }
 
-  // 3. Если это SIM-карта
-  if (attribute.slug.includes("sim") || /(?:sim|сим)/i.test(attribute.name)) {
+  // 3. SIM
+  if (
+    knownAttribute?.slug?.includes("sim") ||
+    /(?:sim|сим)/i.test(dimensionName)
+  ) {
     const sim = getSimLabel(product)
     if (sim) {
       return { label: sim }
@@ -227,26 +235,34 @@ export function getProductAttributeValue(
   }
 
   // 4. Поиск в характеристиках specs
+  const lowerName = dimensionName.toLowerCase().trim()
   const spec = product.specs?.find(
     (s) =>
-      s.label.toLowerCase() === attribute.name.toLowerCase() ||
-      s.label.toLowerCase().includes(attribute.name.toLowerCase()) ||
-      attribute.name.toLowerCase().includes(s.label.toLowerCase())
+      s.label.toLowerCase().trim() === lowerName ||
+      s.label.toLowerCase().includes(lowerName) ||
+      lowerName.includes(s.label.toLowerCase())
   )
   if (spec && spec.value?.trim()) {
     const val = spec.value.trim()
-    const matchedVal = attribute.values?.find(
+    const matchedVal = knownAttribute?.values?.find(
       (v) => v.label.toLowerCase() === val.toLowerCase()
     )
     return {
       label: val,
       colorHex:
         matchedVal?.color_hex ??
-        (attribute.type === "color" ? KNOWN_COLOR_HEXES[val.toLowerCase()] : undefined),
+        (dimensionType === "color" ? KNOWN_COLOR_HEXES[val.toLowerCase()] : undefined),
     }
   }
 
   return null
+}
+
+export function getProductAttributeValue(
+  product: Product,
+  attribute: ProductAttribute
+): { label: string; colorHex?: string } | null {
+  return getProductDimensionValue(product, attribute.name, attribute.type, attribute)
 }
 
 /**
@@ -282,18 +298,77 @@ export function buildProductVariants(
   })
 
   // -------------------------------------------------------------
-  // ДИНАМИЧЕСКИЕ ИЗМЕРЕНИЯ (если настроены общие характеристики группы)
+  // ДИНАМИЧЕСКИЕ ИЗМЕРЕНИЯ КОНФИГУРАТОРА
   // -------------------------------------------------------------
-  const dimensions: VariantDimension[] = []
+  type DimensionTarget = {
+    id: string
+    name: string
+    type: "color" | "select" | "text"
+    knownAttribute?: ProductAttribute
+  }
 
+  const targets: DimensionTarget[] = []
+  const usedNames = new Set<string>()
+
+  // 1. Характеристики, настроенные в группе товаров
   if (groupAttributes && groupAttributes.length > 0) {
     for (const attr of groupAttributes) {
-      const currentValObj = getProductAttributeValue(current, attr)
+      const lower = attr.name.toLowerCase().trim()
+      if (!usedNames.has(lower)) {
+        targets.push({
+          id: attr.slug,
+          name: attr.name,
+          type: attr.type,
+          knownAttribute: attr,
+        })
+        usedNames.add(lower)
+      }
+    }
+  }
+
+  // 2. Характеристики карточки товара, помеченные как is_configurator === true
+  if (current.specs && current.specs.length > 0) {
+    for (const spec of current.specs) {
+      const lower = spec.label.toLowerCase().trim()
+      if (spec.is_configurator && !usedNames.has(lower)) {
+        const isColor = /цвет/i.test(spec.label)
+        targets.push({
+          id: isColor ? "color" : spec.label.toLowerCase().replace(/\s+/g, "-"),
+          name: spec.label,
+          type: isColor ? "color" : "select",
+        })
+        usedNames.add(lower)
+      }
+    }
+  }
+
+  // 3. Если цвет есть у товара, но ещё не в targets — добавляем цвет первым
+  if (!usedNames.has("цвет") && !Array.from(usedNames).some((n) => /цвет/i.test(n))) {
+    if (currentColor || (current.colors && current.colors.length > 0)) {
+      targets.unshift({
+        id: "color",
+        name: "Цвет",
+        type: "color",
+      })
+      usedNames.add("цвет")
+    }
+  }
+
+  const dimensions: VariantDimension[] = []
+
+  if (targets.length > 0) {
+    for (const target of targets) {
+      const currentValObj = getProductDimensionValue(current, target.name, target.type, target.knownAttribute)
       const currentVal = currentValObj?.label ?? ""
 
       const uniqueValuesMap = new Map<string, { label: string; colorHex?: string }>()
+
+      if (currentValObj && currentValObj.label) {
+        uniqueValuesMap.set(currentValObj.label, currentValObj)
+      }
+
       for (const item of allCandidates) {
-        const val = getProductAttributeValue(item, attr)
+        const val = getProductDimensionValue(item, target.name, target.type, target.knownAttribute)
         if (val && val.label && !uniqueValuesMap.has(val.label)) {
           uniqueValuesMap.set(val.label, val)
         }
@@ -302,10 +377,9 @@ export function buildProductVariants(
       if (uniqueValuesMap.size > 0) {
         let valueList = Array.from(uniqueValuesMap.values())
 
-        // Сортировка для памяти/накопителя
         if (
-          attr.slug === "storage" ||
-          /(?:память|встроенная|накопитель|хранилище|rom|storage|ssd)/i.test(attr.name)
+          target.knownAttribute?.slug === "storage" ||
+          /(?:память|встроенная|накопитель|хранилище|rom|storage|ssd)/i.test(target.name)
         ) {
           valueList.sort((a, b) => getMemoryInGb(a.label) - getMemoryInGb(b.label))
         }
@@ -318,14 +392,14 @@ export function buildProductVariants(
           let bestScore = -1
 
           for (const item of allCandidates) {
-            const candidateVal = getProductAttributeValue(item, attr)?.label
+            const candidateVal = getProductDimensionValue(item, target.name, target.type, target.knownAttribute)?.label
             if (candidateVal !== meta.label) continue
 
             let score = 100
-            for (const otherAttr of groupAttributes) {
-              if (otherAttr.id === attr.id) continue
-              const otherCurrent = getProductAttributeValue(current, otherAttr)?.label
-              const otherCandidate = getProductAttributeValue(item, otherAttr)?.label
+            for (const other of targets) {
+              if (other.name === target.name) continue
+              const otherCurrent = getProductDimensionValue(current, other.name, other.type, other.knownAttribute)?.label
+              const otherCandidate = getProductDimensionValue(item, other.name, other.type, other.knownAttribute)?.label
               if (otherCurrent && otherCandidate === otherCurrent) {
                 score += 30
               }
@@ -348,9 +422,9 @@ export function buildProductVariants(
         }
 
         dimensions.push({
-          id: attr.slug,
-          name: attr.name,
-          type: attr.type,
+          id: target.id,
+          name: target.name,
+          type: target.type,
           activeValue: currentVal,
           options,
         })

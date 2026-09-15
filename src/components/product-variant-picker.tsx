@@ -94,9 +94,7 @@ export function ProductVariantPicker({
   const activeSim = getSimLabel(product)
 
   const hasDimensions = Boolean(
-    variants.dimensions &&
-      variants.dimensions.length > 0 &&
-      variants.dimensions.some((d) => d.options.length > 1)
+    variants.dimensions && variants.dimensions.length > 0
   )
 
   const showColors = variants.colors.length > 1
@@ -109,7 +107,7 @@ export function ProductVariantPicker({
     <div className="flex flex-col gap-6">
       {hasDimensions ? (
         variants.dimensions.map((dim) => {
-          if (dim.options.length <= 1) return null
+          if (!dim.options || dim.options.length === 0) return null
 
           if (dim.type === "color") {
             return (
