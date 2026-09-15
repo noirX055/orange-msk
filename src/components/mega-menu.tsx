@@ -46,6 +46,39 @@ export function MegaMenu({
     : []
   const hasDropdown = categoryGroups.length > 0
 
+  const sections = useMemo(() => {
+    if (!activeItem) return []
+    const catGroups = groups.filter((g) => g.category_slug === activeItem.slug)
+
+    const parentMap = new Map<string, AdminGroup[]>()
+    const standalone: AdminGroup[] = []
+
+    for (const g of catGroups) {
+      const p = g.parent_group?.trim()
+      if (p) {
+        const list = parentMap.get(p) ?? []
+        list.push(g)
+        parentMap.set(p, list)
+      } else {
+        standalone.push(g)
+      }
+    }
+
+    const res: { title: string | null; items: AdminGroup[] }[] = []
+    for (const [title, items] of parentMap.entries()) {
+      res.push({ title, items })
+    }
+
+    if (standalone.length > 0) {
+      res.push({
+        title: parentMap.size > 0 ? "Другое" : null,
+        items: standalone,
+      })
+    }
+
+    return res
+  }, [activeItem, groups])
+
   const dropdown = activeCategory && hasDropdown ? (
     <div
       className="fixed left-0 right-0 z-[9999] border-b border-border bg-background shadow-xl"
@@ -55,17 +88,30 @@ export function MegaMenu({
       }}
       onMouseLeave={handleLeave}
     >
-      <div className="mx-auto max-w-7xl px-8 py-8">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
-          {categoryGroups.map((sub) => (
-            <Link
-              key={sub.id}
-              href={`/catalog?category=${activeItem!.slug}&series=${encodeURIComponent(sub.name)}`}
-              onClick={() => setActiveCategory(null)}
-              className="block text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              {sub.name}
-            </Link>
+      <div className="mx-auto max-w-7xl px-8 py-7">
+        <div className="flex flex-wrap gap-x-12 gap-y-6">
+          {sections.map((section, idx) => (
+            <div key={section.title ?? `col-${idx}`} className="flex flex-col min-w-[160px] max-w-[220px]">
+              {section.title && (
+                <div className="mb-2.5 pb-1 border-b border-border/60">
+                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                    {section.title}
+                  </span>
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                {section.items.map((sub) => (
+                  <Link
+                    key={sub.id}
+                    href={`/catalog?category=${activeItem!.slug}&series=${encodeURIComponent(sub.name)}`}
+                    onClick={() => setActiveCategory(null)}
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    {sub.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>

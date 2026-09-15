@@ -378,12 +378,23 @@ export async function createGroup(
   const name = String(formData.get("name") ?? "").trim()
   const brand_id = Number(formData.get("brand_id"))
   const category_slug = String(formData.get("category_slug") ?? "").trim()
+  const parent_group = String(formData.get("parent_group") ?? "").trim() || null
 
   if (!name) return { ok: false, error: "Укажите название группы" }
   if (!brand_id) return { ok: false, error: "Укажите бренд" }
   if (!category_slug) return { ok: false, error: "Укажите категорию" }
 
-  const { error } = await supabase.from("product_groups").insert({ name, brand_id, category_slug })
+  const payload: Record<string, any> = { name, brand_id, category_slug }
+  if (parent_group) payload.parent_group = parent_group
+
+  let { error } = await supabase.from("product_groups").insert(payload)
+
+  // Fallback if parent_group column doesn't exist yet
+  if (error && error.message?.includes("parent_group")) {
+    delete payload.parent_group
+    const res = await supabase.from("product_groups").insert(payload)
+    error = res.error
+  }
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Группа с таким названием уже существует для этого бренда и категории" }
@@ -392,6 +403,8 @@ export async function createGroup(
 
   revalidatePath("/admin/settings")
   revalidatePath("/admin/categories")
+  revalidatePath("/catalog")
+  revalidatePath("/")
   return { ok: true, message: "Группа успешно добавлена" }
 }
 
@@ -404,13 +417,23 @@ export async function updateGroup(
   const name = String(formData.get("name") ?? "").trim()
   const brand_id = Number(formData.get("brand_id"))
   const category_slug = String(formData.get("category_slug") ?? "").trim()
+  const parent_group = String(formData.get("parent_group") ?? "").trim() || null
 
   if (!id) return { ok: false, error: "Не указана группа" }
   if (!name) return { ok: false, error: "Укажите название группы" }
   if (!brand_id) return { ok: false, error: "Укажите бренд" }
   if (!category_slug) return { ok: false, error: "Укажите категорию" }
 
-  const { error } = await supabase.from("product_groups").update({ name, brand_id, category_slug }).eq("id", id)
+  const payload: Record<string, any> = { name, brand_id, category_slug, parent_group }
+
+  let { error } = await supabase.from("product_groups").update(payload).eq("id", id)
+
+  // Fallback if parent_group column doesn't exist yet
+  if (error && error.message?.includes("parent_group")) {
+    delete payload.parent_group
+    const res = await supabase.from("product_groups").update(payload).eq("id", id)
+    error = res.error
+  }
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Группа с таким названием уже существует для этого бренда и категории" }
@@ -419,6 +442,8 @@ export async function updateGroup(
 
   revalidatePath("/admin/settings")
   revalidatePath("/admin/categories")
+  revalidatePath("/catalog")
+  revalidatePath("/")
   return { ok: true, message: "Группа успешно обновлена" }
 }
 
@@ -430,6 +455,93 @@ export async function deleteGroup(formData: FormData): Promise<void> {
   await supabase.from("product_groups").delete().eq("id", id)
   revalidatePath("/admin/settings")
   revalidatePath("/admin/categories")
+  revalidatePath("/catalog")
+  revalidatePath("/")
+}
+
+export async function bulkSetParentGroup(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  let ids: number[] = []
+  try {
+    ids = JSON.parse(String(formData.get("ids") ?? "[]"))
+  } catch {
+    return { ok: false, error: "Некорректный список групп" }
+  }
+
+  if (!ids.length) return { ok: false, error: "Выберите хотя бы одну группу" }
+
+  const parent_group = String(formData.get("parent_group") ?? "").trim() || null
+
+  const { error } = await supabase
+    .from("product_groups")
+    .update({ parent_group })
+    .in("id", ids)
+
+  if (error) {
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath("/admin/categories")
+  revalidatePath("/admin/products")
+  revalidatePath("/catalog")
+  revalidatePath("/")
+  return {
+    ok: true,
+    message: parent_group
+      ? `Группы (${ids.length}) объединены в общую группу «${parent_group}»`
+      : `Группы (${ids.length}) удалены из общей группы`,
+  }
+}
+
+export async function renameParentGroup(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  const category_slug = String(formData.get("category_slug") ?? "").trim()
+  const old_name = String(formData.get("old_name") ?? "").trim()
+  const new_name = String(formData.get("new_name") ?? "").trim()
+
+  if (!category_slug || !old_name) return { ok: false, error: "Не указана категория или группа" }
+  if (!new_name) return { ok: false, error: "Укажите новое название общей группы" }
+
+  const { error } = await supabase
+    .from("product_groups")
+    .update({ parent_group: new_name })
+    .eq("category_slug", category_slug)
+    .eq("parent_group", old_name)
+
+  if (error) {
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath("/admin/categories")
+  revalidatePath("/admin/products")
+  revalidatePath("/catalog")
+  revalidatePath("/")
+  return { ok: true, message: `Общая группа переименована в «${new_name}»` }
+}
+
+export async function dissolveParentGroup(formData: FormData): Promise<void> {
+  const { supabase } = await requireAdmin()
+  const category_slug = String(formData.get("category_slug") ?? "").trim()
+  const parent_group = String(formData.get("parent_group") ?? "").trim()
+
+  if (!category_slug || !parent_group) return
+
+  await supabase
+    .from("product_groups")
+    .update({ parent_group: null })
+    .eq("category_slug", category_slug)
+    .eq("parent_group", parent_group)
+
+  revalidatePath("/admin/categories")
+  revalidatePath("/admin/products")
+  revalidatePath("/catalog")
+  revalidatePath("/")
 }
 
 // ---------- Категории ----------

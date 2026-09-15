@@ -20,7 +20,13 @@ import { VisibilityToggle } from "@/components/admin/visibility-toggle"
 type SortKey = "name" | "category" | "price" | "stock" | "visible"
 
 type Category = { slug: string; name: string }
-type Group = { id: number; name: string; brand_id: number; category_slug: string }
+type Group = {
+  id: number
+  name: string
+  brand_id: number
+  category_slug: string
+  parent_group?: string | null
+}
 
 const controlBase =
   "h-10 rounded-xl border border-border bg-muted/50 px-3 text-sm outline-none transition-colors focus:border-primary"
@@ -328,11 +334,49 @@ export function ProductsTable({
           className={controlBase}
         >
           <option value="all">Все группы</option>
-          {filteredGroups.map((item) => (
-            <option key={item.id} value={String(item.id)}>
-              {item.name}
-            </option>
-          ))}
+          {(() => {
+            const parentMap = new Map<string, Group[]>()
+            const standalone: Group[] = []
+            for (const g of filteredGroups) {
+              const p = g.parent_group?.trim()
+              if (p) {
+                const arr = parentMap.get(p) ?? []
+                arr.push(g)
+                parentMap.set(p, arr)
+              } else {
+                standalone.push(g)
+              }
+            }
+            if (parentMap.size === 0) {
+              return filteredGroups.map((item) => (
+                <option key={item.id} value={String(item.id)}>
+                  {item.name}
+                </option>
+              ))
+            }
+            return (
+              <>
+                {Array.from(parentMap.entries()).map(([pName, items]) => (
+                  <optgroup key={pName} label={pName}>
+                    {items.map((item) => (
+                      <option key={item.id} value={String(item.id)}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+                {standalone.length > 0 && (
+                  <optgroup label="Остальные">
+                    {standalone.map((item) => (
+                      <option key={item.id} value={String(item.id)}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </>
+            )
+          })()}
         </select>
 
         <select value={brand} onChange={(event) => handleBrand(event.target.value)} className={controlBase}>
@@ -381,11 +425,49 @@ export function ProductsTable({
             className={controlBase}
           >
             <option value="">Группа — не менять</option>
-            {bulkGroups.map((item) => (
-              <option key={item.id} value={String(item.id)}>
-                {item.name}
-              </option>
-            ))}
+            {(() => {
+              const parentMap = new Map<string, Group[]>()
+              const standalone: Group[] = []
+              for (const g of bulkGroups) {
+                const p = g.parent_group?.trim()
+                if (p) {
+                  const arr = parentMap.get(p) ?? []
+                  arr.push(g)
+                  parentMap.set(p, arr)
+                } else {
+                  standalone.push(g)
+                }
+              }
+              if (parentMap.size === 0) {
+                return bulkGroups.map((item) => (
+                  <option key={item.id} value={String(item.id)}>
+                    {item.name}
+                  </option>
+                ))
+              }
+              return (
+                <>
+                  {Array.from(parentMap.entries()).map(([pName, items]) => (
+                    <optgroup key={pName} label={pName}>
+                      {items.map((item) => (
+                        <option key={item.id} value={String(item.id)}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                  {standalone.length > 0 && (
+                    <optgroup label="Остальные">
+                      {standalone.map((item) => (
+                        <option key={item.id} value={String(item.id)}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </>
+              )
+            })()}
           </select>
 
           <button

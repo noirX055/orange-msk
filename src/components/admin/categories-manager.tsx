@@ -1,13 +1,16 @@
 "use client"
 
-import { Fragment, useState } from "react"
+import { Fragment, useState, useMemo } from "react"
 import {
   ChevronDown,
   ChevronRight,
+  Folder,
+  Layers,
   Pencil,
   Plus,
   Save,
   Trash2,
+  Unlink,
   X,
 } from "lucide-react"
 import {
@@ -17,6 +20,9 @@ import {
   deleteGroup,
   updateCategory,
   updateGroup,
+  bulkSetParentGroup,
+  renameParentGroup,
+  dissolveParentGroup,
 } from "@/app/admin/actions"
 import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
 import { CategoryVisibilityToggle } from "@/components/admin/category-visibility-toggle"
@@ -29,6 +35,7 @@ type EditingGroup = {
   name: string
   brand_id: number | ""
   category_slug: string
+  parent_group: string
 }
 
 export function CategoriesManager({
@@ -43,8 +50,16 @@ export function CategoriesManager({
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   const [editingCategory, setEditingCategory] = useState<EditingCategory | null>(null)
   const [editingGroup, setEditingGroup] = useState<EditingGroup | null>(null)
+  const [selectedGroups, setSelectedGroups] = useState<Set<number>>(new Set())
+  const [bulkParentGroupName, setBulkParentGroupName] = useState("")
+  const [renamingParent, setRenamingParent] = useState<{
+    category_slug: string
+    old_name: string
+    new_name: string
+  } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [message, setMessage] = useState("")
 
   const toggleExpand = (id: number) => {
     setExpanded((prev) => {
@@ -58,11 +73,30 @@ export function CategoriesManager({
   const groupsForCategory = (slug: string) =>
     initialGroups.filter((g) => g.category_slug === slug)
 
+  const parentGroupsForCategory = (slug: string) =>
+    Array.from(
+      new Set(
+        initialGroups
+          .filter((g) => g.category_slug === slug && g.parent_group?.trim())
+          .map((g) => g.parent_group!.trim())
+      )
+    ).sort()
+
+  const toggleSelectGroup = (id: number) => {
+    setSelectedGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingCategory) return
     setLoading(true)
     setError("")
+    setMessage("")
 
     const formData = new FormData()
     formData.append("name", editingCategory.name)
@@ -77,7 +111,10 @@ export function CategoriesManager({
     }
 
     if (!result.ok) setError(result.error || "Ошибка сохранения")
-    else setEditingCategory(null)
+    else {
+      setEditingCategory(null)
+      if (result.message) setMessage(result.message)
+    }
     setLoading(false)
   }
 
@@ -86,11 +123,15 @@ export function CategoriesManager({
     if (!editingGroup) return
     setLoading(true)
     setError("")
+    setMessage("")
 
     const formData = new FormData()
     formData.append("name", editingGroup.name)
     formData.append("brand_id", String(editingGroup.brand_id))
     formData.append("category_slug", editingGroup.category_slug)
+    if (editingGroup.parent_group.trim()) {
+      formData.append("parent_group", editingGroup.parent_group.trim())
+    }
 
     let result
     if (editingGroup.id === "new") {
@@ -101,7 +142,103 @@ export function CategoriesManager({
     }
 
     if (!result.ok) setError(result.error || "Ошибка сохранения")
-    else setEditingGroup(null)
+    else {
+      setEditingGroup(null)
+      if (result.message) setMessage(result.message)
+    }
+    setLoading(false)
+  }
+
+  const handleUniteGroups = async (categorySlug: string) => {
+    const parentName = bulkParentGroupName.trim()
+    if (!parentName) {
+      setError("Укажите название общей группы (например, Айфоны)")
+      return
+    }
+    setLoading(true)
+    setError("")
+    setMessage("")
+
+    const ids = Array.from(selectedGroups).filter((id) => {
+      const g = initialGroups.find((item) => item.id === id)
+      return g && g.category_slug === categorySlug
+    })
+
+    const formData = new FormData()
+    formData.append("ids", JSON.stringify(ids))
+    formData.append("parent_group", parentName)
+
+    const result = await bulkSetParentGroup({ ok: false }, formData)
+    if (!result.ok) {
+      setError(result.error || "Ошибка объединения групп")
+    } else {
+      setMessage(result.message || `Группы объединены в общую группу «${parentName}»`)
+      setSelectedGroups(new Set())
+      setBulkParentGroupName("")
+    }
+    setLoading(false)
+  }
+
+  const handleRemoveFromParent = async (categorySlug: string) => {
+    setLoading(true)
+    setError("")
+    setMessage("")
+
+    const ids = Array.from(selectedGroups).filter((id) => {
+      const g = initialGroups.find((item) => item.id === id)
+      return g && g.category_slug === categorySlug
+    })
+
+    const formData = new FormData()
+    formData.append("ids", JSON.stringify(ids))
+    formData.append("parent_group", "")
+
+    const result = await bulkSetParentGroup({ ok: false }, formData)
+    if (!result.ok) {
+      setError(result.error || "Ошибка удаления из общей группы")
+    } else {
+      setMessage("Группы убраны из общей группы")
+      setSelectedGroups(new Set())
+    }
+    setLoading(false)
+  }
+
+  const handleRenameParent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!renamingParent) return
+    setLoading(true)
+    setError("")
+    setMessage("")
+
+    const formData = new FormData()
+    formData.append("category_slug", renamingParent.category_slug)
+    formData.append("old_name", renamingParent.old_name)
+    formData.append("new_name", renamingParent.new_name.trim())
+
+    const result = await renameParentGroup({ ok: false }, formData)
+    if (!result.ok) {
+      setError(result.error || "Ошибка переименования")
+    } else {
+      setMessage(result.message || "Общая группа переименована")
+      setRenamingParent(null)
+    }
+    setLoading(false)
+  }
+
+  const handleDissolveParent = async (categorySlug: string, parentName: string) => {
+    if (!confirm(`Расформировать общую группу «${parentName}»? Группы товаров останутся, но перестанут быть объединены.`)) {
+      return
+    }
+    setLoading(true)
+    setError("")
+    setMessage("")
+
+    const formData = new FormData()
+    formData.append("category_slug", categorySlug)
+    formData.append("parent_group", parentName)
+
+    await dissolveParentGroup(formData)
+    setMessage(`Общая группа «${parentName}» расформирована`)
     setLoading(false)
   }
 
@@ -123,58 +260,82 @@ export function CategoriesManager({
     setLoading(false)
   }
 
-  const groupForm = (group: EditingGroup) => (
-    <form onSubmit={handleSaveGroup} className="flex flex-wrap items-center gap-2 py-2">
-      <input
-        type="text"
-        value={group.name}
-        onChange={(e) => setEditingGroup({ ...group, name: e.target.value })}
-        placeholder="Название группы"
-        className="h-9 min-w-40 flex-1 rounded-lg border border-border px-3 text-sm outline-none focus:border-primary"
-        required
-        disabled={loading}
-      />
-      <select
-        value={group.brand_id}
-        onChange={(e) => setEditingGroup({ ...group, brand_id: Number(e.target.value) })}
-        className="h-9 rounded-lg border border-border px-3 text-sm outline-none focus:border-primary"
-        required
-        disabled={loading}
-      >
-        <option value="" disabled>
-          Бренд
-        </option>
-        {brands.map((b) => (
-          <option key={b.id} value={b.id}>
-            {b.name}
+  const groupForm = (group: EditingGroup) => {
+    const parentOpts = parentGroupsForCategory(group.category_slug)
+    return (
+      <form onSubmit={handleSaveGroup} className="flex flex-wrap items-center gap-2 py-2">
+        <input
+          type="text"
+          value={group.name}
+          onChange={(e) => setEditingGroup({ ...group, name: e.target.value })}
+          placeholder="Название группы (напр. iPhone 15 Pro)"
+          className="h-9 min-w-40 flex-1 rounded-lg border border-border px-3 text-sm outline-none focus:border-primary"
+          required
+          disabled={loading}
+        />
+        <input
+          type="text"
+          list={`datalist-parents-${group.category_slug}`}
+          value={group.parent_group}
+          onChange={(e) => setEditingGroup({ ...group, parent_group: e.target.value })}
+          placeholder="Общая группа (напр. Айфоны)"
+          className="h-9 min-w-36 flex-1 rounded-lg border border-border px-3 text-sm outline-none focus:border-primary"
+          disabled={loading}
+        />
+        <datalist id={`datalist-parents-${group.category_slug}`}>
+          {parentOpts.map((p) => (
+            <option key={p} value={p} />
+          ))}
+        </datalist>
+        <select
+          value={group.brand_id}
+          onChange={(e) => setEditingGroup({ ...group, brand_id: Number(e.target.value) })}
+          className="h-9 rounded-lg border border-border px-3 text-sm outline-none focus:border-primary"
+          required
+          disabled={loading}
+        >
+          <option value="" disabled>
+            Бренд
           </option>
-        ))}
-      </select>
-      <div className="flex items-center gap-1">
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:brightness-110 disabled:opacity-50"
-        >
-          <Save size={16} />
-        </button>
-        <button
-          type="button"
-          onClick={() => setEditingGroup(null)}
-          disabled={loading}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-50"
-        >
-          <X size={16} />
-        </button>
-      </div>
-    </form>
-  )
+          {brands.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </select>
+        <div className="flex items-center gap-1">
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:brightness-110 disabled:opacity-50"
+            title="Сохранить"
+          >
+            <Save size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditingGroup(null)}
+            disabled={loading}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-50"
+            title="Отмена"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </form>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-4">
       {error && (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
+        </p>
+      )}
+      {message && (
+        <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          {message}
         </p>
       )}
 
@@ -195,6 +356,78 @@ export function CategoriesManager({
               const isOpen = expanded.has(category.id)
               const groups = groupsForCategory(category.slug)
               const isEditing = editingCategory?.id === category.id
+
+              const categoryParentNames = Array.from(
+                new Set(
+                  groups
+                    .map((g) => g.parent_group?.trim())
+                    .filter((p): p is string => Boolean(p))
+                )
+              ).sort()
+              const standaloneCategoryGroups = groups.filter(
+                (g) => !g.parent_group || !g.parent_group.trim()
+              )
+              const selectedInThisCategory = groups.filter((g) =>
+                selectedGroups.has(g.id)
+              )
+
+              const renderGroupRow = (group: AdminGroup) => {
+                const isSelected = selectedGroups.has(group.id)
+                return editingGroup?.id === group.id ? (
+                  <div key={group.id}>{groupForm(editingGroup)}</div>
+                ) : (
+                  <div
+                    key={group.id}
+                    className={`flex items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 transition-colors ${
+                      isSelected
+                        ? "bg-primary/10 border border-primary/20"
+                        : "hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectGroup(group.id)}
+                        className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                        aria-label={`Выбрать ${group.name}`}
+                      />
+                      <span className="font-medium truncate">{group.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {brands.find((b) => b.id === group.brand_id)?.name ?? "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditingGroup({
+                            id: group.id,
+                            name: group.name,
+                            brand_id: group.brand_id,
+                            category_slug: group.category_slug,
+                            parent_group: group.parent_group ?? "",
+                          })
+                        }
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                        disabled={loading}
+                        title="Редактировать группу"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteGroup(group.id, group.name)}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
+                        disabled={loading}
+                        title="Удалить группу"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )
+              }
 
               return (
                 <Fragment key={category.id}>
@@ -258,7 +491,14 @@ export function CategoriesManager({
                         <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">
                           {category.slug}
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">{groups.length}</td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {groups.length}
+                          {categoryParentNames.length > 0 && (
+                            <span className="ml-1.5 text-xs text-muted-foreground/80">
+                              ({categoryParentNames.length} общих)
+                            </span>
+                          )}
+                        </td>
                         <td className="px-4 py-3">
                           <CategoryVisibilityToggle id={category.id} visible={category.is_visible} />
                         </td>
@@ -294,57 +534,185 @@ export function CategoriesManager({
 
                   {isOpen && !isEditing && (
                     <tr className="bg-muted/20">
-                      <td colSpan={6} className="px-4 py-2 pl-12">
-                        <div className="flex flex-col gap-1">
-                          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Группы товаров
-                          </p>
+                      <td colSpan={6} className="px-4 py-3 pl-12">
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              Группы товаров категории «{category.name}»
+                            </p>
+                            {groups.length > 1 && (
+                              <span className="text-xs text-muted-foreground">
+                                Выберите группы чекбоксами для объединения
+                              </span>
+                            )}
+                          </div>
 
-                          {groups.length === 0 && !editingGroup && (
-                            <p className="py-2 text-sm text-muted-foreground">Нет групп</p>
+                          {/* Панель массового объединения групп */}
+                          {selectedInThisCategory.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+                              <span className="text-xs font-semibold text-primary">
+                                Выбрано: {selectedInThisCategory.length}
+                              </span>
+                              <input
+                                type="text"
+                                list={`parent-groups-bar-${category.slug}`}
+                                value={bulkParentGroupName}
+                                onChange={(e) => setBulkParentGroupName(e.target.value)}
+                                placeholder="Название общей группы (напр. Айфоны)"
+                                className="h-8 min-w-[220px] flex-1 rounded-lg border border-border bg-background px-3 text-xs outline-none focus:border-primary"
+                                disabled={loading}
+                              />
+                              <datalist id={`parent-groups-bar-${category.slug}`}>
+                                {categoryParentNames.map((p) => (
+                                  <option key={p} value={p} />
+                                ))}
+                              </datalist>
+                              <button
+                                type="button"
+                                onClick={() => handleUniteGroups(category.slug)}
+                                disabled={loading || !bulkParentGroupName.trim()}
+                                className="h-8 rounded-lg bg-navy px-3 text-xs font-semibold text-navy-foreground hover:brightness-110 disabled:opacity-50 transition-colors"
+                              >
+                                Объединить в общую группу
+                              </button>
+                              {selectedInThisCategory.some((g) => g.parent_group) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveFromParent(category.slug)}
+                                  disabled={loading}
+                                  className="h-8 rounded-lg border border-border bg-background px-3 text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+                                >
+                                  Убрать из общей
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedGroups(new Set())}
+                                className="text-xs text-muted-foreground hover:underline ml-auto"
+                              >
+                                Снять выбор
+                              </button>
+                            </div>
                           )}
 
-                          {groups.map((group) =>
-                            editingGroup?.id === group.id ? (
-                              <div key={group.id}>{groupForm(editingGroup)}</div>
-                            ) : (
+                          {groups.length === 0 && !editingGroup && (
+                            <p className="py-2 text-sm text-muted-foreground">В этой категории пока нет групп</p>
+                          )}
+
+                          {/* Карточки общих групп */}
+                          {categoryParentNames.map((parentName) => {
+                            const parentItems = groups.filter(
+                              (g) => g.parent_group?.trim() === parentName
+                            )
+                            const isRenaming =
+                              renamingParent?.category_slug === category.slug &&
+                              renamingParent?.old_name === parentName
+
+                            return (
                               <div
-                                key={group.id}
-                                className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 hover:bg-muted/50"
+                                key={parentName}
+                                className="rounded-xl border border-border/80 bg-background/90 p-3 shadow-sm"
                               >
-                                <div className="min-w-0">
-                                  <span className="font-medium">{group.name}</span>
-                                  <span className="ml-2 text-xs text-muted-foreground">
-                                    {brands.find((b) => b.id === group.brand_id)?.name ?? "—"}
-                                  </span>
+                                <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2 mb-2">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <Folder size={16} className="text-primary shrink-0" />
+                                    {isRenaming ? (
+                                      <form
+                                        onSubmit={handleRenameParent}
+                                        className="flex items-center gap-2 flex-1 max-w-sm"
+                                      >
+                                        <input
+                                          type="text"
+                                          value={renamingParent.new_name}
+                                          onChange={(e) =>
+                                            setRenamingParent({
+                                              ...renamingParent,
+                                              new_name: e.target.value,
+                                            })
+                                          }
+                                          className="h-7 w-full rounded border border-border px-2 text-xs font-semibold outline-none focus:border-primary"
+                                          required
+                                          autoFocus
+                                        />
+                                        <button
+                                          type="submit"
+                                          className="text-xs text-primary hover:underline font-semibold"
+                                        >
+                                          ОК
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setRenamingParent(null)}
+                                          className="text-xs text-muted-foreground hover:underline"
+                                        >
+                                          Отмена
+                                        </button>
+                                      </form>
+                                    ) : (
+                                      <>
+                                        <span className="font-semibold text-sm text-foreground truncate">
+                                          {parentName}
+                                        </span>
+                                        <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">
+                                          {parentItems.length} поз.
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                  {!isRenaming && (
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setRenamingParent({
+                                            category_slug: category.slug,
+                                            old_name: parentName,
+                                            new_name: parentName,
+                                          })
+                                        }
+                                        title="Переименовать общую группу"
+                                        className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                                      >
+                                        <Pencil size={13} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleDissolveParent(category.slug, parentName)
+                                        }
+                                        title="Расформировать общую группу"
+                                        className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-red-50 hover:text-red-600"
+                                      >
+                                        <Unlink size={13} />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setEditingGroup({
-                                        id: group.id,
-                                        name: group.name,
-                                        brand_id: group.brand_id,
-                                        category_slug: group.category_slug,
-                                      })
-                                    }
-                                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                                    disabled={loading}
-                                  >
-                                    <Pencil size={14} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteGroup(group.id, group.name)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
-                                    disabled={loading}
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
+
+                                <div className="flex flex-col gap-1 pl-1">
+                                  {parentItems.map(renderGroupRow)}
                                 </div>
                               </div>
-                            ),
+                            )
+                          })}
+
+                          {/* Группы без общей группы */}
+                          {categoryParentNames.length > 0 && standaloneCategoryGroups.length > 0 && (
+                            <div className="mt-1">
+                              <p className="text-xs font-semibold text-muted-foreground mb-1.5 pl-1">
+                                Другие группы (без общей группы):
+                              </p>
+                              <div className="flex flex-col gap-1">
+                                {standaloneCategoryGroups.map(renderGroupRow)}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Если нет ни одной общей группы, просто выводим список */}
+                          {categoryParentNames.length === 0 && (
+                            <div className="flex flex-col gap-1">
+                              {groups.map(renderGroupRow)}
+                            </div>
                           )}
 
                           {editingGroup?.id === "new" &&
@@ -359,6 +727,7 @@ export function CategoriesManager({
                                   name: "",
                                   brand_id: brands[0]?.id ?? "",
                                   category_slug: category.slug,
+                                  parent_group: "",
                                 })
                               }
                               disabled={loading || brands.length === 0}
