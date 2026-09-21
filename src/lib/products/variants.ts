@@ -6,6 +6,7 @@ export type VariantOption = {
   product: Product
   active: boolean
   colorHex?: string
+  isAvailable?: boolean
 }
 
 export type VariantDimension = {
@@ -390,11 +391,13 @@ export function buildProductVariants(
 
           let bestMatch: Product = current
           let bestScore = -1
+          let hasExactCandidate = false
 
           for (const item of allCandidates) {
             const candidateVal = getProductDimensionValue(item, target.name, target.type, target.knownAttribute)?.label
             if (candidateVal !== meta.label) continue
 
+            let matchesAllOthers = true
             let score = 100
             for (const other of targets) {
               if (other.name === target.name) continue
@@ -402,7 +405,13 @@ export function buildProductVariants(
               const otherCandidate = getProductDimensionValue(item, other.name, other.type, other.knownAttribute)?.label
               if (otherCurrent && otherCandidate === otherCurrent) {
                 score += 30
+              } else if (otherCurrent && otherCandidate && otherCandidate !== otherCurrent) {
+                matchesAllOthers = false
               }
+            }
+
+            if (matchesAllOthers && item.inStock !== false) {
+              hasExactCandidate = true
             }
 
             if (item.inStock) score += 5
@@ -418,6 +427,7 @@ export function buildProductVariants(
             product: bestMatch,
             active: isActive,
             colorHex: meta.colorHex,
+            isAvailable: isActive || hasExactCandidate,
           })
         }
 

@@ -159,17 +159,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   </svg>
                   Оригинальный товар
                 </span>
-
-                <div className="flex items-center gap-1.5 text-sm">
-                  <span
-                    className="flex items-center gap-0.5 text-amber-500"
-                    aria-label={`Рейтинг ${product.rating} из 5`}
-                  >
-                    <Star size={14} className="fill-current" />
-                    <span className="font-bold text-foreground">{product.rating}</span>
-                  </span>
-                  <span className="text-muted-foreground">· {product.reviews} отзывов</span>
-                </div>
               </div>
             </div>
 

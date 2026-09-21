@@ -10,10 +10,14 @@ import {
 } from "@/lib/products/variants"
 
 function ColorSwatch({ option }: { option: VariantOption }) {
-  const { product, active, label, colorHex } = option
+  const { product, active, label, colorHex, isAvailable = true } = option
 
   const className = `relative h-[34px] w-[34px] shrink-0 rounded-full transition-all ${
-    active ? "ring-2 ring-foreground ring-offset-2" : "ring-1 ring-border hover:ring-foreground/40"
+    active
+      ? "ring-2 ring-foreground ring-offset-2"
+      : !isAvailable
+      ? "ring-1 ring-border/40 opacity-35 hover:opacity-75"
+      : "ring-1 ring-border hover:ring-foreground/40"
   }`
 
   const inner = (
@@ -44,7 +48,7 @@ function ColorSwatch({ option }: { option: VariantOption }) {
       href={`/product/${product.slug}`}
       className={className}
       aria-label={label}
-      title={label}
+      title={!isAvailable ? `${label} (нет для выбранной конфигурации)` : label}
     >
       {inner}
     </Link>
@@ -52,11 +56,13 @@ function ColorSwatch({ option }: { option: VariantOption }) {
 }
 
 function OptionButton({ option }: { option: VariantOption }) {
-  const { product, active, label } = option
+  const { product, active, label, isAvailable = true } = option
 
   const className = `rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
     active
       ? "border-2 border-foreground bg-foreground/5 font-semibold text-foreground shadow-sm"
+      : !isAvailable
+      ? "border-border/60 bg-muted/40 text-muted-foreground/60 line-through opacity-50 hover:opacity-80"
       : "border-border text-foreground hover:border-foreground/40 hover:bg-muted/40"
   }`
 
@@ -69,7 +75,11 @@ function OptionButton({ option }: { option: VariantOption }) {
   }
 
   return (
-    <Link href={`/product/${product.slug}`} className={className} title={`Выбрать ${label}`}>
+    <Link
+      href={`/product/${product.slug}`}
+      className={className}
+      title={!isAvailable ? `${label} (нет в наличии для выбранного цвета)` : `Выбрать ${label}`}
+    >
       {label}
     </Link>
   )

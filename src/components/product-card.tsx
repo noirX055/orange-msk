@@ -55,11 +55,6 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <BrandLogo brand={product.brand} size={14} />
-          <span className="ml-auto flex items-center gap-1 text-foreground">
-            <Star size={13} className="fill-primary text-primary" />
-            {product.rating}
-          </span>
-          <span>({product.reviews})</span>
         </div>
 
         <h3 className="text-sm font-semibold leading-relaxed text-pretty">

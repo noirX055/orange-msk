@@ -66,41 +66,25 @@ export function ProductForm({
     const rows: CardAttributeRow[] = []
     const usedLabels = new Set<string>()
 
-    // 1. Цвета товара (по умолчанию всегда в конфигураторе)
-    if (product.colors && product.colors.length > 0) {
-      for (const col of product.colors) {
-        if (!col.name) continue
-        const colorAttr = attributes.find(
-          (a) => a.type === "color" || /цвет/i.test(a.name)
-        )
-        rows.push({
-          key: `color-${col.name}-${Math.random()}`,
-          attributeId: colorAttr?.id,
-          label: colorAttr?.name || "Цвет",
-          value: col.name,
-          type: "color",
-          values: colorAttr?.values,
-          colorHex: col.hex,
-          isConfigurator: true,
-        })
-        usedLabels.add((colorAttr?.name || "цвет").toLowerCase())
-      }
-    }
-
-    // 2. Характеристики specs
+    // 1. Сначала загружаем характеристики specs товара
     if (product.specs && product.specs.length > 0) {
       for (const spec of product.specs) {
         if (!spec.label || !spec.value) continue
-        if (usedLabels.has(spec.label.toLowerCase())) continue
+        const normLabel = spec.label.toLowerCase().trim()
+        if (usedLabels.has(normLabel)) continue
 
         const matchedAttr = attributes.find(
-          (a) => a.name.toLowerCase() === spec.label.toLowerCase()
+          (a) => a.name.toLowerCase().trim() === normLabel
         )
+
+        const isColor =
+          matchedAttr?.type === "color" ||
+          /(?:^|\s)цвет(?:\s|$)/i.test(normLabel)
 
         const isConf =
           typeof spec.is_configurator === "boolean"
             ? spec.is_configurator
-            : /цвет|память|storage|rom|накопитель|sim|сим/i.test(spec.label)
+            : isColor || /память|storage|rom|накопитель|sim|сим/i.test(normLabel)
 
         if (matchedAttr) {
           const matchedVal = matchedAttr.values?.find(
@@ -117,7 +101,7 @@ export function ProductForm({
             values: matchedAttr.values,
             colorHex:
               matchedVal?.color_hex ??
-              (matchedAttr.type === "color" ? spec.value : undefined),
+              (matchedAttr.type === "color" ? (product.colors?.[0]?.hex || spec.value) : undefined),
             isConfigurator: isConf,
           })
         } else {
@@ -125,11 +109,38 @@ export function ProductForm({
             key: `custom-${spec.label}-${Math.random()}`,
             label: spec.label,
             value: spec.value,
-            type: "text",
+            type: isColor ? "color" : "text",
+            colorHex: isColor ? (product.colors?.[0]?.hex || "#22303f") : undefined,
             isConfigurator: isConf,
           })
         }
-        usedLabels.add(spec.label.toLowerCase())
+
+        usedLabels.add(normLabel)
+        if (isColor) {
+          usedLabels.add("цвет")
+          usedLabels.add("цвет iphone")
+        }
+      }
+    }
+
+    // 2. Если в specs цвета не было вовсе, но у товара есть массив colors
+    const hasAnyColor = rows.some((r) => r.type === "color" || /цвет/i.test(r.label))
+    if (!hasAnyColor && product.colors && product.colors.length > 0) {
+      const col = product.colors[0]
+      if (col && col.name) {
+        const colorAttr = attributes.find(
+          (a) => a.type === "color" || /цвет/i.test(a.name)
+        )
+        rows.unshift({
+          key: `color-${col.name}-${Math.random()}`,
+          attributeId: colorAttr?.id,
+          label: colorAttr?.name || "Цвет",
+          value: col.name,
+          type: "color",
+          values: colorAttr?.values,
+          colorHex: col.hex,
+          isConfigurator: true,
+        })
       }
     }
 
