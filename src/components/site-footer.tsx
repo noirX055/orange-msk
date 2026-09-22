@@ -62,23 +62,33 @@ export function SiteFooter() {
           <ul className="flex flex-col gap-3 text-sm text-navy-foreground/75">
             <li className="flex items-center gap-2.5">
               <Phone size={16} className="text-primary" />
-              <a href="tel:+74951234567" className="hover:text-primary">
-                +7 (495) 123-45-67
+              <a href="tel:+79892058377" className="hover:text-primary">
+                +7 (989) 205-83-77
               </a>
             </li>
             <li className="flex items-center gap-2.5">
               <Mail size={16} className="text-primary" />
-              <a href="mailto:hello@orangemsk.ru" className="hover:text-primary">
-                hello@orangemsk.ru
+              <a href="mailto:orange-msk@mail.ru" className="hover:text-primary">
+                orange-msk@mail.ru
               </a>
             </li>
             <li className="flex items-start gap-2.5">
-              <MapPin size={16} className="mt-0.5 text-primary" />
-              Москва, ул. Тверская, 12
+              <MapPin size={16} className="mt-0.5 shrink-0 text-primary" />
+              <a
+                href="https://yandex.md/maps/1/moscow-and-moscow-oblast/house/derevnya_chyornaya_gryaz_7_1m/Z04YdQZhTEEEQFtvfXV2dH1lbQ==/"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-primary"
+              >
+                д. Чёрная Грязь, 7/1М
+              </a>
             </li>
-            <li className="flex items-center gap-2.5">
-              <Clock size={16} className="text-primary" />
-              Ежедневно 10:00 — 22:00
+            <li className="flex items-start gap-2.5">
+              <Clock size={16} className="mt-0.5 shrink-0 text-primary" />
+              <div>
+                <p className="mb-1 font-medium text-navy-foreground/90">График работы</p>
+                <p>Пн — Вс: 10:00 – 19:00</p>
+              </div>
             </li>
           </ul>
         </div>

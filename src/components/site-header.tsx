@@ -33,9 +33,9 @@ export function SiteHeader({
             <Link href="/catalog" className="text-navy-foreground/80 transition-colors hover:text-primary">
               Гарантия и сервис
             </Link>
-            <a href="tel:+74951234567" className="flex items-center gap-2 font-medium hover:text-primary">
+            <a href="tel:+79892058377" className="flex items-center gap-2 font-medium hover:text-primary">
               <Phone size={14} />
-              +7 (495) 123-45-67
+              +7 (989) 205-83-77
             </a>
           </div>
         </div>
