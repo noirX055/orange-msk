@@ -1,13 +1,23 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { ChevronRight, Instagram, Phone, Send } from "lucide-react"
+import { useEffect, useState, type ComponentProps } from "react"
+import { ChevronRight, Phone, Send } from "lucide-react"
+
+function InstagramIcon(props: ComponentProps<"svg">) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.75" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
 
 const contacts = [
   {
     label: "Instagram",
     href: "https://www.instagram.com/orangelenengradka?stkn=MWk0b3Q0bzZjaWNieg%3D%3D&utm_source=qr",
-    Icon: Instagram,
+    Icon: InstagramIcon,
     className: "bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]",
   },
   {
