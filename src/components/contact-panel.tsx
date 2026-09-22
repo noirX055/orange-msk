@@ -1,6 +1,6 @@
 "use client"
 
-import type { ComponentProps } from "react"
+import { useState, type ComponentProps } from "react"
 
 /* ——— Brand SVG icons ——— */
 
@@ -68,12 +68,21 @@ const contacts = [
 /* ——— Component ——— */
 
 export function ContactPanel() {
+  const [isOpen, setIsOpen] = useState(true)
+
   return (
     <aside
       aria-label="Связаться с нами"
       className="fixed bottom-24 right-4 z-40 md:bottom-8 md:right-6"
     >
-      <div className="flex flex-col gap-3 rounded-full bg-white/90 p-2.5 shadow-lg ring-1 ring-black/5 backdrop-blur-sm">
+      {/* Expanded panel */}
+      <div
+        className={`flex flex-col gap-3 rounded-full bg-white/90 p-2.5 shadow-lg ring-1 ring-black/5 backdrop-blur-sm transition-all duration-300 ${
+          isOpen
+            ? "scale-100 opacity-100"
+            : "pointer-events-none scale-75 opacity-0"
+        }`}
+      >
         {contacts.map(({ label, href, Icon, bg }) => (
           <a
             key={label}
@@ -87,7 +96,37 @@ export function ContactPanel() {
             <Icon className="size-6" />
           </a>
         ))}
+
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={() => setIsOpen(false)}
+          aria-label="Скрыть контакты"
+          className="flex size-12 items-center justify-center rounded-full bg-gray-200 text-gray-600 shadow-md transition-all duration-200 hover:scale-110 hover:bg-gray-300"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
+
+      {/* Collapsed — single chat bubble to reopen */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        aria-label="Открыть контакты"
+        className={`absolute bottom-0 right-0 flex size-14 items-center justify-center rounded-full bg-[#FF6B00] text-white shadow-lg transition-all duration-300 hover:scale-110 ${
+          isOpen
+            ? "pointer-events-none scale-75 opacity-0"
+            : "scale-100 opacity-100"
+        }`}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-6">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      </button>
     </aside>
   )
 }
+
