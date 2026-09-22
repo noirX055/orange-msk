@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { Plus } from "lucide-react"
 import { getAllProducts, getAllCategories, getAllGroups } from "@/lib/admin/queries"
@@ -26,7 +27,9 @@ export default async function AdminProductsPage() {
         </Link>
       </div>
 
-      <ProductsTable products={products} categories={categories} groups={groups} />
+      <Suspense fallback={<div className="py-12 text-center text-sm text-muted-foreground">Загрузка фильтров…</div>}>
+        <ProductsTable products={products} categories={categories} groups={groups} />
+      </Suspense>
     </div>
   )
 }

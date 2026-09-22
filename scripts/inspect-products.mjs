@@ -8,8 +8,32 @@
  *   node scripts/inspect-products.mjs
  */
 
+import fs from "node:fs"
+import path from "node:path"
+
+function loadEnv() {
+  const envFiles = [".env.production.local", ".env.local", ".env.production", ".env"]
+  for (const file of envFiles) {
+    const fullPath = path.resolve(process.cwd(), file)
+    if (fs.existsSync(fullPath)) {
+      const content = fs.readFileSync(fullPath, "utf-8")
+      for (const line of content.split("\n")) {
+        const trimmed = line.trim()
+        if (!trimmed || trimmed.startsWith("#")) continue
+        const [key, ...vals] = trimmed.split("=")
+        const val = vals.join("=").trim().replace(/^["']|["']$/g, "")
+        if (key && !process.env[key.trim()]) {
+          process.env[key.trim()] = val
+        }
+      }
+    }
+  }
+}
+
+loadEnv()
+
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 if (!url || !key) {
   console.error("Нужны SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY")
@@ -35,51 +59,10 @@ async function rest(path, options = {}) {
 }
 
 async function main() {
-  console.log("=== Orange MSK — inspect products ===\n")
-  console.log("URL:", url)
-
-  const sample = await rest(
-    "products?select=slug,name,brand,series,variant_group,colors,specs,price&limit=5&order=created_at.desc",
-  )
-
-  console.log("\n--- 5 последних товаров ---")
-  console.log(JSON.stringify(sample, null, 2))
-
-  const all = await rest(
-    "products?select=slug,series,variant_group,colors,specs&limit=1000",
-  )
-
-  const total = all.length
-  const withSeries = all.filter((p) => p.series).length
-  const withVariantGroup = all.filter((p) => p.variant_group).length
-  const withColors = all.filter((p) => Array.isArray(p.colors) && p.colors.length > 0).length
-  const withSpecs = all.filter((p) => Array.isArray(p.specs) && p.specs.length > 0).length
-  const multiColor = all.filter((p) => Array.isArray(p.colors) && p.colors.length > 1).length
-
-  console.log("\n--- Статистика (до 1000 строк) ---")
-  console.log({
-    fetched: total,
-    with_series: withSeries,
-    with_variant_group: withVariantGroup,
-    with_colors: withColors,
-    with_specs: withSpecs,
-    multi_color_per_sku: multiColor,
-  })
-
-  const seriesCounts = {}
-  for (const p of all) {
-    if (!p.series) continue
-    seriesCounts[p.series] = (seriesCounts[p.series] || 0) + 1
-  }
-
-  const topSeries = Object.entries(seriesCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 15)
-
-  console.log("\n--- Топ серий ---")
-  for (const [name, count] of topSeries) {
-    console.log(`  ${count}\t${name}`)
-  }
+  console.log("=== Product Groups in DB ===")
+  const groups = await rest("product_groups?select=*&order=name.asc")
+  console.log("Total groups count:", groups.length)
+  console.log(JSON.stringify(groups, null, 2))
 }
 
 main().catch((err) => {

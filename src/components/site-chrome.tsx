@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
+import { ContactPanel } from "@/components/contact-panel"
 import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
 
 type Brand = { id: number; name: string }
@@ -32,6 +33,7 @@ export function SiteChrome({
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
       <SiteFooter />
       <MobileBottomNav />
+      <ContactPanel />
     </>
   )
 }

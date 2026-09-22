@@ -1,7 +1,8 @@
 "use client"
 
-import { useMemo, useState, Fragment, useCallback } from "react"
+import { useMemo, useState, Fragment, useCallback, useEffect } from "react"
 import Link from "next/link"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import Image from "next/image"
 import {
   ArrowUpDown,
@@ -45,14 +46,25 @@ export function ProductsTable({
     [categories],
   )
 
-  const [query, setQuery] = useState("")
-  const [category, setCategory] = useState("all")
-  const [groupFilter, setGroupFilter] = useState("all")
-  const [brand, setBrand] = useState("all")
-  const [sortKey, setSortKey] = useState<SortKey | null>(null)
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
-  const [groupByBrand, setGroupByBrand] = useState(false)
-  const [page, setPage] = useState(1)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const [query, setQuery] = useState(() => searchParams.get("q") ?? "")
+  const [category, setCategory] = useState(() => searchParams.get("category") ?? "all")
+  const [groupFilter, setGroupFilter] = useState(() => searchParams.get("group") ?? "all")
+  const [brand, setBrand] = useState(() => searchParams.get("brand") ?? "all")
+  const [sortKey, setSortKey] = useState<SortKey | null>(
+    () => (searchParams.get("sort") as SortKey) ?? null,
+  )
+  const [sortDir, setSortDir] = useState<"asc" | "desc">(
+    () => (searchParams.get("dir") === "desc" ? "desc" : "asc"),
+  )
+  const [groupByBrand, setGroupByBrand] = useState(() => searchParams.get("groupByBrand") === "1")
+  const [page, setPage] = useState(() => {
+    const p = Number(searchParams.get("page"))
+    return p > 0 ? p : 1
+  })
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkCategory, setBulkCategory] = useState("")
   const [bulkGroup, setBulkGroup] = useState("")
@@ -61,20 +73,41 @@ export function ProductsTable({
   const [bulkError, setBulkError] = useState("")
   const PAGE_SIZE = 40
 
+  // Sync filter state → URL search params
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (query) params.set("q", query)
+    if (category !== "all") params.set("category", category)
+    if (groupFilter !== "all") params.set("group", groupFilter)
+    if (brand !== "all") params.set("brand", brand)
+    if (sortKey) params.set("sort", sortKey)
+    if (sortKey && sortDir === "desc") params.set("dir", "desc")
+    if (groupByBrand) params.set("groupByBrand", "1")
+    if (page > 1) params.set("page", String(page))
+
+    const qs = params.toString()
+    const newUrl = qs ? `${pathname}?${qs}` : pathname
+    router.replace(newUrl, { scroll: false })
+  }, [query, category, groupFilter, brand, sortKey, sortDir, groupByBrand, page, pathname, router])
+
   const brands = useMemo(
     () => Array.from(new Set(products.map((product) => product.brand))).sort(),
     [products],
   )
 
   const filteredGroups = useMemo(() => {
-    if (category === "all") return groups
-    return groups.filter((g) => g.category_slug === category)
-  }, [groups, category])
+    const validCategorySlugs = new Set(categories.map((c) => c.slug))
+    const validGroups = groups.filter((g) => validCategorySlugs.has(g.category_slug))
+    if (category === "all") return validGroups
+    return validGroups.filter((g) => g.category_slug === category)
+  }, [groups, category, categories])
 
   const bulkGroups = useMemo(() => {
-    if (!bulkCategory) return groups
-    return groups.filter((g) => g.category_slug === bulkCategory)
-  }, [groups, bulkCategory])
+    const validCategorySlugs = new Set(categories.map((c) => c.slug))
+    const validGroups = groups.filter((g) => validCategorySlugs.has(g.category_slug))
+    if (!bulkCategory) return validGroups
+    return validGroups.filter((g) => g.category_slug === bulkCategory)
+  }, [groups, bulkCategory, categories])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
