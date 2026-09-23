@@ -67,15 +67,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/logo-orange-msk.jpg", type: "image/jpeg" },
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-      { url: "/logo-orange-msk.jpg" },
     ],
-    shortcut: "/logo-orange-msk.jpg",
+    shortcut: "/favicon.ico",
   },
   robots: {
     index: true,
