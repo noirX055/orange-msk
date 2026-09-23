@@ -4,94 +4,16 @@ import {
   ArrowRight,
   BadgeCheck,
   CreditCard,
-  Gamepad2,
-  Headphones,
-  Laptop,
-  Plug,
   RefreshCw,
-  Smartphone,
-  Tablet,
   Truck,
-  Watch,
 } from "lucide-react"
 import { BannerCarousel } from "@/components/banner-carousel"
+import { CategoryCarousel } from "@/components/category-carousel"
 import { ProductCard } from "@/components/product-card"
 import { BrandLogo } from "@/components/brand-logo"
 import { getProducts } from "@/lib/products/queries"
 import { getBanners } from "@/lib/banners/queries"
-
-const categoryCards = [
-  {
-    slug: "iphone-16",
-    name: "iPhone 16",
-    Icon: Smartphone,
-    image: "/categories/smartphone.png",
-    href: "/catalog?category=iphone-16",
-  },
-  {
-    slug: "iphone-15",
-    name: "iPhone 15",
-    Icon: Smartphone,
-    image: "/categories/smartphone.png",
-    href: "/catalog?category=iphone-15",
-  },
-  {
-    slug: "macbook",
-    name: "MacBook",
-    Icon: Laptop,
-    image: "/categories/laptop.png",
-    href: "/catalog?category=macbook",
-  },
-  {
-    slug: "ipad",
-    name: "iPad",
-    Icon: Tablet,
-    image: "/categories/laptop.png",
-    href: "/catalog?category=ipad",
-  },
-  {
-    slug: "apple-watch",
-    name: "Apple Watch",
-    Icon: Watch,
-    image: "/categories/whatch.png",
-    href: "/catalog?category=apple-watch",
-  },
-  {
-    slug: "airpods",
-    name: "AirPods",
-    Icon: Headphones,
-    image: "/categories/audi.png",
-    href: "/catalog?category=airpods",
-  },
-  {
-    slug: "samsung",
-    name: "Samsung",
-    Icon: Smartphone,
-    image: "/categories/smartphone.png",
-    href: "/catalog?category=samsung",
-  },
-  {
-    slug: "dyson",
-    name: "Dyson",
-    Icon: Plug,
-    image: "/categories/homedevice.png",
-    href: "/catalog?category=dyson",
-  },
-  {
-    slug: "consoles",
-    name: "Игровые консоли",
-    Icon: Gamepad2,
-    image: "/categories/monitorsnew.png",
-    href: "/catalog?category=consoles",
-  },
-  {
-    slug: "accessories",
-    name: "Аксессуары",
-    Icon: Plug,
-    image: "/categories/audi.png",
-    href: "/catalog?category=accessories",
-  },
-]
+import { getHomeCategoryCards } from "@/lib/home-categories/queries"
 
 const brandOrder = ["Apple", "Samsung", "Xiaomi", "ASUS", "LG", "Sony", "Dyson"]
 
@@ -103,8 +25,11 @@ const benefits = [
 ]
 
 export default async function HomePage() {
-  const products = await getProducts()
-  const banners = await getBanners()
+  const [products, banners, homeCategories] = await Promise.all([
+    getProducts(),
+    getBanners(),
+    getHomeCategoryCards(),
+  ])
   const popular = products.slice(0, 8)
   const deals = products.filter((product) => product.oldPrice).slice(0, 4)
   const brandCards = brandOrder.filter((brand) =>
@@ -136,46 +61,8 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        {/* Горизонтальная карусель в фирменных цветах сайта */}
-        <div className="flex gap-4 overflow-x-auto pb-8 pt-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0">
-          {categoryCards.map(({ slug, name, Icon, image, href }) => (
-            <Link
-              key={slug}
-              href={href}
-              className="group relative flex h-[260px] w-[200px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-[24px] border border-border bg-navy p-5 transition-all duration-300 hover:border-primary hover:shadow-[0_0_24px_rgba(245,150,12,0.25)] sm:h-[280px] sm:w-[220px]"
-            >
-              {/* Внутреннее свечение (видно только при наведении) */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
-              
-              <div className="relative z-10 flex flex-col items-start">
-                {/* Иконка */}
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-[10px] border border-white/10 bg-white/5 text-white shadow-sm transition-colors group-hover:bg-primary/20 group-hover:border-primary/50 group-hover:text-primary">
-                  <Icon size={20} strokeWidth={1.5} />
-                </div>
-                {/* Название */}
-                <h3 className="text-base font-medium tracking-wide text-white sm:text-lg">
-                  {name}
-                </h3>
-              </div>
-
-              {/* Круглая кнопка со стрелкой внизу слева */}
-              <div className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                <ArrowRight size={14} strokeWidth={2} />
-              </div>
-
-              {/* Большое изображение справа внизу */}
-              <div className="absolute -bottom-2 -right-2 z-0 h-[150px] w-[150px] sm:h-[170px] sm:w-[170px]">
-                <Image
-                  src={image}
-                  alt={name}
-                  fill
-                  sizes="(max-width: 640px) 150px, 170px"
-                  className="object-contain object-right-bottom transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
-            </Link>
-          ))}
-        </div>
+        {/* Карусель категорий в новом дизайне со стрелками */}
+        <CategoryCarousel cards={homeCategories} />
       </section>
 
       <section aria-labelledby="brands-title" className="pt-4">

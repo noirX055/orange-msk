@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FolderTree, ImageIcon, LayoutGrid, ListChecks, LogOut, Package, Settings, ShoppingBag, Store } from "lucide-react"
+import { FolderTree, GalleryHorizontal, ImageIcon, LayoutGrid, ListChecks, LogOut, Package, Settings, ShoppingBag, Store } from "lucide-react"
 import { signOut } from "@/app/account/actions"
 
 const links = [
@@ -12,6 +12,7 @@ const links = [
   { href: "/admin/attributes", label: "Характеристики", icon: ListChecks },
   { href: "/admin/orders", label: "Заказы", icon: ShoppingBag },
   { href: "/admin/banners", label: "Баннеры", icon: ImageIcon },
+  { href: "/admin/home-categories", label: "Карусель главной", icon: GalleryHorizontal },
   { href: "/admin/settings", label: "Настройки", icon: Settings },
 ]
 
