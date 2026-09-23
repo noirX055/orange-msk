@@ -174,14 +174,14 @@ export function SearchBox({
                         index === active ? "bg-muted" : "hover:bg-muted"
                       }`}
                     >
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white border border-border/40 dark:bg-card">
                         {hit.image && (
                           <Image
                             src={hit.image}
                             alt=""
                             width={48}
                             height={48}
-                            className="h-full w-full object-contain"
+                            className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal"
                           />
                         )}
                       </span>

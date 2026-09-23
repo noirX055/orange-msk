@@ -100,7 +100,7 @@ export function CategoryCarousel({
                   alt={card.title}
                   fill
                   sizes="200px"
-                  className="object-contain transition-transform duration-500 group-hover:scale-105"
+                  className="object-contain mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
