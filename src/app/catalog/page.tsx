@@ -3,6 +3,7 @@ import Link from "next/link"
 import { CatalogView } from "@/components/catalog-view"
 import { getProducts } from "@/lib/products/queries"
 import { getCategoryName } from "@/lib/products"
+import { getCategoriesWithGroups } from "@/lib/admin/queries"
 import { BreadcrumbsJsonLd } from "@/components/json-ld"
 
 export const revalidate = 60
@@ -20,7 +21,11 @@ export async function generateMetadata({
     "Каталог оригинальной электроники в Москве: смартфоны, ноутбуки, аудио, техника для дома. Официальная гарантия 1 год, доставка в день заказа."
 
   if (params.category && params.category !== "all") {
-    const catName = getCategoryName(params.category)
+    const { categories } = await getCategoriesWithGroups()
+    const catItem = categories.find(
+      (c) => c.slug === params.category || c.name.toLowerCase() === params.category?.toLowerCase()
+    )
+    const catName = catItem ? catItem.name : getCategoryName(params.category)
     if (params.series) {
       title = `${catName} ${params.series} — купить в Москве | Каталог Orange MSK`
       description = `Большой выбор ${catName} серии ${params.series} по выгодным ценам в Москве. Официальная гарантия, быстрая доставка.`
@@ -78,12 +83,20 @@ export default async function CatalogPage({
   searchParams: Promise<{ category?: string; sale?: string; brand?: string; q?: string; series?: string }>
 }) {
   const params = await searchParams
-  const products = await getProducts()
+  const [{ categories, groups }, products] = await Promise.all([
+    getCategoriesWithGroups(),
+    getProducts(),
+  ])
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orangemsk.ru"
 
-  const categoryName = params.category && params.category !== "all"
-    ? getCategoryName(params.category)
-    : null
+  const visibleCategories = categories.filter((c) => c.is_visible !== false)
+
+  const currentCategory = visibleCategories.find(
+    (c) => c.slug === params.category || c.name.toLowerCase() === params.category?.toLowerCase()
+  )
+  const categoryName = currentCategory
+    ? currentCategory.name
+    : (params.category && params.category !== "all" ? getCategoryName(params.category) : null)
 
   const breadcrumbs = [
     { name: "Главная", url: siteUrl },
@@ -137,6 +150,8 @@ export default async function CatalogPage({
 
         <CatalogView
           products={products}
+          categories={visibleCategories}
+          groups={groups}
           initialCategory={params.category ?? "all"}
           initialSaleOnly={params.sale === "1"}
           initialBrand={params.brand}
