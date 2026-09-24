@@ -11,6 +11,7 @@ import {
   createAttributeValue,
   updateAttributeValue,
   deleteAttributeValue,
+  toggleAttributeFilter,
 } from "@/app/admin/attribute-actions"
 import {
   ATTRIBUTE_TYPE_LABELS,
@@ -31,6 +32,7 @@ export function AttributesManager({
   categories: Category[]
 }) {
   const router = useRouter()
+  const [attributesList, setAttributesList] = useState<ProductAttribute[]>(initialAttributes)
   const [expandedId, setExpandedId] = useState<number | null>(initialAttributes[0]?.id ?? null)
   const [attrEditing, setAttrEditing] = useState<number | "new" | null>(null)
   const [valueEditing, setValueEditing] = useState<number | "new" | null>(null)
@@ -43,6 +45,7 @@ export function AttributesManager({
   const [attrType, setAttrType] = useState<"text" | "select" | "color">("select")
   const [attrCategory, setAttrCategory] = useState("")
   const [attrSort, setAttrSort] = useState("0")
+  const [attrIsFilter, setAttrIsFilter] = useState(true)
 
   const [valLabel, setValLabel] = useState("")
   const [valValue, setValValue] = useState("")
@@ -50,8 +53,8 @@ export function AttributesManager({
   const [valSort, setValSort] = useState("0")
 
   const activeAttribute = useMemo(
-    () => initialAttributes.find((a) => a.id === expandedId) ?? null,
-    [initialAttributes, expandedId],
+    () => attributesList.find((a) => a.id === expandedId) ?? null,
+    [attributesList, expandedId],
   )
 
   function resetAttrForm() {
@@ -61,6 +64,7 @@ export function AttributesManager({
     setAttrType("select")
     setAttrCategory("")
     setAttrSort("0")
+    setAttrIsFilter(true)
   }
 
   function resetValueForm() {
@@ -78,6 +82,7 @@ export function AttributesManager({
     setAttrType(attr.type)
     setAttrCategory(attr.category_slug ?? "")
     setAttrSort(String(attr.sort))
+    setAttrIsFilter(Boolean(attr.is_filter))
     setError("")
     setMessage("")
   }
@@ -89,9 +94,25 @@ export function AttributesManager({
     setAttrType("select")
     setAttrCategory("")
     setAttrSort("0")
+    setAttrIsFilter(true)
     setExpandedId(null)
     setError("")
     setMessage("")
+  }
+
+  async function handleToggleFilter(id: number, nextVal: boolean) {
+    setAttributesList((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, is_filter: nextVal } : a))
+    )
+    const res = await toggleAttributeFilter(id, nextVal)
+    if (!res.ok) {
+      setError(res.error ?? "Ошибка обновления фильтра")
+      setAttributesList((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, is_filter: !nextVal } : a))
+      )
+    } else {
+      router.refresh()
+    }
   }
 
   function startEditValue(item: ProductAttributeValue) {
@@ -127,6 +148,7 @@ export function AttributesManager({
     formData.append("type", attrType)
     formData.append("category_slug", attrCategory)
     formData.append("sort", attrSort)
+    formData.append("is_filter", attrIsFilter ? "1" : "0")
 
     const result =
       attrEditing === "new"
@@ -267,6 +289,18 @@ export function AttributesManager({
               className={inputClass}
               disabled={loading}
             />
+            <label className="flex items-center gap-2 cursor-pointer text-sm sm:col-span-2 lg:col-span-3">
+              <input
+                type="checkbox"
+                checked={attrIsFilter}
+                onChange={(e) => setAttrIsFilter(e.target.checked)}
+                className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                disabled={loading}
+              />
+              <span className="font-medium text-foreground">
+                Отображать в фильтрах каталога (покупатели смогут фильтровать товары по этому свойству)
+              </span>
+            </label>
           </div>
           <div className="mt-3 flex gap-2">
             <button
@@ -297,18 +331,19 @@ export function AttributesManager({
               <th className="px-4 py-3 font-semibold">Тип</th>
               <th className="px-4 py-3 font-semibold">Категория</th>
               <th className="px-4 py-3 font-semibold">Значений</th>
+              <th className="px-4 py-3 text-center font-semibold">В фильтрах</th>
               <th className="px-4 py-3 text-right font-semibold">Действия</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {initialAttributes.length === 0 && (
+            {attributesList.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   Характеристик пока нет. Создайте первую или выполните SQL-миграцию.
                 </td>
               </tr>
             )}
-            {initialAttributes.map((attr) => {
+            {attributesList.map((attr) => {
               const isOpen = expandedId === attr.id
               const categoryName =
                 categories.find((c) => c.slug === attr.category_slug)?.name ?? "Все"
@@ -327,6 +362,29 @@ export function AttributesManager({
                   <td className="px-4 py-3">{ATTRIBUTE_TYPE_LABELS[attr.type]}</td>
                   <td className="px-4 py-3 text-muted-foreground">{categoryName}</td>
                   <td className="px-4 py-3">{attr.values.length}</td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFilter(attr.id, !attr.is_filter)}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${
+                        attr.is_filter
+                          ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                      title={
+                        attr.is_filter
+                          ? "Отображается в фильтрах каталога. Нажмите, чтобы выключить."
+                          : "Не участвует в фильтрах. Нажмите, чтобы включить."
+                      }
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          attr.is_filter ? "bg-emerald-500" : "bg-muted-foreground/40"
+                        }`}
+                      />
+                      {attr.is_filter ? "В фильтрах" : "Выкл"}
+                    </button>
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
                       <Link

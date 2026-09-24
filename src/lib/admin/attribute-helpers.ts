@@ -2,7 +2,7 @@ import type { Product } from "@/lib/products"
 import type { ProductAttribute } from "@/lib/admin/attributes-types"
 
 export type ColorRow = { name: string; hex: string }
-export type SpecRow = { label: string; value: string; is_configurator?: boolean }
+export type SpecRow = { label: string; value: string; is_configurator?: boolean; is_filter?: boolean }
 
 export function filterAttributesForCategory(
   attributes: ProductAttribute[],

@@ -16,6 +16,7 @@ export type ProductAttribute = {
   type: AttributeType
   category_slug: string | null
   sort: number
+  is_filter?: boolean
   values: ProductAttributeValue[]
 }
 

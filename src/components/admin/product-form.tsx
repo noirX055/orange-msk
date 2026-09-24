@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Plus, Save, SlidersHorizontal, Trash2, X } from "lucide-react"
+import { Filter, Plus, Save, SlidersHorizontal, Trash2, X } from "lucide-react"
 import { createProduct, updateProduct, type AdminActionState } from "@/app/admin/actions"
 import type { ColorRow, SpecRow } from "@/lib/admin/attribute-helpers"
 import type { ProductAttribute, ProductAttributeValue } from "@/lib/admin/attributes-types"
@@ -35,6 +35,7 @@ type CardAttributeRow = {
   values?: ProductAttributeValue[]
   colorHex?: string
   isConfigurator: boolean
+  isFilter: boolean
 }
 
 export function ProductForm({
@@ -86,6 +87,11 @@ export function ProductForm({
             ? spec.is_configurator
             : isColor || /память|storage|rom|накопитель|sim|сим/i.test(normLabel)
 
+        const isFilt =
+          typeof spec.is_filter === "boolean"
+            ? spec.is_filter
+            : Boolean(matchedAttr?.is_filter ?? isConf)
+
         if (matchedAttr) {
           const matchedVal = matchedAttr.values?.find(
             (v) =>
@@ -103,6 +109,7 @@ export function ProductForm({
               matchedVal?.color_hex ??
               (matchedAttr.type === "color" ? (product.colors?.[0]?.hex || spec.value) : undefined),
             isConfigurator: isConf,
+            isFilter: isFilt,
           })
         } else {
           rows.push({
@@ -112,6 +119,7 @@ export function ProductForm({
             type: isColor ? "color" : "text",
             colorHex: isColor ? (product.colors?.[0]?.hex || "#22303f") : undefined,
             isConfigurator: isConf,
+            isFilter: isFilt,
           })
         }
 
@@ -140,6 +148,7 @@ export function ProductForm({
           values: colorAttr?.values,
           colorHex: col.hex,
           isConfigurator: true,
+          isFilter: true,
         })
       }
     }
@@ -223,6 +232,7 @@ export function ProductForm({
           label: item.label,
           value: colorName,
           is_configurator: item.isConfigurator,
+          is_filter: item.isFilter,
         })
       } else if (item.type === "select") {
         const foundVal = item.values?.find((v) => v.value === item.value)
@@ -231,12 +241,14 @@ export function ProductForm({
           label: item.label,
           value: displayVal,
           is_configurator: item.isConfigurator,
+          is_filter: item.isFilter,
         })
       } else {
         specsList.push({
           label: item.label,
           value: item.value,
           is_configurator: item.isConfigurator,
+          is_filter: item.isFilter,
         })
       }
     }
@@ -281,6 +293,7 @@ export function ProductForm({
         colorHex:
           firstVal?.color_hex ?? (attr.type === "color" ? "#22303f" : undefined),
         isConfigurator: true,
+        isFilter: Boolean(attr.is_filter ?? true),
       })
     }
 
@@ -297,6 +310,7 @@ export function ProductForm({
         value: "",
         type: "text",
         isConfigurator: false,
+        isFilter: false,
       },
     ])
   }
@@ -703,6 +717,29 @@ export function ProductForm({
                 >
                   <SlidersHorizontal size={13} />
                   <span>{row.isConfigurator ? "В конфигураторе" : "Обычная"}</span>
+                </button>
+
+                {/* Переключатель: Для фильтров каталога */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = [...cardAttributes]
+                    next[index].isFilter = !next[index].isFilter
+                    setCardAttributes(next)
+                  }}
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all shrink-0 ${
+                    row.isFilter
+                      ? "bg-emerald-600 text-white shadow-sm hover:brightness-110"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground border border-border/60"
+                  }`}
+                  title={
+                    row.isFilter
+                      ? "Участвует в фильтрах каталога (покупатели могут фильтровать товары по этому параметру). Нажмите, чтобы исключить."
+                      : "Не участвует в фильтрах каталога. Нажмите, чтобы включить."
+                  }
+                >
+                  <Filter size={13} />
+                  <span>{row.isFilter ? "В фильтрах" : "Без фильтра"}</span>
                 </button>
 
                 {/* Удаление строки */}

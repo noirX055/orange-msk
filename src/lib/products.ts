@@ -21,7 +21,7 @@ export type Product = {
   badge?: "Новинка" | "Хит" | "Скидка"
   colors: { name: string; hex: string }[]
   description: string
-  specs: { label: string; value: string; is_configurator?: boolean }[]
+  specs: { label: string; value: string; is_configurator?: boolean; is_filter?: boolean }[]
   images?: string[]
 }
 

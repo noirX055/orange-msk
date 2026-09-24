@@ -10,8 +10,11 @@ CREATE TABLE IF NOT EXISTS public.product_attributes (
   type text NOT NULL CHECK (type IN ('text', 'select', 'color')),
   category_slug text,
   sort integer NOT NULL DEFAULT 0,
+  is_filter boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.product_attributes ADD COLUMN IF NOT EXISTS is_filter boolean NOT NULL DEFAULT false;
 
 CREATE TABLE IF NOT EXISTS public.product_attribute_values (
   id serial PRIMARY KEY,

@@ -31,7 +31,7 @@ export type ProductVariants = {
 }
 
 // Известные HEX-коды для популярных цветов техники
-const KNOWN_COLOR_HEXES: Record<string, string> = {
+export const KNOWN_COLOR_HEXES: Record<string, string> = {
   "пустынный титан": "#c4b5a0",
   "песочный титан": "#d8c7a9",
   "натуральный титан": "#8f8a85",
@@ -65,6 +65,39 @@ const KNOWN_COLOR_HEXES: Record<string, string> = {
   "титановый чёрный": "#2b2b2b",
   "мятный": "#b8e0d2",
   "лаванда": "#d8c9e6",
+  // Dyson цвета
+  "apricot topaz": "#e89271",
+  "strawberry bronze": "#c86d51",
+  "blush pink": "#f2c7ce",
+  "prussian blue": "#203a4f",
+  "rich copper": "#b87333",
+  "copper": "#b87333",
+  "bright nickel": "#b5b5b5",
+  "nickel": "#929292",
+  "onyx black": "#1b1b1b",
+  "vinca blue": "#5b6b8c",
+  "ceramic pop": "#3878b4",
+  "jasper plum": "#5c2a3e",
+  // Англоязычные цвета
+  "black": "#1d1d1f",
+  "white": "#f5f5f7",
+  "silver": "#d4d7db",
+  "gold": "#fad7bd",
+  "space gray": "#4b5563",
+  "space black": "#1b1b1b",
+  "starlight": "#ede4d3",
+  "midnight": "#1f2937",
+  "blue": "#5b7ba6",
+  "pink": "#e8b7c2",
+  "green": "#cdeac0",
+  "yellow": "#f9e77f",
+  "orange": "#ea580c",
+  "red": "#dc2626",
+  "purple": "#7c3aed",
+  "natural titanium": "#8f8a85",
+  "desert titanium": "#c4b5a0",
+  "white titanium": "#f2f2f2",
+  "black titanium": "#22303f",
 }
 
 /** Основной цвет SKU (из colors, specs или названия) */

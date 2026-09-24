@@ -38,25 +38,38 @@ export async function createAttribute(
   const type = parseAttributeType(String(formData.get("type") ?? ""))
   const categorySlug = String(formData.get("category_slug") ?? "").trim() || null
   const sort = Number(formData.get("sort") ?? 0) || 0
+  const isFilter = formData.get("is_filter") === "on" || formData.get("is_filter") === "1" || formData.get("is_filter") === "true"
 
   if (!name) return { ok: false, error: "Укажите название" }
   if (!type) return { ok: false, error: "Выберите тип" }
 
-  const { data, error } = await supabase.from("product_attributes").insert({
+  let insertRes = await supabase.from("product_attributes").insert({
     name,
     slug,
     type,
     category_slug: categorySlug,
     sort,
+    is_filter: isFilter,
   }).select("id").single()
 
-  if (error) {
-    if (error.code === "23505") return { ok: false, error: "Характеристика с таким slug уже есть" }
-    return { ok: false, error: error.message }
+  if (insertRes.error && insertRes.error.message.includes("is_filter")) {
+    insertRes = await supabase.from("product_attributes").insert({
+      name,
+      slug,
+      type,
+      category_slug: categorySlug,
+      sort,
+    }).select("id").single()
+  }
+
+  if (insertRes.error) {
+    if (insertRes.error.code === "23505") return { ok: false, error: "Характеристика с таким slug уже есть" }
+    return { ok: false, error: insertRes.error.message }
   }
 
   revalidateAttributes()
-  redirect(`/admin/attributes/${data.id}`)
+  revalidatePath("/catalog")
+  redirect(`/admin/attributes/${insertRes.data.id}`)
 }
 
 export async function updateAttribute(
@@ -71,23 +84,53 @@ export async function updateAttribute(
   const type = parseAttributeType(String(formData.get("type") ?? ""))
   const categorySlug = String(formData.get("category_slug") ?? "").trim() || null
   const sort = Number(formData.get("sort") ?? 0) || 0
+  const isFilter = formData.get("is_filter") === "on" || formData.get("is_filter") === "1" || formData.get("is_filter") === "true"
 
   if (!id) return { ok: false, error: "Не указана характеристика" }
   if (!name) return { ok: false, error: "Укажите название" }
   if (!type) return { ok: false, error: "Выберите тип" }
 
-  const { error } = await supabase
+  let updateRes = await supabase
     .from("product_attributes")
-    .update({ name, slug, type, category_slug: categorySlug, sort })
+    .update({ name, slug, type, category_slug: categorySlug, sort, is_filter: isFilter })
     .eq("id", id)
 
-  if (error) {
-    if (error.code === "23505") return { ok: false, error: "Характеристика с таким slug уже есть" }
-    return { ok: false, error: error.message }
+  if (updateRes.error && updateRes.error.message.includes("is_filter")) {
+    updateRes = await supabase
+      .from("product_attributes")
+      .update({ name, slug, type, category_slug: categorySlug, sort })
+      .eq("id", id)
+  }
+
+  if (updateRes.error) {
+    if (updateRes.error.code === "23505") return { ok: false, error: "Характеристика с таким slug уже есть" }
+    return { ok: false, error: updateRes.error.message }
   }
 
   revalidateAttributes(id)
+  revalidatePath("/catalog")
   return { ok: true, message: "Сохранено" }
+}
+
+export async function toggleAttributeFilter(
+  attributeId: number,
+  isFilter: boolean,
+): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin()
+  if (!attributeId) return { ok: false, error: "Не указана характеристика" }
+
+  const { error } = await supabase
+    .from("product_attributes")
+    .update({ is_filter: isFilter })
+    .eq("id", attributeId)
+
+  if (error) {
+    return { ok: false, error: error.message }
+  }
+
+  revalidateAttributes(attributeId)
+  revalidatePath("/catalog")
+  return { ok: true, message: isFilter ? "Включено в фильтры" : "Исключено из фильтров" }
 }
 
 export async function deleteAttribute(formData: FormData): Promise<void> {

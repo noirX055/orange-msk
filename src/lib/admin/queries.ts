@@ -308,13 +308,34 @@ export async function getOrderById(id: string): Promise<AdminOrder | null> {
 export async function getAllAttributesWithValues(): Promise<ProductAttribute[]> {
   const supabase = await createClient()
 
-  const { data: attributes, error } = await supabase
+  let attributes: (Omit<ProductAttribute, "values"> & { is_filter?: boolean })[] | null = null
+  const { data: withFilter, error } = await supabase
     .from("product_attributes")
-    .select("id, slug, name, type, category_slug, sort")
+    .select("id, slug, name, type, category_slug, sort, is_filter")
     .order("sort", { ascending: true })
     .order("name", { ascending: true })
 
-  if (error || !attributes?.length) return []
+  if (!error && withFilter) {
+    attributes = withFilter as (Omit<ProductAttribute, "values"> & { is_filter?: boolean })[]
+  } else {
+    // Если колонка is_filter еще не создана в БД, запрашиваем без неё
+    const { data: fallbackData } = await supabase
+      .from("product_attributes")
+      .select("id, slug, name, type, category_slug, sort")
+      .order("sort", { ascending: true })
+      .order("name", { ascending: true })
+
+    if (fallbackData) {
+      attributes = (fallbackData as Omit<ProductAttribute, "values">[]).map((a) => ({
+        ...a,
+        is_filter:
+          /цвет|color|памят|storage|sim|сим/i.test(a.name) ||
+          /цвет|color|памят|storage|sim|сим/i.test(a.slug),
+      }))
+    }
+  }
+
+  if (!attributes?.length) return []
 
   const { data: values } = await supabase
     .from("product_attribute_values")
@@ -329,8 +350,9 @@ export async function getAllAttributesWithValues(): Promise<ProductAttribute[]> 
     valuesByAttr.set(row.attribute_id, list)
   }
 
-  return (attributes as Omit<ProductAttribute, "values">[]).map((attr) => ({
+  return attributes.map((attr) => ({
     ...attr,
+    is_filter: Boolean(attr.is_filter),
     type: attr.type as ProductAttribute["type"],
     values: valuesByAttr.get(attr.id) ?? [],
   }))
@@ -339,13 +361,33 @@ export async function getAllAttributesWithValues(): Promise<ProductAttribute[]> 
 export async function getAttributeById(id: number): Promise<ProductAttribute | null> {
   const supabase = await createClient()
 
-  const { data: attribute, error } = await supabase
+  let attribute: (Omit<ProductAttribute, "values"> & { is_filter?: boolean }) | null = null
+  const { data: withFilter, error } = await supabase
     .from("product_attributes")
-    .select("id, slug, name, type, category_slug, sort")
+    .select("id, slug, name, type, category_slug, sort, is_filter")
     .eq("id", id)
     .maybeSingle()
 
-  if (error || !attribute) return null
+  if (!error && withFilter) {
+    attribute = withFilter as Omit<ProductAttribute, "values"> & { is_filter?: boolean }
+  } else {
+    const { data: fallbackData } = await supabase
+      .from("product_attributes")
+      .select("id, slug, name, type, category_slug, sort")
+      .eq("id", id)
+      .maybeSingle()
+
+    if (fallbackData) {
+      attribute = {
+        ...(fallbackData as Omit<ProductAttribute, "values">),
+        is_filter:
+          /цвет|color|памят|storage|sim|сим/i.test(fallbackData.name) ||
+          /цвет|color|памят|storage|sim|сим/i.test(fallbackData.slug),
+      }
+    }
+  }
+
+  if (!attribute) return null
 
   const { data: values } = await supabase
     .from("product_attribute_values")
@@ -355,7 +397,8 @@ export async function getAttributeById(id: number): Promise<ProductAttribute | n
     .order("label", { ascending: true })
 
   return {
-    ...(attribute as Omit<ProductAttribute, "values">),
+    ...attribute,
+    is_filter: Boolean(attribute.is_filter),
     type: attribute.type as ProductAttribute["type"],
     values: (values as ProductAttributeValue[] | null) ?? [],
   }

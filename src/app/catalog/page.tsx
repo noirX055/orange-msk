@@ -3,7 +3,7 @@ import Link from "next/link"
 import { CatalogView } from "@/components/catalog-view"
 import { getProducts } from "@/lib/products/queries"
 import { getCategoryName } from "@/lib/products"
-import { getCategoriesWithGroups } from "@/lib/admin/queries"
+import { getCategoriesWithGroups, getAllAttributesWithValues } from "@/lib/admin/queries"
 import { BreadcrumbsJsonLd } from "@/components/json-ld"
 
 export const revalidate = 60
@@ -83,9 +83,10 @@ export default async function CatalogPage({
   searchParams: Promise<{ category?: string; sale?: string; brand?: string; q?: string; series?: string }>
 }) {
   const params = await searchParams
-  const [{ categories, groups }, products] = await Promise.all([
+  const [{ categories, groups }, products, attributes] = await Promise.all([
     getCategoriesWithGroups(),
     getProducts(),
+    getAllAttributesWithValues(),
   ])
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orangemsk.ru"
 
@@ -152,6 +153,7 @@ export default async function CatalogPage({
           products={products}
           categories={visibleCategories}
           groups={groups}
+          attributes={attributes}
           initialCategory={params.category ?? "all"}
           initialSaleOnly={params.sale === "1"}
           initialBrand={params.brand}
