@@ -344,7 +344,9 @@ export function buildProductVariants(
   }
 
   // 3. Если цвет есть у товара, но ещё не в targets — добавляем цвет первым
-  if (!usedNames.has("цвет") && !Array.from(usedNames).some((n) => /цвет/i.test(n))) {
+  //    Пропускаем, если уже есть любое измерение типа "color" (например "Dyson" → color)
+  const hasColorTypeDimension = targets.some((t) => t.type === "color")
+  if (!hasColorTypeDimension && !usedNames.has("цвет") && !Array.from(usedNames).some((n) => /цвет/i.test(n))) {
     if (currentColor || (current.colors && current.colors.length > 0)) {
       targets.unshift({
         id: "color",
