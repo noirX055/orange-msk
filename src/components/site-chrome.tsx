@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { ContactPanel } from "@/components/contact-panel"
+import { CookieConsent } from "@/components/cookie-consent"
 import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
 
 type Brand = { id: number; name: string }
@@ -34,6 +35,7 @@ export function SiteChrome({
       <SiteFooter />
       <MobileBottomNav />
       <ContactPanel />
+      <CookieConsent />
     </>
   )
 }
