@@ -555,25 +555,61 @@ export async function updateGroupAttributes(
   const applyToAllInParent = formData.get("apply_to_all_in_parent") === "1"
 
   let attributeIds: number[] = []
+  let filterAttributeIds: number[] = []
   try {
     attributeIds = JSON.parse(String(formData.get("attribute_ids") ?? "[]"))
   } catch {
     return { ok: false, error: "Некорректный список характеристик" }
   }
+  try {
+    const rawFilters = formData.get("filter_attribute_ids")
+    if (rawFilters !== null && rawFilters !== undefined) {
+      filterAttributeIds = JSON.parse(String(rawFilters))
+    } else {
+      filterAttributeIds = attributeIds
+    }
+  } catch {
+    filterAttributeIds = attributeIds
+  }
+
+  const payloadWithFilters = {
+    attribute_ids: attributeIds,
+    filter_attribute_ids: filterAttributeIds,
+  }
+  const payloadFallback = {
+    attribute_ids: attributeIds,
+  }
 
   if (applyToAllInParent && parentGroup && categorySlug) {
-    const { error } = await supabase
+    let { error } = await supabase
       .from("product_groups")
-      .update({ attribute_ids: attributeIds })
+      .update(payloadWithFilters)
       .eq("category_slug", categorySlug)
       .eq("parent_group", parentGroup)
 
+    if (error && error.message?.includes("filter_attribute_ids")) {
+      const fallback = await supabase
+        .from("product_groups")
+        .update(payloadFallback)
+        .eq("category_slug", categorySlug)
+        .eq("parent_group", parentGroup)
+      error = fallback.error
+    }
+
     if (error) return { ok: false, error: error.message }
   } else if (groupId) {
-    const { error } = await supabase
+    let { error } = await supabase
       .from("product_groups")
-      .update({ attribute_ids: attributeIds })
+      .update(payloadWithFilters)
       .eq("id", groupId)
+
+    if (error && error.message?.includes("filter_attribute_ids")) {
+      const fallback = await supabase
+        .from("product_groups")
+        .update(payloadFallback)
+        .eq("id", groupId)
+      error = fallback.error
+    }
 
     if (error) return { ok: false, error: error.message }
   } else {

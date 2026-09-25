@@ -86,6 +86,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || "f274de41c368dd50",
+  },
 }
 
 export const viewport: Viewport = {

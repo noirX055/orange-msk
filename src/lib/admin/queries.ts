@@ -79,28 +79,36 @@ export type AdminGroup = {
   category_slug: string
   parent_group?: string | null
   attribute_ids?: number[]
+  filter_attribute_ids?: number[]
 }
 
 export async function getAllGroups(): Promise<AdminGroup[]> {
   const supabase = await createClient()
   let { data, error } = await supabase
     .from("product_groups")
-    .select("id, name, brand_id, category_slug, parent_group, attribute_ids")
+    .select("id, name, brand_id, category_slug, parent_group, attribute_ids, filter_attribute_ids")
     .order("name")
 
   if (error) {
-    const fb1 = await supabase
+    const fb0 = await supabase
       .from("product_groups")
-      .select("id, name, brand_id, category_slug, parent_group")
+      .select("id, name, brand_id, category_slug, parent_group, attribute_ids")
       .order("name")
-    if (fb1.error) {
-      const fb2 = await supabase
+    if (fb0.error) {
+      const fb1 = await supabase
         .from("product_groups")
-        .select("id, name, brand_id, category_slug")
+        .select("id, name, brand_id, category_slug, parent_group")
         .order("name")
-      return (fb2.data as AdminGroup[] | null) ?? []
+      if (fb1.error) {
+        const fb2 = await supabase
+          .from("product_groups")
+          .select("id, name, brand_id, category_slug")
+          .order("name")
+        return (fb2.data as AdminGroup[] | null) ?? []
+      }
+      return (fb1.data as AdminGroup[] | null) ?? []
     }
-    return (fb1.data as AdminGroup[] | null) ?? []
+    return (fb0.data as AdminGroup[] | null) ?? []
   }
   return (data as AdminGroup[] | null) ?? []
 }
@@ -131,11 +139,20 @@ export async function getCategoriesWithGroups(): Promise<{
   const fetchGroups = async (): Promise<AdminGroup[]> => {
     const res = await supabase
       .from("product_groups")
-      .select("id, name, brand_id, category_slug, parent_group, attribute_ids")
+      .select("id, name, brand_id, category_slug, parent_group, attribute_ids, filter_attribute_ids")
       .order("name")
 
     if (!res.error && res.data) {
       return res.data as AdminGroup[]
+    }
+
+    const fb0 = await supabase
+      .from("product_groups")
+      .select("id, name, brand_id, category_slug, parent_group, attribute_ids")
+      .order("name")
+
+    if (!fb0.error && fb0.data) {
+      return fb0.data as AdminGroup[]
     }
 
     const fb1 = await supabase

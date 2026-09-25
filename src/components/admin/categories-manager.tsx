@@ -68,6 +68,7 @@ export function CategoriesManager({
     parentGroup?: string
     categorySlug: string
     selectedAttributeIds: number[]
+    selectedFilterIds: number[]
     applyToAllInParent: boolean
   } | null>(null)
   const [attrSearch, setAttrSearch] = useState("")
@@ -257,12 +258,19 @@ export function CategoriesManager({
   }
 
   const handleOpenAttrModalForGroup = (group: AdminGroup) => {
+    const attrIds = group.attribute_ids ?? []
+    const filterIds =
+      group.filter_attribute_ids && group.filter_attribute_ids.length > 0
+        ? group.filter_attribute_ids
+        : attrIds
+
     setAttrModal({
       groupId: group.id,
       groupName: group.name,
       parentGroup: group.parent_group ?? undefined,
       categorySlug: group.category_slug,
-      selectedAttributeIds: group.attribute_ids ?? [],
+      selectedAttributeIds: attrIds,
+      selectedFilterIds: filterIds,
       applyToAllInParent: false,
     })
     setAttrSearch("")
@@ -273,12 +281,16 @@ export function CategoriesManager({
       (g) => g.category_slug === categorySlug && g.parent_group === parentName
     )
     const existingAttrIds = parentGroups.find((g) => g.attribute_ids?.length)?.attribute_ids ?? []
+    const existingFilterIds =
+      parentGroups.find((g) => g.filter_attribute_ids?.length)?.filter_attribute_ids ??
+      existingAttrIds
 
     setAttrModal({
       groupName: `Все группы «${parentName}»`,
       parentGroup: parentName,
       categorySlug,
       selectedAttributeIds: existingAttrIds,
+      selectedFilterIds: existingFilterIds,
       applyToAllInParent: true,
     })
     setAttrSearch("")
@@ -299,6 +311,7 @@ export function CategoriesManager({
     }
     formData.append("category_slug", attrModal.categorySlug)
     formData.append("attribute_ids", JSON.stringify(attrModal.selectedAttributeIds))
+    formData.append("filter_attribute_ids", JSON.stringify(attrModal.selectedFilterIds))
     if (attrModal.applyToAllInParent) {
       formData.append("apply_to_all_in_parent", "1")
     }
@@ -307,7 +320,7 @@ export function CategoriesManager({
     if (!res.ok) {
       setError(res.error || "Ошибка сохранения характеристик")
     } else {
-      setMessage(res.message || "Характеристики группы сохранены")
+      setMessage(res.message || "Характеристики и фильтры группы сохранены")
       setAttrModal(null)
     }
     setLoading(false)
@@ -488,13 +501,20 @@ export function CategoriesManager({
                             ? "bg-primary/10 text-primary hover:bg-primary/20"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
                         }`}
-                        title="Настроить характеристики спецификаций"
+                        title="Настроить характеристики и фильтры каталога для этой группы"
                       >
                         <SlidersHorizontal size={13} />
                         {(group.attribute_ids?.length ?? 0) > 0 ? (
-                          <span>{group.attribute_ids?.length} хар.</span>
+                          <span>
+                            {group.attribute_ids?.length} хар.
+                            {(group.filter_attribute_ids?.length ?? 0) > 0 && (
+                              <span className="ml-1 opacity-75">
+                                • {group.filter_attribute_ids?.length} фил.
+                              </span>
+                            )}
+                          </span>
                         ) : (
-                          <span className="hidden sm:inline">Хар-ки</span>
+                          <span>Фильтры и хар-ки</span>
                         )}
                       </button>
                       <button
@@ -765,11 +785,11 @@ export function CategoriesManager({
                                         onClick={() =>
                                           handleOpenAttrModalForParent(parentName, category.slug)
                                         }
-                                        title="Настроить характеристики для всех групп этого блока"
+                                        title="Настроить характеристики и фильтры для всех групп этого блока"
                                         className="flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
                                       >
                                         <SlidersHorizontal size={13} />
-                                        <span>Характеристики</span>
+                                        <span>Фильтры и хар-ки</span>
                                       </button>
                                       <button
                                         type="button"
@@ -924,7 +944,7 @@ export function CategoriesManager({
           <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border border-border bg-background shadow-2xl">
             <div className="flex items-center justify-between border-b border-border p-5">
               <div>
-                <h3 className="text-lg font-bold">Характеристики для спецификаций</h3>
+                <h3 className="text-lg font-bold">Характеристики и фильтры</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Группа: <span className="font-semibold text-foreground">{attrModal.groupName}</span>
                 </p>
@@ -938,11 +958,7 @@ export function CategoriesManager({
               </button>
             </div>
 
-            <div className="p-5 flex-1 overflow-y-auto space-y-4">
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Выберите характеристики из справочника, которые будут отображаться для переключения спецификаций в карточках товаров этой группы (например: Цвет, Память, SIM-карта, Размер, Процессор).
-              </p>
-
+            <div className="p-5 flex-1 overflow-y-auto space-y-5">
               {attrModal.parentGroup && (
                 <label className="flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs font-medium cursor-pointer">
                   <input
@@ -953,7 +969,7 @@ export function CategoriesManager({
                     }
                     className="h-4 w-4 rounded accent-primary cursor-pointer"
                   />
-                  <span>Применить эти характеристики сразу ко всем группам в «{attrModal.parentGroup}»</span>
+                  <span>Применить сразу ко всем группам в «{attrModal.parentGroup}»</span>
                 </label>
               )}
 
@@ -965,63 +981,137 @@ export function CategoriesManager({
                 className="h-9 w-full rounded-lg border border-border bg-background px-3 text-xs outline-none focus:border-primary"
               />
 
-              <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                {filteredAttrs.length === 0 ? (
-                  <p className="text-center py-6 text-xs text-muted-foreground">
-                    Характеристики не найдены. Создайте их в разделе «Характеристики».
+              {/* ── Конфигуратор (спецификации карточки) ── */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  Конфигуратор (характеристики в карточке товара)
+                </h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">
+                  Какие характеристики можно переключать в карточке товара (например: Цвет, Память, SIM-карта).
+                </p>
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {filteredAttrs.length === 0 ? (
+                    <p className="text-center py-4 text-xs text-muted-foreground">
+                      Характеристики не найдены.
+                    </p>
+                  ) : (
+                    filteredAttrs.map((attr) => {
+                      const isChecked = attrModal.selectedAttributeIds.includes(attr.id)
+                      return (
+                        <label
+                          key={attr.id}
+                          className={`flex items-center justify-between gap-3 rounded-xl border p-2.5 cursor-pointer transition-colors ${
+                            isChecked
+                              ? "border-primary bg-primary/5 shadow-sm"
+                              : "border-border hover:bg-muted/40"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                const next = isChecked
+                                  ? attrModal.selectedAttributeIds.filter((id) => id !== attr.id)
+                                  : [...attrModal.selectedAttributeIds, attr.id]
+                                setAttrModal({
+                                  ...attrModal,
+                                  selectedAttributeIds: next,
+                                  selectedFilterIds: isChecked
+                                    ? attrModal.selectedFilterIds.filter((id) => id !== attr.id)
+                                    : attrModal.selectedFilterIds,
+                                })
+                              }}
+                              className="h-4 w-4 rounded accent-primary cursor-pointer"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">{attr.name}</span>
+                                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
+                                  {attr.type === "color" ? "Цвет" : attr.type === "select" ? "Список" : "Текст"}
+                                </span>
+                              </div>
+                              {attr.values && attr.values.length > 0 && (
+                                <p className="text-[11px] text-muted-foreground truncate max-w-md mt-0.5">
+                                  {attr.values.map((v) => v.label).join(", ")}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {isChecked && (
+                            <span className="text-xs font-semibold text-primary shrink-0">✓</span>
+                          )}
+                        </label>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* ── Фильтры каталога ── */}
+              <div className="border-t border-border pt-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  Фильтры каталога (боковая панель)
+                </h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">
+                  Какие характеристики покупатели смогут использовать для фильтрации в каталоге. Можно выбирать только из характеристик, добавленных в конфигуратор выше.
+                </p>
+                {attrModal.selectedAttributeIds.length === 0 ? (
+                  <p className="text-center py-4 text-xs text-muted-foreground rounded-xl border border-dashed border-border">
+                    Сначала выберите характеристики в конфигураторе выше.
                   </p>
                 ) : (
-                  filteredAttrs.map((attr) => {
-                    const isChecked = attrModal.selectedAttributeIds.includes(attr.id)
-                    return (
-                      <label
-                        key={attr.id}
-                        className={`flex items-center justify-between gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${
-                          isChecked
-                            ? "border-primary bg-primary/5 shadow-sm"
-                            : "border-border hover:bg-muted/40"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => {
-                              const next = isChecked
-                                ? attrModal.selectedAttributeIds.filter((id) => id !== attr.id)
-                                : [...attrModal.selectedAttributeIds, attr.id]
-                              setAttrModal({ ...attrModal, selectedAttributeIds: next })
-                            }}
-                            className="h-4 w-4 rounded accent-primary cursor-pointer"
-                          />
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">{attr.name}</span>
-                              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
-                                {attr.type === "color" ? "Цвет" : attr.type === "select" ? "Список" : "Текст"}
-                              </span>
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {attrModal.selectedAttributeIds.map((attrId) => {
+                      const attr = attributes.find((a) => a.id === attrId)
+                      if (!attr) return null
+                      const isFilter = attrModal.selectedFilterIds.includes(attrId)
+                      return (
+                        <label
+                          key={attrId}
+                          className={`flex items-center justify-between gap-3 rounded-xl border p-2.5 cursor-pointer transition-colors ${
+                            isFilter
+                              ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 shadow-sm"
+                              : "border-border hover:bg-muted/40"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={isFilter}
+                              onChange={() => {
+                                const next = isFilter
+                                  ? attrModal.selectedFilterIds.filter((id) => id !== attrId)
+                                  : [...attrModal.selectedFilterIds, attrId]
+                                setAttrModal({ ...attrModal, selectedFilterIds: next })
+                              }}
+                              className="h-4 w-4 rounded accent-emerald-600 cursor-pointer"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">{attr.name}</span>
+                                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
+                                  {attr.type === "color" ? "Цвет" : attr.type === "select" ? "Список" : "Текст"}
+                                </span>
+                              </div>
                             </div>
-                            {attr.values && attr.values.length > 0 && (
-                              <p className="text-[11px] text-muted-foreground truncate max-w-md mt-0.5">
-                                {attr.values.map((v) => v.label).join(", ")}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                        {isChecked && (
-                          <span className="text-xs font-semibold text-primary shrink-0">Выбрано</span>
-                        )}
-                      </label>
-                    )
-                  })
+                          {isFilter && (
+                            <span className="text-xs font-semibold text-emerald-600 shrink-0">В фильтрах</span>
+                          )}
+                        </label>
+                      )
+                    })}
+                  </div>
                 )}
               </div>
             </div>
 
             <div className="flex items-center justify-between border-t border-border p-4 bg-muted/20">
-              <span className="text-xs text-muted-foreground">
-                Выбрано характеристик: <strong className="text-foreground">{attrModal.selectedAttributeIds.length}</strong>
-              </span>
+              <div className="text-xs text-muted-foreground space-x-3">
+                <span>Конфигуратор: <strong className="text-foreground">{attrModal.selectedAttributeIds.length}</strong></span>
+                <span>Фильтры: <strong className="text-emerald-600">{attrModal.selectedFilterIds.length}</strong></span>
+              </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"

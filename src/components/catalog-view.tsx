@@ -294,18 +294,71 @@ export function CatalogView({
   }, [products, category, selectedBrands, selectedSeries])
 
   // Вычисление динамических секций фильтров на основе:
-  // 1. Атрибутов из админки с флагом is_filter === true
-  // 2. Характеристик из карточек товаров с флагом is_filter === true
+  // 1. Настроек группы (filter_attribute_ids из product_groups)
+  // 2. Если filter_attribute_ids не задан — fallback на attribute_ids группы
+  // 3. Fallback: атрибуты из справочника (is_filter) и характеристики товаров (is_filter)
+  // 4. Если ничего не настроено — базовые Память, Цвет, SIM-карта
   const dynamicFilterSections = useMemo<CatalogFilterSection[]>(() => {
-    const adminFilterAttrs = attributes.filter((a) => Boolean(a.is_filter))
+    // Определяем активные серии в текущем виде каталога
+    const activeSeriesNames = new Set<string>()
+    if (selectedSeries.length > 0) {
+      for (const s of selectedSeries) {
+        if (s.trim()) activeSeriesNames.add(s.trim().toLowerCase())
+      }
+    } else {
+      for (const p of facetBaseProducts) {
+        if (p.series?.trim()) {
+          activeSeriesNames.add(p.series.trim().toLowerCase())
+        }
+      }
+    }
 
-    const productSpecFilterLabels = new Set<string>()
-    for (const p of facetBaseProducts) {
-      if (p.specs) {
-        for (const s of p.specs) {
-          if (s.is_filter && s.label?.trim()) {
-            productSpecFilterLabels.add(s.label.trim())
-          }
+    // Находим группы, соответствующие текущей категории и сериям
+    const matchedGroups = groups.filter((g) => {
+      if (category !== "all" && g.category_slug) {
+        if (g.category_slug.trim().toLowerCase() !== category.trim().toLowerCase()) {
+          return false
+        }
+      }
+      if (activeSeriesNames.size > 0) {
+        const gName = g.name.trim().toLowerCase()
+        const pName = g.parent_group?.trim().toLowerCase()
+        return activeSeriesNames.has(gName) || (pName ? activeSeriesNames.has(pName) : false)
+      }
+      return true
+    })
+
+    // Проверяем, есть ли настройки фильтров в группах
+    const groupFilterIds = new Set<number>()
+    let hasGroupConfig = false
+
+    for (const g of matchedGroups) {
+      let fIds = g.filter_attribute_ids
+
+      // Если у подгруппы нет настроек фильтров, но есть parent_group, ищем в родительской группе
+      if ((!fIds || fIds.length === 0) && g.parent_group) {
+        const parent = groups.find(
+          (pg) =>
+            pg.parent_group === g.parent_group &&
+            pg.filter_attribute_ids &&
+            pg.filter_attribute_ids.length > 0
+        )
+        if (parent?.filter_attribute_ids) {
+          fIds = parent.filter_attribute_ids
+        }
+      }
+
+      // Если filter_attribute_ids задан у группы
+      if (fIds !== undefined && fIds !== null) {
+        hasGroupConfig = true
+        for (const id of fIds) {
+          groupFilterIds.add(id)
+        }
+      } else if (g.attribute_ids && g.attribute_ids.length > 0) {
+        // Fallback на attribute_ids группы, если filter_attribute_ids ещё не сохранён
+        hasGroupConfig = true
+        for (const id of g.attribute_ids) {
+          groupFilterIds.add(id)
         }
       }
     }
@@ -319,41 +372,69 @@ export function CatalogView({
 
     const seen = new Set<string>()
 
-    for (const attr of adminFilterAttrs) {
-      if (
-        category !== "all" &&
-        attr.category_slug &&
-        attr.category_slug.trim().toLowerCase() !== category.trim().toLowerCase()
-      ) {
-        continue
+    if (hasGroupConfig) {
+      // Используем атрибуты, настроенные в группе
+      for (const id of groupFilterIds) {
+        const attr = attributes.find((a) => a.id === id)
+        if (attr) {
+          const key = attr.name.toLowerCase().trim()
+          if (!seen.has(key)) {
+            seen.add(key)
+            filterDefs.push({
+              id: `attr-${attr.id}`,
+              name: attr.name,
+              type: attr.type,
+              knownAttr: attr,
+            })
+          }
+        }
+      }
+    } else {
+      // Fallback: атрибуты из справочника с флагом is_filter
+      const adminFilterAttrs = attributes.filter((a) => Boolean(a.is_filter))
+      for (const attr of adminFilterAttrs) {
+        if (
+          category !== "all" &&
+          attr.category_slug &&
+          attr.category_slug.trim().toLowerCase() !== category.trim().toLowerCase()
+        ) {
+          continue
+        }
+
+        const key = attr.name.toLowerCase().trim()
+        if (!seen.has(key)) {
+          seen.add(key)
+          filterDefs.push({
+            id: `attr-${attr.id}`,
+            name: attr.name,
+            type: attr.type,
+            knownAttr: attr,
+          })
+        }
       }
 
-      const key = attr.name.toLowerCase().trim()
-      if (!seen.has(key)) {
-        seen.add(key)
-        filterDefs.push({
-          id: `attr-${attr.id}`,
-          name: attr.name,
-          type: attr.type,
-          knownAttr: attr,
-        })
+      // И характеристики товаров с флагом is_filter
+      for (const p of facetBaseProducts) {
+        if (p.specs) {
+          for (const s of p.specs) {
+            if (s.is_filter && s.label?.trim()) {
+              const key = s.label.toLowerCase().trim()
+              if (!seen.has(key)) {
+                seen.add(key)
+                const isColor = /цвет/i.test(s.label)
+                filterDefs.push({
+                  id: `spec-${key}`,
+                  name: s.label.trim(),
+                  type: isColor ? "color" : "select",
+                })
+              }
+            }
+          }
+        }
       }
     }
 
-    for (const label of productSpecFilterLabels) {
-      const key = label.toLowerCase().trim()
-      if (!seen.has(key)) {
-        seen.add(key)
-        const isColor = /цвет/i.test(label)
-        filterDefs.push({
-          id: `spec-${key}`,
-          name: label,
-          type: isColor ? "color" : "select",
-        })
-      }
-    }
-
-    if (filterDefs.length === 0) {
+    if (filterDefs.length === 0 && !hasGroupConfig) {
       filterDefs.push(
         { id: "fallback-storage", name: "Память", type: "select" },
         { id: "fallback-color", name: "Цвет", type: "color" },
@@ -535,7 +616,7 @@ export function CatalogView({
     }
 
     return sections
-  }, [attributes, category, facetBaseProducts])
+  }, [attributes, category, facetBaseProducts, groups, selectedSeries])
 
   const visible = useMemo(() => {
     const term = query.trim().toLowerCase()
