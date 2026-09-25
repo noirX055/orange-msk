@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server"
-import { getProducts } from "@/lib/products/queries"
-import { getCategoriesWithGroups } from "@/lib/admin/queries"
+import { createPublicClient } from "@/lib/supabase/public"
+import { categories as fallbackCategories } from "@/lib/products"
 
-export const revalidate = 3600
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
-function escapeXml(str: string): string {
-  return str
+function escapeXml(val: unknown): string {
+  if (val === null || val === undefined) return ""
+  return String(val)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -13,8 +15,9 @@ function escapeXml(str: string): string {
     .replace(/'/g, "&apos;")
 }
 
-function cleanCdata(str: string): string {
-  return str.replace(/]]>/g, "]]&gt;")
+function cleanCdata(val: unknown): string {
+  if (val === null || val === undefined) return ""
+  return String(val).replace(/]]>/g, "]]&gt;")
 }
 
 function formatYmlDate(d: Date): string {
@@ -29,71 +32,108 @@ function formatYmlDate(d: Date): string {
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orangemsk.ru"
-  const [products, { categories }] = await Promise.all([
-    getProducts(),
-    getCategoriesWithGroups(),
-  ])
 
-  const now = new Date()
-  const dateStr = formatYmlDate(now)
+  try {
+    const supabase = createPublicClient()
 
-  // Карта категорий: slug -> числовой ID для YML
-  const categoryMap = new Map<string, number>()
-  categories.forEach((cat, idx) => {
-    categoryMap.set(cat.slug.toLowerCase().trim(), idx + 1)
-  })
+    const [productsRes, categoriesRes] = await Promise.all([
+      supabase
+        .from("products")
+        .select("id, slug, name, brand, category, price, old_price, in_stock, is_visible, specs, images, description")
+        .eq("is_visible", true)
+        .order("sort", { ascending: true }),
+      supabase
+        .from("categories")
+        .select("id, slug, name")
+        .eq("is_visible", true)
+        .order("name"),
+    ])
 
-  // Если у каких-то товаров категории нет в списке админки, добавим на лету
-  let nextCatId = categories.length + 1
-  for (const p of products) {
-    const slug = (p.category || "other").toLowerCase().trim()
-    if (!categoryMap.has(slug)) {
-      categoryMap.set(slug, nextCatId++)
+    const products = productsRes.data || []
+    const dbCategories = categoriesRes.data || []
+    const knownCategories = dbCategories.length > 0 ? dbCategories : fallbackCategories
+
+    const now = new Date()
+    const dateStr = formatYmlDate(now)
+
+    // Карта категорий: slug -> { id, name } для YML
+    const categoryMap = new Map<string, { id: number; name: string }>()
+    let currentId = 1
+
+    for (const cat of knownCategories) {
+      if (cat && cat.slug) {
+        const slugKey = String(cat.slug).toLowerCase().trim()
+        if (!categoryMap.has(slugKey)) {
+          categoryMap.set(slugKey, {
+            id: currentId++,
+            name: cat.name || cat.slug,
+          })
+        }
+      }
     }
-  }
 
-  const categoryEntries: string[] = []
-  for (const [slug, id] of categoryMap.entries()) {
-    const found = categories.find((c) => c.slug.toLowerCase().trim() === slug)
-    const name = found ? found.name : slug
-    categoryEntries.push(`      <category id="${id}">${escapeXml(name)}</category>`)
-  }
+    // Добавляем категории товаров, которых нет в списке
+    for (const p of products) {
+      if (p && p.category) {
+        const slugKey = String(p.category).toLowerCase().trim()
+        if (!categoryMap.has(slugKey)) {
+          categoryMap.set(slugKey, {
+            id: currentId++,
+            name: p.category,
+          })
+        }
+      }
+    }
 
-  const offers = products.map((product) => {
-    const productUrl = `${baseUrl}/product/${product.slug}`
-    const catSlug = (product.category || "other").toLowerCase().trim()
-    const catId = categoryMap.get(catSlug) || 1
+    const categoryEntries: string[] = []
+    for (const item of categoryMap.values()) {
+      categoryEntries.push(`      <category id="${item.id}">${escapeXml(item.name)}</category>`)
+    }
 
-    const pictures = (product.images || [])
-      .slice(0, 10)
-      .map((img) => {
-        const full = img.startsWith("/") ? `${baseUrl}${img}` : img
-        return `        <picture>${escapeXml(full)}</picture>`
-      })
-      .join("\n")
+    const offers: string[] = []
 
-    const params = (product.specs || [])
-      .filter((s) => s.label && s.value)
-      .map((s) => `        <param name="${escapeXml(s.label)}">${escapeXml(s.value)}</param>`)
-      .join("\n")
+    for (const product of products) {
+      if (!product || !product.id || !product.slug || !product.price) continue
 
-    const desc = cleanCdata(
-      product.description ||
-        `Купить ${product.name} с гарантией 1 год в интернет-магазине Orange MSK. Доставка по Москве.`
-    )
+      const productUrl = `${baseUrl}/product/${escapeXml(product.slug)}`
+      const catSlug = String(product.category || "other").toLowerCase().trim()
+      const catInfo = categoryMap.get(catSlug)
+      const catId = catInfo ? catInfo.id : 1
 
-    return `      <offer id="${escapeXml(product.id)}" available="${product.inStock}">
+      const rawImages = Array.isArray(product.images) ? product.images : []
+      const pictures = rawImages
+        .filter((img): img is string => typeof img === "string" && Boolean(img.trim()))
+        .slice(0, 10)
+        .map((img) => {
+          const trimmed = img.trim()
+          const full = trimmed.startsWith("/") ? `${baseUrl}${trimmed}` : trimmed
+          return `        <picture>${escapeXml(full)}</picture>`
+        })
+        .join("\n")
+
+      const rawSpecs = Array.isArray(product.specs) ? product.specs : []
+      const params = rawSpecs
+        .filter((s: any) => s && s.label && s.value !== undefined && s.value !== null)
+        .map((s: any) => `        <param name="${escapeXml(s.label)}">${escapeXml(s.value)}</param>`)
+        .join("\n")
+
+      const desc = cleanCdata(
+        product.description ||
+          `Купить ${product.name} с официальной гарантией в интернет-магазине Orange MSK. Доставка по Москве.`
+      )
+
+      offers.push(`      <offer id="${escapeXml(product.id)}" available="${product.in_stock ? "true" : "false"}">
         <url>${productUrl}</url>
-        <price>${product.price}</price>
-${product.oldPrice ? `        <oldprice>${product.oldPrice}</oldprice>\n` : ""}        <currencyId>RUR</currencyId>
+        <price>${Number(product.price)}</price>
+${product.old_price ? `        <oldprice>${Number(product.old_price)}</oldprice>\n` : ""}        <currencyId>RUR</currencyId>
         <categoryId>${catId}</categoryId>
 ${pictures ? `${pictures}\n` : ""}        <name>${escapeXml(product.name)}</name>
-        <vendor>${escapeXml(product.brand)}</vendor>
+        <vendor>${escapeXml(product.brand || "Orange MSK")}</vendor>
         <description><![CDATA[${desc}]]></description>
-${params ? `${params}\n` : ""}      </offer>`
-  })
+${params ? `${params}\n` : ""}      </offer>`)
+    }
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <yml_catalog date="${dateStr}">
   <shop>
     <name>Orange MSK</name>
@@ -111,11 +151,36 @@ ${offers.join("\n")}
   </shop>
 </yml_catalog>`
 
-  return new NextResponse(xml, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
-    },
-  })
+    return new NextResponse(xml, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
+      },
+    })
+  } catch (err) {
+    console.error("Error generating Yandex YML feed:", err)
+    const fallbackXml = `<?xml version="1.0" encoding="UTF-8"?>
+<yml_catalog date="${formatYmlDate(new Date())}">
+  <shop>
+    <name>Orange MSK</name>
+    <company>Orange MSK</company>
+    <url>${baseUrl}</url>
+    <currencies>
+      <currency id="RUR" rate="1"/>
+    </currencies>
+    <categories>
+      <category id="1">Электроника</category>
+    </categories>
+    <offers></offers>
+  </shop>
+</yml_catalog>`
+
+    return new NextResponse(fallbackXml, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/xml; charset=utf-8",
+      },
+    })
+  }
 }
