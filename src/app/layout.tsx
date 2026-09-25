@@ -5,6 +5,7 @@ import { CartProvider } from "@/components/cart-provider"
 import { FavoritesProvider } from "@/components/favorites-provider"
 import { SiteChrome } from "@/components/site-chrome"
 import { OrganizationJsonLd } from "@/components/json-ld"
+import { YandexMetrika } from "@/components/yandex-metrika"
 import { getCategoriesWithGroups } from "@/lib/admin/queries"
 
 const playfair = Playfair_Display({
@@ -111,6 +112,7 @@ export default async function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body className="flex min-h-full flex-col">
+        <YandexMetrika />
         <CartProvider>
           <FavoritesProvider>
             <SiteChrome categories={categories} groups={groups} brands={brands}>
