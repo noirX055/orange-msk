@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { confirmExistingUser } from "../actions"
 import { AuthAlert, AuthField, AuthSubmit } from "@/components/auth-ui"
 
 export default function LoginPage() {
@@ -19,10 +20,28 @@ export default function LoginPage() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-      setError(error.message)
+    if (signInError) {
+      const msg = signInError.message.toLowerCase()
+
+      // Если email не подтверждён — автоматически подтверждаем через Admin API и повторяем вход
+      if (msg.includes("email not confirmed") || msg.includes("not confirmed")) {
+        const confirmed = await confirmExistingUser(email)
+        if (confirmed) {
+          const { error: retryError } = await supabase.auth.signInWithPassword({ email, password })
+          if (!retryError) {
+            router.push("/")
+            router.refresh()
+            return
+          }
+          setError(retryError.message)
+          setLoading(false)
+          return
+        }
+      }
+
+      setError(signInError.message)
       setLoading(false)
       return
     }

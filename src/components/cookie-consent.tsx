@@ -12,10 +12,13 @@ export function CookieConsent() {
   useEffect(() => {
     setMounted(true)
     try {
-      const acceptedStorage = localStorage.getItem(COOKIE_CONSENT_KEY)
-      const acceptedCookie = typeof document !== "undefined" && document.cookie.includes(`${COOKIE_CONSENT_KEY}=accepted`)
+      const consentStorage = localStorage.getItem(COOKIE_CONSENT_KEY)
+      const consentCookie =
+        typeof document !== "undefined" &&
+        (document.cookie.includes(`${COOKIE_CONSENT_KEY}=accepted`) ||
+          document.cookie.includes(`${COOKIE_CONSENT_KEY}=declined`))
 
-      if (!acceptedStorage && !acceptedCookie) {
+      if (!consentStorage && !consentCookie) {
         // Показываем с плавной небольшой задержкой после загрузки страницы
         const timer = setTimeout(() => setIsVisible(true), 700)
         return () => clearTimeout(timer)
@@ -29,6 +32,16 @@ export function CookieConsent() {
     try {
       localStorage.setItem(COOKIE_CONSENT_KEY, "accepted")
       document.cookie = `${COOKIE_CONSENT_KEY}=accepted; path=/; max-age=31536000; SameSite=Lax`
+    } catch {
+      // Игнорируем ошибки
+    }
+    setIsVisible(false)
+  }
+
+  const handleDecline = () => {
+    try {
+      localStorage.setItem(COOKIE_CONSENT_KEY, "declined")
+      document.cookie = `${COOKIE_CONSENT_KEY}=declined; path=/; max-age=31536000; SameSite=Lax`
     } catch {
       // Игнорируем ошибки
     }
@@ -72,17 +85,24 @@ export function CookieConsent() {
 
         {/* Описание */}
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Файлы cookie помогают нам персонализировать сайт, сохранять ваши товары в корзине и анализировать трафик для улучшения сервиса. Продолжая пользоваться сайтом, вы соглашаетесь на их использование.
+          Обязательные cookie нужны для работы корзины и авторизации, а аналитические помогают нам улучшать магазин. Вы можете принять их или отклонить необязательные cookie.
         </p>
 
         {/* Кнопки действий */}
-        <div className="flex items-center gap-2 pt-0.5">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 pt-0.5">
+          <button
+            type="button"
+            onClick={handleDecline}
+            className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-center text-xs font-medium text-foreground transition-all duration-200 hover:bg-muted active:scale-95"
+          >
+            Отклонить
+          </button>
           <button
             type="button"
             onClick={handleAccept}
-            className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-center text-xs font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:brightness-110 active:scale-95"
+            className="flex-1 rounded-xl bg-primary px-3 py-2 text-center text-xs font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:brightness-110 active:scale-95"
           >
-            Принять и продолжить
+            Принять все
           </button>
         </div>
       </div>

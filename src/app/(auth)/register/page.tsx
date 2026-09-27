@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { registerUser } from "../actions"
 import { AuthAlert, AuthField, AuthSubmit } from "@/components/auth-ui"
 
 export default function RegisterPage() {
@@ -24,27 +25,27 @@ export default function RegisterPage() {
     }
 
     setLoading(true)
-    const supabase = createClient()
 
-    const { data, error } = await supabase.auth.signUp({
+    // 1. Создание аккаунта через Server Action с автоматическим подтверждением email
+    // (полностью обходит отправку писем через SMTP в self-hosted Supabase)
+    const res = await registerUser({ name, email, password })
+
+    if (!res.ok) {
+      setError(res.error || "Не удалось создать аккаунт")
+      setLoading(false)
+      return
+    }
+
+    // 2. Сразу выполняем авторизацию под созданным аккаунтом
+    const supabase = createClient()
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: {
-        data: { full_name: name, role: "user" },
-      },
     })
 
-    if (error) {
-      if (error.message.toLowerCase().includes("confirmation email")) {
-        setError(
-          "Ошибка отправки письма подтверждения. Отключите «Confirm email» в настройках Supabase: Authentication → Providers → Email."
-        )
-      } else if (error.message.toLowerCase().includes("already registered")) {
-        setError("Пользователь с таким email уже зарегистрирован.")
-      } else {
-        setError(error.message)
-      }
-      setLoading(false)
+    if (signInError) {
+      // Если по какой-то причине автоматический вход не прошел, отправляем на форму логина
+      router.push("/login")
       return
     }
 
