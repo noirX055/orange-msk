@@ -322,7 +322,7 @@ export function ProductsTable({
         <td className="px-4 py-3">
           <div className="flex items-center justify-end gap-1">
             <Link
-              href={`/admin/products/${product.id}/edit`}
+              href={`/admin/products/${product.id}/edit${searchParams.toString() ? `?return_to=${encodeURIComponent(`${pathname}?${searchParams.toString()}`)}` : ""}`}
               className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
               aria-label="Редактировать"
             >

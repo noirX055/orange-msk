@@ -130,7 +130,8 @@ export async function createProduct(
   revalidatePath("/admin/products")
   revalidatePath("/catalog")
   revalidatePath("/")
-  redirect("/admin/products")
+  const returnTo = String(formData.get("return_to") ?? "").trim() || "/admin/products"
+  redirect(returnTo)
 }
 
 export async function updateProduct(
@@ -138,12 +139,14 @@ export async function updateProduct(
   formData: FormData,
 ): Promise<AdminActionState> {
   const { supabase } = await requireAdmin()
-  const id = String(formData.get("id") ?? "")
+  const id = String(formData.get("id") ?? "").trim()
   if (!id) return { ok: false, error: "Не указан товар" }
 
   const fields = parseProductForm(formData)
   if (!fields.name) return { ok: false, error: "Укажите название" }
-  if (!fields.price || fields.price <= 0) return { ok: false, error: "Укажите цену" }
+  if (fields.price === undefined || fields.price === null || isNaN(fields.price) || fields.price < 0) {
+    return { ok: false, error: "Укажите корректную цену" }
+  }
 
   let images: string[] = []
   try {
@@ -152,7 +155,21 @@ export async function updateProduct(
     return { ok: false, error: e.message || "Ошибка при загрузке изображений" }
   }
 
-  const { error } = await supabase.from("products").update({ ...fields, images }).eq("id", Number(id))
+  // Сохраняем оригинальный артикул и код (например, из МойСклад)
+  const { data: existingProd } = await supabase
+    .from("products")
+    .select("code, sku")
+    .eq("id", id)
+    .maybeSingle()
+
+  const updatePayload = {
+    ...fields,
+    images,
+    code: existingProd?.code || fields.code,
+    sku: existingProd?.sku || null,
+  }
+
+  const { error } = await supabase.from("products").update(updatePayload).eq("id", id)
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Товар с таким slug уже существует" }
@@ -163,15 +180,17 @@ export async function updateProduct(
   revalidatePath("/catalog")
   revalidatePath("/")
   revalidatePath(`/product/${fields.slug}`)
-  redirect("/admin/products")
+
+  const returnTo = String(formData.get("return_to") ?? "").trim() || "/admin/products"
+  redirect(returnTo)
 }
 
 export async function deleteProduct(formData: FormData): Promise<void> {
   const { supabase } = await requireAdmin()
-  const id = String(formData.get("id") ?? "")
+  const id = String(formData.get("id") ?? "").trim()
   if (!id) return
 
-  await supabase.from("products").delete().eq("id", Number(id))
+  await supabase.from("products").delete().eq("id", id)
   revalidatePath("/admin/products")
   revalidatePath("/catalog")
   revalidatePath("/")
@@ -180,11 +199,11 @@ export async function deleteProduct(formData: FormData): Promise<void> {
 // Быстрое переключение видимости товара на витрине (из списка товаров)
 export async function toggleProductVisibility(formData: FormData): Promise<void> {
   const { supabase } = await requireAdmin()
-  const id = String(formData.get("id") ?? "")
+  const id = String(formData.get("id") ?? "").trim()
   const visible = String(formData.get("visible") ?? "") === "1"
   if (!id) return
 
-  await supabase.from("products").update({ is_visible: visible }).eq("id", Number(id))
+  await supabase.from("products").update({ is_visible: visible }).eq("id", id)
   revalidatePath("/admin/products")
   revalidatePath("/catalog")
   revalidatePath("/")

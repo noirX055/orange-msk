@@ -121,6 +121,12 @@ export async function POST() {
         const code = p.code ? String(p.code).trim().toLowerCase() : null
         const sku = p.article ? String(p.article).trim().toLowerCase() : null
 
+        const nameLower = (p.name || "").toLowerCase()
+        if (nameLower.includes("rfb") || nameLower.includes("восстановленн")) {
+          totalSkipped++
+          return false
+        }
+
         if (msId && existingMsIds.has(msId)) {
           totalSkipped++
           return false
