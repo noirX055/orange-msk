@@ -47,16 +47,8 @@ function getAdminSupabase() {
   })
 }
 
-type DbProduct = ReturnType<typeof mapMoySkladProductToDb> & {
-  series?: string | null
-  variant_group?: string | null
-  badge?: string | null
-  rating?: number | null
-  reviews?: number | null
-}
-
 export async function POST() {
-  // 1. Проверка прав
+  // 1. Проверка прав администратора
   const isAdmin = await verifyAdmin()
   if (!isAdmin) {
     return NextResponse.json(
@@ -77,12 +69,33 @@ export async function POST() {
     const ms = new MoySkladClient(msToken)
     const supabase = getAdminSupabase()
 
+    // 2. Загружаем идентификаторы ВСЕХ уже существующих в базе товаров,
+    // чтобы НИ ПРИ КАКИХ УСЛОВИЯХ их не трогать и не перезаписывать.
+    const { data: existingProducts, error: fetchErr } = await supabase
+      .from("products")
+      .select("moysklad_id, code, sku")
+
+    if (fetchErr) {
+      throw new Error(`Ошибка получения существующих товаров: ${fetchErr.message}`)
+    }
+
+    const existingMsIds = new Set<string>()
+    const existingCodes = new Set<string>()
+    const existingSkus = new Set<string>()
+
+    for (const p of existingProducts || []) {
+      if (p.moysklad_id) existingMsIds.add(String(p.moysklad_id).trim())
+      if (p.code) existingCodes.add(String(p.code).trim().toLowerCase())
+      if (p.sku) existingSkus.add(String(p.sku).trim().toLowerCase())
+    }
+
     let offset = 0
     let totalFetched = 0
-    let totalUpserted = 0
+    let totalAdded = 0
+    let totalSkipped = 0
     let errors: string[] = []
 
-    // 2. Постраничная загрузка всех товаров из МойСклад
+    // 3. Постранично читаем МойСклад и добавляем ТОЛЬКО новые товары
     while (true) {
       const page = await ms.getProducts(PAGE_SIZE, offset)
       const rows = page.rows || []
@@ -91,64 +104,57 @@ export async function POST() {
 
       totalFetched += rows.length
 
-      // Преобразуем в формат БД
-      const dbRows: DbProduct[] = rows.map((product) => mapMoySkladProductToDb(product))
+      // Отбираем ИСКЛЮЧИТЕЛЬНО новые товары, которых ещё нет в нашей базе
+      const trulyNewProducts = rows.filter((p) => {
+        const msId = p.id?.trim()
+        const code = p.code ? String(p.code).trim().toLowerCase() : null
+        const sku = p.article ? String(p.article).trim().toLowerCase() : null
 
-      // Батчевый upsert с сохранением уже существующих пользовательских данных (фото, характеристики, цвета, слаг)
-      for (let i = 0; i < dbRows.length; i += BATCH_SIZE) {
-        const batch = dbRows.slice(i, i + BATCH_SIZE)
-        const batchIds = batch.map((p) => p.moysklad_id)
-
-        // Получаем уже существующие товары для сохранения обогащённых данных
-        const { data: existingProducts } = await supabase
-          .from("products")
-          .select("moysklad_id, slug, images, specs, colors, series, variant_group, badge, rating, reviews")
-          .in("moysklad_id", batchIds)
-
-        if (existingProducts && existingProducts.length > 0) {
-          const existingMap = new Map(
-            existingProducts.map((p: any) => [p.moysklad_id, p])
-          )
-
-          for (const item of batch) {
-            const existing = existingMap.get(item.moysklad_id)
-            if (existing) {
-              if (existing.slug) item.slug = existing.slug
-              if (Array.isArray(existing.images) && existing.images.length > 0) {
-                item.images = existing.images
-              }
-              if (Array.isArray(existing.specs) && existing.specs.length > 0) {
-                item.specs = existing.specs
-              }
-              if (Array.isArray(existing.colors) && existing.colors.length > 0) {
-                item.colors = existing.colors
-              }
-              if (existing.series) item.series = existing.series
-              if (existing.variant_group) item.variant_group = existing.variant_group
-              if (existing.badge) item.badge = existing.badge
-              if (existing.rating !== undefined && existing.rating !== null) item.rating = existing.rating
-              if (existing.reviews !== undefined && existing.reviews !== null) item.reviews = existing.reviews
-            }
-          }
+        if (msId && existingMsIds.has(msId)) {
+          totalSkipped++
+          return false
+        }
+        if (code && existingCodes.has(code)) {
+          totalSkipped++
+          return false
+        }
+        if (sku && existingSkus.has(sku)) {
+          totalSkipped++
+          return false
         }
 
+        return true
+      })
+
+      // Преобразуем только новые товары
+      const dbRowsToInsert = trulyNewProducts.map((p) => {
+        // Добавляем в Set, чтобы предотвратить дубликаты внутри самой выгрузки
+        if (p.id) existingMsIds.add(String(p.id).trim())
+        if (p.code) existingCodes.add(String(p.code).trim().toLowerCase())
+        if (p.article) existingSkus.add(String(p.article).trim().toLowerCase())
+
+        return mapMoySkladProductToDb(p)
+      })
+
+      // Вставляем ТОЛЬКО новые товары (ignoreDuplicates гарантирует, что существующие строки никогда не обновятся)
+      for (let i = 0; i < dbRowsToInsert.length; i += BATCH_SIZE) {
+        const batch = dbRowsToInsert.slice(i, i + BATCH_SIZE)
         const { error } = await supabase
           .from("products")
-          .upsert(batch, { onConflict: "moysklad_id" })
+          .upsert(batch, { onConflict: "moysklad_id", ignoreDuplicates: true })
 
         if (error) {
-          errors.push(`Batch offset=${offset + i}: ${error.message}`)
+          errors.push(`Пакет offset=${offset + i}: ${error.message}`)
         } else {
-          totalUpserted += batch.length
+          totalAdded += batch.length
         }
       }
 
-      // Если записей меньше PAGE_SIZE — это последняя страница
       if (rows.length < PAGE_SIZE) break
       offset += PAGE_SIZE
     }
 
-    // 3. Сбрасываем кэш
+    // 4. Сбрасываем кэш
     revalidatePath("/admin/products")
     revalidatePath("/catalog")
     revalidatePath("/")
@@ -156,13 +162,14 @@ export async function POST() {
     return NextResponse.json({
       ok: true,
       totalFetched,
-      totalUpserted,
+      totalAdded,
+      totalSkipped,
       errors: errors.length > 0 ? errors : undefined,
     })
   } catch (err: any) {
     console.error("[Sync Products] Ошибка:", err)
     return NextResponse.json(
-      { ok: false, error: err?.message || "Ошибка синхронизации" },
+      { ok: false, error: err?.message || "Ошибка обновления списка товаров" },
       { status: 500 }
     )
   }

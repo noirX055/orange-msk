@@ -6,7 +6,8 @@ import { RefreshCw } from "lucide-react"
 type SyncResult = {
   ok: boolean
   totalFetched?: number
-  totalUpserted?: number
+  totalAdded?: number
+  totalSkipped?: number
   errors?: string[]
   error?: string
 }
@@ -19,7 +20,7 @@ export function SyncProductsButton() {
     if (loading) return
 
     const confirmed = window.confirm(
-      "Запустить полную синхронизацию товаров с МойСклад?\n\nЭто может занять несколько минут."
+      "Загрузить новые товары из МойСклад?\n\nВнимание: существующие и уже отредактированные карточки товаров затронуты НЕ будут, добавятся только новые позиции."
     )
     if (!confirmed) return
 
@@ -34,7 +35,6 @@ export function SyncProductsButton() {
       setResult(data)
 
       if (data.ok) {
-        // Перезагружаем страницу через 2 секунды, чтобы увидеть обновлённые товары
         setTimeout(() => window.location.reload(), 2000)
       }
     } catch (err: any) {
@@ -52,7 +52,7 @@ export function SyncProductsButton() {
         className="flex h-11 items-center gap-2 rounded-xl border border-border bg-background px-5 text-sm font-semibold transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50"
       >
         <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-        {loading ? "Синхронизация…" : "Обновить с МойСклад"}
+        {loading ? "Обновление списка…" : "Обновить список товаров"}
       </button>
 
       {result && (
@@ -62,7 +62,7 @@ export function SyncProductsButton() {
           }`}
         >
           {result.ok
-            ? `✓ Загружено ${result.totalFetched}, обновлено ${result.totalUpserted}`
+            ? `✓ Добавлено новых: ${result.totalAdded ?? 0}, без изменений: ${result.totalSkipped ?? 0}`
             : `✗ ${result.error}`}
         </span>
       )}
