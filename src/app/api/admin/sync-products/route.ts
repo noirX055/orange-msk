@@ -69,24 +69,35 @@ export async function POST() {
     const ms = new MoySkladClient(msToken)
     const supabase = getAdminSupabase()
 
-    // 2. Загружаем идентификаторы ВСЕХ уже существующих в базе товаров,
-    // чтобы НИ ПРИ КАКИХ УСЛОВИЯХ их не трогать и не перезаписывать.
-    const { data: existingProducts, error: fetchErr } = await supabase
-      .from("products")
-      .select("moysklad_id, code, sku")
-
-    if (fetchErr) {
-      throw new Error(`Ошибка получения существующих товаров: ${fetchErr.message}`)
-    }
-
+    // 2. Загружаем идентификаторы ВСЕХ уже существующих в базе товаров ПОСТРАНИЧНО,
+    // так как Supabase PostgREST по умолчанию отдает не более 1000 строк на один запрос.
     const existingMsIds = new Set<string>()
     const existingCodes = new Set<string>()
     const existingSkus = new Set<string>()
 
-    for (const p of existingProducts || []) {
-      if (p.moysklad_id) existingMsIds.add(String(p.moysklad_id).trim())
-      if (p.code) existingCodes.add(String(p.code).trim().toLowerCase())
-      if (p.sku) existingSkus.add(String(p.sku).trim().toLowerCase())
+    let pageFrom = 0
+    const DB_PAGE_SIZE = 1000
+
+    while (true) {
+      const { data: pageData, error: fetchErr } = await supabase
+        .from("products")
+        .select("moysklad_id, code, sku")
+        .range(pageFrom, pageFrom + DB_PAGE_SIZE - 1)
+
+      if (fetchErr) {
+        throw new Error(`Ошибка получения существующих товаров: ${fetchErr.message}`)
+      }
+
+      if (!pageData || pageData.length === 0) break
+
+      for (const p of pageData) {
+        if (p.moysklad_id) existingMsIds.add(String(p.moysklad_id).trim())
+        if (p.code) existingCodes.add(String(p.code).trim().toLowerCase())
+        if (p.sku) existingSkus.add(String(p.sku).trim().toLowerCase())
+      }
+
+      if (pageData.length < DB_PAGE_SIZE) break
+      pageFrom += DB_PAGE_SIZE
     }
 
     let offset = 0
