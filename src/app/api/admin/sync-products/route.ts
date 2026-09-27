@@ -164,6 +164,7 @@ export async function POST() {
       totalFetched,
       totalAdded,
       totalSkipped,
+      totalUpserted: totalAdded,
       errors: errors.length > 0 ? errors : undefined,
     })
   } catch (err: any) {
