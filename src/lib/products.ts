@@ -23,6 +23,7 @@ export type Product = {
   description: string
   specs: { label: string; value: string; is_configurator?: boolean; is_filter?: boolean }[]
   images?: string[]
+  createdAt?: string
 }
 
 // Логотипы брендов (моно-версии) загружены из theSVG.org

@@ -5,7 +5,7 @@ import type { ProductAttribute, ProductAttributeValue } from "@/lib/admin/attrib
 import type { Product } from "@/lib/products"
 
 const PRODUCT_COLUMNS =
-  "id, slug, name, brand, series, variant_group, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort"
+  "id, slug, name, brand, series, variant_group, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort, created_at"
 
 export type AdminStats = {
   products: number
@@ -50,7 +50,7 @@ export async function getAllProducts(): Promise<Product[]> {
     const { data } = await supabase
       .from("products")
       .select(PRODUCT_COLUMNS)
-      .order("name", { ascending: true })
+      .order("created_at", { ascending: false, nullsFirst: false })
       .range(from, to)
 
     if (data && data.length > 0) {

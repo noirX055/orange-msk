@@ -22,10 +22,11 @@ export type ProductRow = {
   images: string[] | null
   description: string | null
   sort: number
+  created_at?: string
 }
 
 const PRODUCT_COLUMNS =
-  "id, slug, name, brand, series, variant_group, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort"
+  "id, slug, name, brand, series, variant_group, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort, created_at"
 
 export function mapProduct(row: ProductRow): Product {
   return {
@@ -47,6 +48,7 @@ export function mapProduct(row: ProductRow): Product {
     description: row.description ?? "",
     specs: row.specs ?? [],
     images: row.images ?? [],
+    createdAt: row.created_at ?? undefined,
   }
 }
 

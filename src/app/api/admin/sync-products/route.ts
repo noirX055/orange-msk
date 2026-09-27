@@ -138,13 +138,18 @@ export async function POST() {
       })
 
       // Преобразуем только новые товары
+      const now = new Date().toISOString()
       const dbRowsToInsert = trulyNewProducts.map((p) => {
         // Добавляем в Set, чтобы предотвратить дубликаты внутри самой выгрузки
         if (p.id) existingMsIds.add(String(p.id).trim())
         if (p.code) existingCodes.add(String(p.code).trim().toLowerCase())
         if (p.article) existingSkus.add(String(p.article).trim().toLowerCase())
 
-        return mapMoySkladProductToDb(p)
+        return {
+          ...mapMoySkladProductToDb(p),
+          created_at: now,
+          updated_at: now,
+        }
       })
 
       // Вставляем ТОЛЬКО новые товары (ignoreDuplicates гарантирует, что существующие строки никогда не обновятся)
