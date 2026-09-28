@@ -102,6 +102,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       confirmationToken,
       orderId: order.id,
+      total,
+      delivery: delivery ?? 0,
     })
   } catch (error) {
     console.error("[Checkout] Непредвиденная ошибка:", error)

@@ -2,7 +2,16 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import {
+  Minus,
+  Plus,
+  ShoppingBag,
+  Trash2,
+  Truck,
+  Store,
+  MapPin,
+  Check,
+} from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { ProductVisual } from "@/components/product-visual"
 import { formatPrice } from "@/lib/products"
@@ -10,16 +19,38 @@ import { formatPrice } from "@/lib/products"
 const DELIVERY_THRESHOLD = 5000
 const DELIVERY_PRICE = 490
 
+type DeliveryMethod = "courier" | "pickup"
+
 export function CartView() {
-  const { items, totalItems, totalPrice, updateQuantity, removeItem, clear } = useCart()
+  const { items, totalItems, totalPrice, updateQuantity, removeItem, clear } =
+    useCart()
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const delivery = totalPrice >= DELIVERY_THRESHOLD ? 0 : DELIVERY_PRICE
+  // Способ получения
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("courier")
+  const [recipientName, setRecipientName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [address, setAddress] = useState("")
+
+  // Расчёт стоимости доставки
+  const isPickup = deliveryMethod === "pickup"
+  const delivery = isPickup
+    ? 0
+    : totalPrice >= DELIVERY_THRESHOLD
+    ? 0
+    : DELIVERY_PRICE
+  const finalTotal = totalPrice + delivery
 
   async function handleCheckout() {
     setError("")
+
+    if (deliveryMethod === "courier" && !address.trim()) {
+      setError("Пожалуйста, укажите адрес доставки или выберите «Самовывоз»")
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -37,7 +68,12 @@ export function CartView() {
           })),
           subtotal: totalPrice,
           delivery,
-          total: totalPrice + delivery,
+          total: finalTotal,
+          recipient_name: recipientName.trim() || undefined,
+          phone: phone.trim() || undefined,
+          address: isPickup
+            ? "Самовывоз: г. Москва, ул. Барклая, 8"
+            : address.trim() || undefined,
         }),
       })
 
@@ -55,7 +91,7 @@ export function CartView() {
       }
 
       // Редирект на страницу оплаты с виджетом ЮКасса
-      window.location.href = `/checkout?token=${data.confirmationToken}&orderId=${data.orderId}`
+      window.location.href = `/checkout?token=${data.confirmationToken}&orderId=${data.orderId}&total=${data.total}&delivery=${data.delivery}`
     } catch {
       setError("Ошибка сети. Проверьте подключение к интернету.")
       setLoading(false)
@@ -70,7 +106,7 @@ export function CartView() {
         </span>
         <h1 className="tracking-tight text-2xl font-bold">Заказ оформлен</h1>
         <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-          Менеджер Orange MSK свяжется с вами в течение 15 минут для подтверждения времени доставки.
+          Менеджер Orange MSK свяжется с вами в течение 15 минут для подтверждения времени получения.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
@@ -124,63 +160,206 @@ export function CartView() {
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
-        <ul className="flex flex-1 flex-col gap-4">
-          {items.map((item) => (
-            <li
-              key={`${item.id}-${item.color ?? ""}`}
-              className="flex flex-col gap-4 rounded-card border border-border p-4 sm:flex-row sm:items-center"
-            >
-              <ProductVisual
-                category={item.category}
-                className="h-24 w-full shrink-0 rounded-lg sm:w-24"
-              />
+        {/* Список товаров и параметры доставки */}
+        <div className="flex flex-1 flex-col gap-6">
+          <ul className="flex flex-col gap-4">
+            {items.map((item) => (
+              <li
+                key={`${item.id}-${item.color ?? ""}`}
+                className="flex flex-col gap-4 rounded-card border border-border p-4 sm:flex-row sm:items-center"
+              >
+                <ProductVisual
+                  category={item.category}
+                  className="h-24 w-full shrink-0 rounded-lg sm:w-24"
+                />
 
-              <div className="flex flex-1 flex-col gap-1">
-                <Link
-                  href={`/product/${item.slug}`}
-                  className="text-sm font-semibold leading-relaxed transition-colors hover:text-primary"
-                >
-                  {item.name}
-                </Link>
-                {item.color && (
-                  <span className="text-xs text-muted-foreground">Цвет: {item.color}</span>
-                )}
-                <span className="text-sm font-bold">{formatPrice(item.price)}</span>
-              </div>
+                <div className="flex flex-1 flex-col gap-1">
+                  <Link
+                    href={`/product/${item.slug}`}
+                    className="text-sm font-semibold leading-relaxed transition-colors hover:text-primary"
+                  >
+                    {item.name}
+                  </Link>
+                  {item.color && (
+                    <span className="text-xs text-muted-foreground">
+                      Цвет: {item.color}
+                    </span>
+                  )}
+                  <span className="text-sm font-bold">{formatPrice(item.price)}</span>
+                </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1 rounded-full border border-border p-1">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 rounded-full border border-border p-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateQuantity(item.id, item.color, item.quantity - 1)
+                      }
+                      className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
+                      aria-label="Уменьшить количество"
+                    >
+                      <Minus size={15} />
+                    </button>
+                    <span className="w-8 text-center text-sm font-semibold">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateQuantity(item.id, item.color, item.quantity + 1)
+                      }
+                      className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
+                      aria-label="Увеличить количество"
+                    >
+                      <Plus size={15} />
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => updateQuantity(item.id, item.color, item.quantity - 1)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
-                    aria-label="Уменьшить количество"
+                    onClick={() => removeItem(item.id, item.color)}
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    aria-label={`Удалить ${item.name} из корзины`}
                   >
-                    <Minus size={15} />
-                  </button>
-                  <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(item.id, item.color, item.quantity + 1)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
-                    aria-label="Увеличить количество"
-                  >
-                    <Plus size={15} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.id, item.color)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  aria-label={`Удалить ${item.name} из корзины`}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
 
+          {/* Блок способа получения и контактов */}
+          <div className="rounded-card border border-border bg-card p-5">
+            <h2 className="mb-4 text-base font-bold tracking-tight">
+              Способ получения
+            </h2>
+
+            {/* Выбор: Доставка курьером или Самовывоз (без доставки) */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeliveryMethod("courier")
+                  setError("")
+                }}
+                className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${
+                  deliveryMethod === "courier"
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border hover:border-foreground/30"
+                }`}
+              >
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Truck size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold">Доставка курьером</span>
+                    {deliveryMethod === "courier" && (
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        <Check size={10} strokeWidth={3} />
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {totalPrice >= DELIVERY_THRESHOLD
+                      ? "Бесплатно"
+                      : `${formatPrice(DELIVERY_PRICE)}`} • по Москве
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setDeliveryMethod("pickup")
+                  setError("")
+                }}
+                className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${
+                  deliveryMethod === "pickup"
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border hover:border-foreground/30"
+                }`}
+              >
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Store size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold">
+                      Самовывоз (без доставки)
+                    </span>
+                    {deliveryMethod === "pickup" && (
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        <Check size={10} strokeWidth={3} />
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-xs font-medium text-green-600 dark:text-green-400">
+                    Бесплатно (0 ₽)
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            {/* Адрес пункта самовывоза */}
+            {isPickup && (
+              <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-border bg-muted/60 p-3.5 text-xs text-muted-foreground">
+                <MapPin size={16} className="mt-0.5 shrink-0 text-primary" />
+                <div>
+                  <span className="font-semibold text-foreground">
+                    Пункт выдачи Orange MSK:
+                  </span>{" "}
+                  г. Москва, ул. Барклая, д. 8 (ТЦ «Горбушка»), ежедневно с 10:00 до 21:00.
+                </div>
+              </div>
+            )}
+
+            {/* Контактные данные получателя */}
+            <div className="mt-5 grid grid-cols-1 gap-3 pt-4 border-t border-border sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Имя получателя
+                </label>
+                <input
+                  type="text"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  placeholder="Иван Иванов"
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm transition-colors focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Телефон для связи
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+7 (999) 000-00-00"
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm transition-colors focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              {deliveryMethod === "courier" && (
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                    Адрес доставки в Москве *
+                  </label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="ул. Тверская, д. 1, кв. 10"
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm transition-colors focus:border-primary focus:outline-none"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Сайдбар с итоговой суммой */}
         <aside className="h-fit w-full shrink-0 rounded-card border border-border p-5 lg:w-80">
           <h2 className="mb-4 tracking-tight text-lg font-bold">Итого</h2>
           <dl className="flex flex-col gap-3 text-sm">
@@ -191,19 +370,29 @@ export function CartView() {
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Доставка</dt>
               <dd className="font-medium">
-                {delivery === 0 ? "Бесплатно" : formatPrice(delivery)}
+                {isPickup ? (
+                  <span className="text-green-600 dark:text-green-400">
+                    Самовывоз (0 ₽)
+                  </span>
+                ) : delivery === 0 ? (
+                  <span className="text-green-600 dark:text-green-400">
+                    Бесплатно
+                  </span>
+                ) : (
+                  formatPrice(delivery)
+                )}
               </dd>
             </div>
             <div className="flex items-center justify-between border-t border-border pt-3 text-base">
               <dt className="font-semibold">К оплате</dt>
-              <dd className="text-xl font-bold">{formatPrice(totalPrice + delivery)}</dd>
+              <dd className="text-xl font-bold">{formatPrice(finalTotal)}</dd>
             </div>
           </dl>
 
-          {delivery > 0 && (
+          {!isPickup && delivery > 0 && (
             <p className="mt-3 rounded-lg bg-muted p-3 text-xs leading-relaxed text-muted-foreground">
               Добавьте товаров на {formatPrice(DELIVERY_THRESHOLD - totalPrice)} для бесплатной
-              доставки по Москве.
+              доставки или выберите <strong>«Самовывоз»</strong>, чтобы убрать стоимость доставки.
             </p>
           )}
 
