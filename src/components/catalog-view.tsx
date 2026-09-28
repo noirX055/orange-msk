@@ -261,6 +261,10 @@ export function CatalogView({
 
   // Серии в рамках текущей категории и выбранных брендов — чтобы список был релевантным
   const seriesList = useMemo(() => {
+    // В общем каталоге ("Все товары") список серий не отображается, пока не выбрана конкретная категория или серия
+    if (category === "all" && selectedSeries.length === 0) {
+      return []
+    }
     const values = products
       .filter((product) => {
         if (category === "all") return true
@@ -270,7 +274,7 @@ export function CatalogView({
       .map((product) => product.series)
       .filter((series): series is string => Boolean(series))
     return Array.from(new Set(values)).sort()
-  }, [products, category, selectedBrands])
+  }, [products, category, selectedBrands, selectedSeries])
 
   // Базовый список товаров в рамках категории, бренда и серии (для вычисления доступных фасетов)
   const facetBaseProducts = useMemo(() => {
@@ -299,6 +303,11 @@ export function CatalogView({
   // 3. Fallback: атрибуты из справочника (is_filter) и характеристики товаров (is_filter)
   // 4. Если ничего не настроено — базовые Память, Цвет, SIM-карта
   const dynamicFilterSections = useMemo<CatalogFilterSection[]>(() => {
+    // В общем каталоге ("Все товары") без выбранной категории и серии характеристики товаров не отображаются
+    if (category === "all" && selectedSeries.length === 0) {
+      return []
+    }
+
     // Определяем активные серии в текущем виде каталога
     const activeSeriesNames = new Set<string>()
     if (selectedSeries.length > 0) {

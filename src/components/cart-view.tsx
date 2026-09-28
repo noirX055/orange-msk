@@ -72,7 +72,7 @@ export function CartView() {
           recipient_name: recipientName.trim() || undefined,
           phone: phone.trim() || undefined,
           address: isPickup
-            ? "Самовывоз: г. Москва, ул. Барклая, 8"
+            ? "Самовывоз: д. Чёрная Грязь, 7/1М"
             : address.trim() || undefined,
         }),
       })
@@ -308,7 +308,7 @@ export function CartView() {
                   <span className="font-semibold text-foreground">
                     Пункт выдачи Orange MSK:
                   </span>{" "}
-                  г. Москва, ул. Барклая, д. 8 (ТЦ «Горбушка»), ежедневно с 10:00 до 21:00.
+                  д. Чёрная Грязь, 7/1М, Пн — Вс: 10:00 – 19:00.
                 </div>
               </div>
             )}

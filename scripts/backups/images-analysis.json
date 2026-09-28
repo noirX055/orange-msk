@@ -1,0 +1,899 @@
+{
+  "needsFix": [
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-silver-1tb-esim-01511/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Silver, 1TB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/fen-dyson-supersonic-hd07-blue-rose-s-keysom-40103/0-50117.jpg",
+      "dimensions": "993x1280",
+      "ratio": "1.29",
+      "contentSize": "902x1224",
+      "contentRatio": "0.96",
+      "topPadding": 48,
+      "bottomPadding": 8,
+      "prodsCount": 1,
+      "sampleProduct": "Фен Dyson Supersonic HD07, Blue/Rose (с кейсом)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/fen-dyson-supersonic-hd07-blue-rose-s-keysom-40103/1-47792.jpg",
+      "dimensions": "964x1280",
+      "ratio": "1.33",
+      "contentSize": "962x1278",
+      "contentRatio": "1.00",
+      "topPadding": 0,
+      "bottomPadding": 2,
+      "prodsCount": 1,
+      "sampleProduct": "Фен Dyson Supersonic HD07, Blue/Rose (с кейсом)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-silver-512gb-01528/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Silver, 512GB",
+      "category": "iphone-17"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-silver-256gb-01519/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Silver, 256GB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-complete-long-hs05-diffuse-strawberry-bronze-blush-pink-39803/0-90451.jpg",
+      "dimensions": "1060x1280",
+      "ratio": "1.21",
+      "contentSize": "986x1140",
+      "contentRatio": "0.89",
+      "topPadding": 90,
+      "bottomPadding": 50,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap Complete Long HS05 Diffuse, Strawberry Bronze/Blush Pink",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-i-d-long-hs08-curly-coily-amber-silk-eu-vilka-39855/0-40233.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "570x1006",
+      "contentRatio": "0.79",
+      "topPadding": 136,
+      "bottomPadding": 138,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap i.d. Long HS08 Curly & Coily, Amber Silk (EU Вилка)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-i-d-long-hs08-curly-coily-strawberry-bronze-blush-pink-39854/0-45762.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "632x1034",
+      "contentRatio": "0.81",
+      "topPadding": 162,
+      "bottomPadding": 84,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap i.d. Long HS08 Curly & Coily (Strawberry Bronze/Blush Pink)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-deep-blue-1tb-esim-01514/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Deep Blue, 1TB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-complete-long-hs05-nickel-copper-39800/1-70484.jpg",
+      "dimensions": "904x1280",
+      "ratio": "1.42",
+      "contentSize": "836x1016",
+      "contentRatio": "0.79",
+      "topPadding": 128,
+      "bottomPadding": 136,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap Complete Long HS05, Nickel/Copper",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-i-d-long-hs08-curly-coily-ceramic-pink-rose-gold-39853/0-49671.jpg",
+      "dimensions": "850x1280",
+      "ratio": "1.51",
+      "contentSize": "662x1218",
+      "contentRatio": "0.95",
+      "topPadding": 56,
+      "bottomPadding": 6,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap i.d. Long HS08 Curly & Coily (Ceramic Pink/Rose Gold)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-i-d-long-hs08-straight-wavy-apricot-topaz-39848/0-48463.jpg",
+      "dimensions": "900x1280",
+      "ratio": "1.42",
+      "contentSize": "862x1088",
+      "contentRatio": "0.85",
+      "topPadding": 184,
+      "bottomPadding": 8,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap i.d. Long HS08 Straight+Wavy, Apricot Topaz",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-i-d-long-hs08-curly-coily-jasper-plum-39834/0-43511.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "622x1166",
+      "contentRatio": "0.91",
+      "topPadding": 68,
+      "bottomPadding": 46,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap i.d. Long HS08 Curly & Coily, Jasper Plum",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-apricot-topaz-40421/0-50437.jpg",
+      "dimensions": "1073x1280",
+      "ratio": "1.19",
+      "contentSize": "778x1178",
+      "contentRatio": "0.92",
+      "topPadding": 18,
+      "bottomPadding": 84,
+      "prodsCount": 1,
+      "sampleProduct": "Выпрямитель Dyson Airstrait HT01 (Apricot Topaz)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-deep-blue-256gb-esim-01496/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Deep Blue, 256GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-ceramic-pink-sakura-gold-40403/0-41928.jpg",
+      "dimensions": "850x1280",
+      "ratio": "1.51",
+      "contentSize": "728x806",
+      "contentRatio": "0.63",
+      "topPadding": 196,
+      "bottomPadding": 278,
+      "prodsCount": 1,
+      "sampleProduct": "Выпрямитель Dyson Airstrait HT01, Ceramic Pink/Sakura Gold",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-silver-256gb-esim-01493/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Silver, 256GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-complete-long-hs08-vinca-blue-topaz-39831/0-70762.jpg",
+      "dimensions": "759x1280",
+      "ratio": "1.69",
+      "contentSize": "668x1236",
+      "contentRatio": "0.97",
+      "topPadding": 20,
+      "bottomPadding": 24,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap Complete Long HS08, Vinca Blue/Topaz",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-white-256gb-esim-01451/0-18385.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "628x638",
+      "contentRatio": "0.50",
+      "topPadding": 268,
+      "bottomPadding": 374,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17e, White, 256GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-kanzan-pink-40420/0-35266.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "644x838",
+      "contentRatio": "0.65",
+      "topPadding": 166,
+      "bottomPadding": 276,
+      "prodsCount": 1,
+      "sampleProduct": "Выпрямитель Dyson Airstrait HT01 (Kanzan Pink)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-kanzan-pink-40420/1-24553.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "676x382",
+      "contentRatio": "0.30",
+      "topPadding": 480,
+      "bottomPadding": 418,
+      "prodsCount": 1,
+      "sampleProduct": "Выпрямитель Dyson Airstrait HT01 (Kanzan Pink)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-red-velvet-gold-eu-vilka-s-keysom-40411/0-68021.jpg",
+      "dimensions": "933x1280",
+      "ratio": "1.37",
+      "contentSize": "820x1164",
+      "contentRatio": "0.91",
+      "topPadding": 60,
+      "bottomPadding": 56,
+      "prodsCount": 1,
+      "sampleProduct": "Выпрямитель Dyson Airstrait HT01, Red Velvet/Gold (EU Вилка) (с кейсом)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-complete-long-hs05-topaz-oranzhevyy-39863/0-63939.jpg",
+      "dimensions": "958x1280",
+      "ratio": "1.34",
+      "contentSize": "828x1170",
+      "contentRatio": "0.91",
+      "topPadding": 16,
+      "bottomPadding": 94,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap Complete Long HS05 (Топаз/Оранжевый)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-deep-blue-2tb-esim-01550/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Deep Blue, 2TB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-deep-blue-256gb-esim-01523/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Deep Blue, 256GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-silver-1tb-esim-01538/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Silver, 1TB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-silver-512gb-esim-01529/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Silver, 512GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-silver-1tb-01510/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Silver, 1TB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-deep-blue-1tb-01540/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Deep Blue, 1TB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-deep-blue-512gb-esim-01532/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Deep Blue, 512GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-deep-blue-1tb-esim-01541/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Deep Blue, 1TB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-gift-amber-silk-s-keysom-40416/0-40537.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "620x924",
+      "contentRatio": "0.72",
+      "topPadding": 140,
+      "bottomPadding": 216,
+      "prodsCount": 1,
+      "sampleProduct": "Выпрямитель Dyson Airstrait HT01 Gift, Amber Silk (с кейсом)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-gift-strawberry-bronze-blush-pink-s-keysom-40414/0-35266.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "644x838",
+      "contentRatio": "0.65",
+      "topPadding": 166,
+      "bottomPadding": 276,
+      "prodsCount": 1,
+      "sampleProduct": "Выпрямитель Dyson Airstrait HT01 Gift, Strawberry Bronze/Blush Pink (с кейсом)",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-nickel-copper-40400/0-50174.jpg",
+      "dimensions": "1045x1280",
+      "ratio": "1.22",
+      "contentSize": "1044x1278",
+      "contentRatio": "1.00",
+      "topPadding": 0,
+      "bottomPadding": 2,
+      "prodsCount": 1,
+      "sampleProduct": "Выпрямитель Dyson Airstrait HT01, Nickel/Copper",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-prussian-blue-rich-copper-40402/0-51022.jpg",
+      "dimensions": "788x1280",
+      "ratio": "1.62",
+      "contentSize": "688x792",
+      "contentRatio": "0.62",
+      "topPadding": 194,
+      "bottomPadding": 294,
+      "prodsCount": 1,
+      "sampleProduct": "Выпрямитель Dyson Airstrait HT01, Prussian Blue/Rich Copper",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/fen-dyson-supersonic-hd07-nickel-copper-40100/0-34637.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "682x1158",
+      "contentRatio": "0.90",
+      "topPadding": 64,
+      "bottomPadding": 58,
+      "prodsCount": 1,
+      "sampleProduct": "Фен Dyson Supersonic HD07, Nickel/Copper",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-i-d-long-hs08-curly-coily-red-velvet-gold-39820/0-41852.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "606x1058",
+      "contentRatio": "0.83",
+      "topPadding": 128,
+      "bottomPadding": 94,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap i.d. Long HS08 Curly & Coily, Red Velvet/Gold",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-i-d-long-hs08-curly-coily-vinca-blue-topaz-39818/0-82541.jpg",
+      "dimensions": "1094x1280",
+      "ratio": "1.17",
+      "contentSize": "1038x1136",
+      "contentRatio": "0.89",
+      "topPadding": 76,
+      "bottomPadding": 68,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap i.d. Long HS08 Curly & Coily, Vinca Blue/Topaz",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-deep-blue-256gb-01495/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Deep Blue, 256GB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-soft-pink-512gb-01460/0-20106.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "640x682",
+      "contentRatio": "0.53",
+      "topPadding": 280,
+      "bottomPadding": 318,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17e, Soft Pink, 512GB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-deep-blue-256gb-01522/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Deep Blue, 256GB",
+      "category": "iphone-17"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-silver-1tb-01537/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Silver, 1TB",
+      "category": "iphone-17"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-silver-512gb-esim-01502/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Silver, 512GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-deep-blue-512gb-esim-01505/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Deep Blue, 512GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-deep-blue-512gb-01531/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Deep Blue, 512GB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-silver-512gb-01501/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Silver, 512GB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-silver-2tb-01546/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Silver, 2TB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-silver-2tb-esim-01547/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro Max, Silver, 2TB eSim",
+      "category": "iphone-17"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-complete-long-hs05-ceramic-pop-39807/0-65585.jpg",
+      "dimensions": "993x1280",
+      "ratio": "1.29",
+      "contentSize": "868x1172",
+      "contentRatio": "0.92",
+      "topPadding": 38,
+      "bottomPadding": 70,
+      "prodsCount": 1,
+      "sampleProduct": "Стайлер Dyson Airwrap Complete Long HS05, Ceramic Pop",
+      "category": "dyson"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-white-512gb-esim-01457/0-18385.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "628x638",
+      "contentRatio": "0.50",
+      "topPadding": 268,
+      "bottomPadding": 374,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17e, White, 512GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-white-512gb-01456/0-18385.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "628x638",
+      "contentRatio": "0.50",
+      "topPadding": 268,
+      "bottomPadding": 374,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17e, White, 512GB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-soft-pink-512gb-esim-01461/0-20106.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "640x682",
+      "contentRatio": "0.53",
+      "topPadding": 280,
+      "bottomPadding": 318,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17e, Soft Pink, 512GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-silver-256gb-01492/0-39681.jpg",
+      "dimensions": "1072x1280",
+      "ratio": "1.19",
+      "contentSize": "1034x948",
+      "contentRatio": "0.74",
+      "topPadding": 188,
+      "bottomPadding": 144,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Silver, 256GB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-white-256gb-01450/0-18385.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "628x638",
+      "contentRatio": "0.50",
+      "topPadding": 268,
+      "bottomPadding": 374,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17e, White, 256GB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-soft-pink-256gb-01454/0-20106.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "640x682",
+      "contentRatio": "0.53",
+      "topPadding": 280,
+      "bottomPadding": 318,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17e, Soft Pink, 256GB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-soft-pink-256gb-esim-01455/0-20106.jpg",
+      "dimensions": "720x1280",
+      "ratio": "1.78",
+      "contentSize": "640x682",
+      "contentRatio": "0.53",
+      "topPadding": 280,
+      "bottomPadding": 318,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17e, Soft Pink, 256GB eSim",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-deep-blue-1tb-01513/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Deep Blue, 1TB",
+      "category": "Apple"
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-deep-blue-512gb-01504/0-44615.jpg",
+      "dimensions": "1042x1280",
+      "ratio": "1.23",
+      "contentSize": "998x976",
+      "contentRatio": "0.76",
+      "topPadding": 146,
+      "bottomPadding": 158,
+      "prodsCount": 1,
+      "sampleProduct": "iPhone 17 Pro, Deep Blue, 512GB",
+      "category": "Apple"
+    }
+  ],
+  "alreadySquare": [
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-18-square/square-burgundy.jpg",
+      "prodsCount": 14
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/apple-iphone-15-256gb-blue-1sim-esim-60082/0-129740.jpeg",
+      "dimensions": "1300x1300",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/apple-iphone-15-256gb-blue-1sim-esim-60082/1-53564.jpeg",
+      "dimensions": "1300x1300",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/apple-iphone-15-256gb-blue-1sim-esim-60082/2-111149.jpeg",
+      "dimensions": "1300x1300",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/apple-iphone-15-256gb-black-1sim-esim-60081/0-122539.jpeg",
+      "dimensions": "1300x1300",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/apple-iphone-15-256gb-black-1sim-esim-60081/1-61527.jpeg",
+      "dimensions": "1300x1300",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/apple-iphone-15-256gb-black-1sim-esim-60081/2-130534.jpeg",
+      "dimensions": "1300x1300",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/apple-iphone-16-128gb-black-esim-sim-60083/0-123925.jpeg",
+      "dimensions": "1300x1300",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/apple-iphone-16-128gb-black-esim-sim-60083/1-58706.jpeg",
+      "dimensions": "1300x1300",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/apple-iphone-16-128gb-black-esim-sim-60083/2-108827.jpeg",
+      "dimensions": "1300x1300",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-18-square/square-silver.jpg",
+      "prodsCount": 14
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-gift-jasper-plum-s-keysom-40415/0-54309.jpg",
+      "dimensions": "1150x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-gift-jasper-plum-s-keysom-40415/1-43265.jpg",
+      "dimensions": "1207x1197",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-18-square/square-black.jpg",
+      "prodsCount": 13
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-cosmic-orange-1tb-esim-01517/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-complete-long-hs05-nickel-copper-39800/0-87610.jpg",
+      "dimensions": "1280x1092",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-apricot-topaz-40421/1-46111.jpg",
+      "dimensions": "1280x1025",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-18-square/square-blue.jpg",
+      "prodsCount": 14
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-cosmic-orange-512gb-01534/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-red-velvet-gold-eu-vilka-s-keysom-40411/1-52444.jpg",
+      "dimensions": "1280x856",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-complete-long-hs05-topaz-oranzhevyy-39863/1-48517.jpg",
+      "dimensions": "1227x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-cosmic-orange-2tb-esim-01553/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-cosmic-orange-1tb-01516/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-cosmic-orange-512gb-esim-01508/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-cosmic-orange-512gb-01507/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-black-512gb-01458/0-50972.jpg",
+      "dimensions": "1280x1160",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-cosmic-orange-512gb-esim-01535/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/stayler-dyson-airwrap-i-d-long-hs08-curly-coily-ceramic-patina-topaz-39832/0-46588.jpg",
+      "dimensions": "1280x1198",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-cosmic-orange-256gb-01525/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-cosmic-orange-256gb-esim-01526/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-cosmic-orange-2tb-01552/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-cosmic-orange-1tb/0-348657.png",
+      "dimensions": "666x666",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-cosmic-orange-1tb/1-302338.png",
+      "dimensions": "666x666",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-max-cosmic-orange-1tb/2-557467.png",
+      "dimensions": "666x666",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/vypryamitel-dyson-airstrait-ht01-gift-amber-silk-s-keysom-40416/1-41219.jpg",
+      "dimensions": "1280x1143",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-cosmic-orange-256gb-esim-01499/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17-pro-cosmic-orange-256gb-01498/0-107043.jpg",
+      "dimensions": "1222x1280",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-black-256gb-esim-01453/0-59092.jpg",
+      "dimensions": "1280x1227",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-black-512gb-esim-01459/0-50972.jpg",
+      "dimensions": "1280x1160",
+      "prodsCount": 1
+    },
+    {
+      "url": "https://db.orangemsk.ru/storage/v1/object/public/products/iphone-17e-black-256gb-01452/0-59092.jpg",
+      "dimensions": "1280x1227",
+      "prodsCount": 1
+    }
+  ],
+  "errors": []
+}
