@@ -1,5 +1,6 @@
 "use server"
 
+import { createClient } from "@supabase/supabase-js"
 import { getAdminClient } from "@/lib/supabase/admin"
 import {
   sendPasswordResetEmail,
@@ -292,7 +293,7 @@ export async function confirmExistingUser(email: string): Promise<boolean> {
 }
 
 /**
- * Запрос на сброс пароля: формирует безопасную ссылку через Supabase Admin API
+ * Запрос на сброс пароля: формирует ссылку и OTP-код через Supabase Admin API
  * и отправляет фирменное письмо через настроенный SMTP (Selectel)
  */
 export async function requestPasswordReset(email: string): Promise<PasswordResetResult> {
@@ -323,6 +324,7 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
     }
 
     const actionLink = data?.properties?.action_link
+    const emailOtp = data?.properties?.email_otp
     if (!actionLink) {
       return { ok: false, error: "Не удалось сформировать ссылку для сброса пароля" }
     }
@@ -332,6 +334,7 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
     const emailRes = await sendPasswordResetEmail({
       email: trimmedEmail,
       resetUrl: actionLink,
+      code: emailOtp,
       userName,
     })
 
@@ -343,6 +346,74 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
   } catch (err: any) {
     console.error("Password reset request error:", err)
     return { ok: false, error: err?.message || "Ошибка сервера" }
+  }
+}
+
+/**
+ * Прямой сброс пароля по 6-значному проверочному коду из письма.
+ * Полностью исключает ошибку "Auth session missing", так как валидирует код напрямую на сервере.
+ */
+export async function resetPasswordWithCode({
+  email,
+  code,
+  newPassword,
+}: {
+  email: string
+  code: string
+  newPassword: string
+}): Promise<PasswordResetResult> {
+  const trimmedEmail = email.trim().toLowerCase()
+  const trimmedCode = code.trim()
+
+  if (!trimmedEmail || !trimmedCode || !newPassword) {
+    return { ok: false, error: "Заполните все обязательные поля" }
+  }
+
+  if (newPassword.length < 6) {
+    return { ok: false, error: "Пароль должен содержать не менее 6 символов" }
+  }
+
+  try {
+    const supabaseAdmin = getAdminClient()
+    const { data: listData } = await supabaseAdmin.auth.admin.listUsers()
+    const user = listData?.users.find((u) => u.email?.toLowerCase() === trimmedEmail)
+
+    if (!user) {
+      return { ok: false, error: "Пользователь с таким email не найден" }
+    }
+
+    // Проверяем OTP код через Supabase verifyOtp
+    const pubKey =
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    const client = createClient("https://db.orangemsk.ru", pubKey!, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const { error: verifyErr } = await client.auth.verifyOtp({
+      email: trimmedEmail,
+      token: trimmedCode,
+      type: "recovery",
+    })
+
+    if (verifyErr) {
+      console.warn("verifyOtp error:", verifyErr.message)
+      return { ok: false, error: "Неверный или истёкший проверочный код. Запросите сброс пароля заново." }
+    }
+
+    // Обновляем пароль пользователю через Admin API
+    const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+      password: newPassword,
+    })
+
+    if (updErr) {
+      return { ok: false, error: updErr.message }
+    }
+
+    return { ok: true }
+  } catch (err: any) {
+    console.error("Reset password error:", err)
+    return { ok: false, error: err?.message || "Ошибка сервера при смене пароля" }
   }
 }
 
