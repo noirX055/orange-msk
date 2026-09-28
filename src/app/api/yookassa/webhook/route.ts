@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getAdminClient } from "@/lib/supabase/admin"
+import { sendOrderReceiptEmail } from "@/lib/email"
 
 // Webhook от ЮКасса не требует авторизации пользователя —
 // ЮКасса отправляет уведомления напрямую на наш сервер.
-// Для безопасности проверяем наличие payment_id в нашей БД.
+// Для надёжности и безопасности используем getAdminClient() (Service Role).
 
 export async function POST(request: Request) {
   try {
@@ -19,20 +20,20 @@ export async function POST(request: Request) {
 
     console.log(`[YooKassa Webhook] event=${event} objectId=${objectId} status=${objectStatus}`)
 
-    const supabase = await createClient()
+    const supabaseAdmin = getAdminClient()
 
     // refund.succeeded: object.id — ID возврата, payment_id — ID исходного платежа
     if (event === "refund.succeeded") {
       const refundPaymentId = body.object?.payment_id as string | undefined
       if (refundPaymentId) {
-        const { data: refundOrder } = await supabase
+        const { data: refundOrder } = await supabaseAdmin
           .from("orders")
           .select("id, status")
           .eq("payment_id", refundPaymentId)
           .single()
 
         if (refundOrder && refundOrder.status !== "refunded") {
-          await supabase
+          await supabaseAdmin
             .from("orders")
             .update({ status: "refunded" })
             .eq("id", refundOrder.id)
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
     }
 
     // payment.*: object.id — ID платежа
-    const { data: order } = await supabase
+    const { data: order } = await supabaseAdmin
       .from("orders")
       .select("id, status")
       .eq("payment_id", objectId)
@@ -59,16 +60,86 @@ export async function POST(request: Request) {
     }
 
     if (event === "payment.succeeded" && order.status === "pending_payment") {
-      await supabase
+      await supabaseAdmin
         .from("orders")
         .update({ status: "processing" })
         .eq("id", order.id)
 
       console.log(`[YooKassa Webhook] Заказ ${order.id} → processing (оплачен)`)
+
+      // Отправка электронного чека клиенту
+      try {
+        const { data: orderDetails } = await supabaseAdmin
+          .from("orders")
+          .select(`
+            id,
+            created_at,
+            subtotal,
+            delivery,
+            total,
+            recipient_name,
+            phone,
+            address,
+            user_id,
+            order_items (
+              name,
+              color,
+              price,
+              quantity
+            )
+          `)
+          .eq("id", order.id)
+          .single()
+
+        if (orderDetails) {
+          let customerEmail: string | undefined = body.object?.receipt?.customer?.email
+          let customerName = orderDetails.recipient_name || undefined
+
+          if (!customerEmail && orderDetails.user_id) {
+            const { data: userData } = await supabaseAdmin.auth.admin.getUserById(
+              orderDetails.user_id
+            )
+            customerEmail = userData?.user?.email
+            if (!customerName) {
+              customerName = userData?.user?.user_metadata?.full_name
+            }
+          }
+
+          if (customerEmail) {
+            const receiptRes = await sendOrderReceiptEmail({
+              orderId: orderDetails.id,
+              date: orderDetails.created_at
+                ? new Date(orderDetails.created_at).toLocaleDateString("ru-RU")
+                : undefined,
+              customerEmail,
+              customerName,
+              phone: orderDetails.phone || undefined,
+              address: orderDetails.address || undefined,
+              items: (orderDetails.order_items || []).map((i: any) => ({
+                name: i.name,
+                color: i.color || undefined,
+                price: Number(i.price),
+                quantity: Number(i.quantity),
+              })),
+              subtotal: Number(orderDetails.subtotal),
+              delivery: Number(orderDetails.delivery || 0),
+              total: Number(orderDetails.total),
+            })
+            console.log(
+              `[YooKassa Webhook] Отправка чека на ${customerEmail}:`,
+              receiptRes.success ? "УСПЕХ" : receiptRes.error
+            )
+          } else {
+            console.warn(`[YooKassa Webhook] Не удалось определить email для заказа #${order.id}`)
+          }
+        }
+      } catch (receiptErr) {
+        console.error(`[YooKassa Webhook] Ошибка при отправке чека:`, receiptErr)
+      }
     }
 
     if (event === "payment.canceled" && order.status === "pending_payment") {
-      await supabase
+      await supabaseAdmin
         .from("orders")
         .update({ status: "cancelled" })
         .eq("id", order.id)

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next"
-import { createClient } from "@/lib/supabase/server"
+import { createPublicClient } from "@/lib/supabase/public"
 import { categories } from "@/lib/products"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 3. Динамические страницы товаров
   let productRoutes: MetadataRoute.Sitemap = []
   try {
-    const supabase = await createClient()
+    const supabase = createPublicClient()
     const { data: products } = await supabase
       .from("products")
       .select("slug, updated_at, created_at")

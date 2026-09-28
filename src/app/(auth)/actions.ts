@@ -1,33 +1,25 @@
 "use server"
 
-import { createClient } from "@supabase/supabase-js"
-
-function getAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-
-  if (!url || !key) {
-    throw new Error("Supabase URL или Service Role Key не заданы в переменных окружения")
-  }
-
-  return createClient(url, key, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
-}
+import { getAdminClient } from "@/lib/supabase/admin"
+import {
+  sendPasswordResetEmail,
+  sendVerificationCodeEmail,
+  type SendEmailResult,
+} from "@/lib/email"
 
 export type RegisterResult = {
   ok: boolean
   error?: string
 }
 
+export type PasswordResetResult = {
+  ok: boolean
+  error?: string
+}
+
 /**
  * Регистрация пользователя на стороне сервера с автоматическим подтверждением email.
- * Обходит SMTP-отправку писем в GoTrue/Supabase, что критично для self-hosted Supabase без почтового сервера.
+ * Обходит SMTP-отправку писем в GoTrue/Supabase, что критично для self-hosted Supabase.
  */
 export async function registerUser({
   name,
@@ -114,4 +106,87 @@ export async function confirmExistingUser(email: string): Promise<boolean> {
     console.warn("Error auto-confirming user:", e)
   }
   return false
+}
+
+/**
+ * Запрос на сброс пароля: формирует безопасную ссылку через Supabase Admin API
+ * и отправляет фирменное письмо через настроенный SMTP (Selectel)
+ */
+export async function requestPasswordReset(email: string): Promise<PasswordResetResult> {
+  const trimmedEmail = email.trim().toLowerCase()
+  if (!trimmedEmail) {
+    return { ok: false, error: "Укажите адрес электронной почты" }
+  }
+
+  try {
+    const supabaseAdmin = getAdminClient()
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orangemsk.ru"
+
+    const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email: trimmedEmail,
+      options: {
+        redirectTo: `${siteUrl}/reset-password`,
+      },
+    })
+
+    if (error) {
+      const msg = error.message.toLowerCase()
+      if (msg.includes("not found")) {
+        // Защита от перебора: возвращаем успех, даже если пользователя нет
+        return { ok: true }
+      }
+      return { ok: false, error: error.message }
+    }
+
+    const actionLink = data?.properties?.action_link
+    if (!actionLink) {
+      return { ok: false, error: "Не удалось сформировать ссылку для сброса пароля" }
+    }
+
+    const userName = data.user?.user_metadata?.full_name || undefined
+
+    const emailRes = await sendPasswordResetEmail({
+      email: trimmedEmail,
+      resetUrl: actionLink,
+      userName,
+    })
+
+    if (!emailRes.success) {
+      return { ok: false, error: emailRes.error || "Не удалось отправить письмо" }
+    }
+
+    return { ok: true }
+  } catch (err: any) {
+    console.error("Password reset request error:", err)
+    return { ok: false, error: err?.message || "Ошибка сервера" }
+  }
+}
+
+/**
+ * Отправка произвольного 6-значного кода верификации
+ */
+export async function sendEmailVerificationCode({
+  email,
+  userName,
+  actionType = "подтверждения",
+}: {
+  email: string
+  userName?: string
+  actionType?: string
+}): Promise<SendEmailResult & { code?: string }> {
+  const trimmedEmail = email.trim().toLowerCase()
+  const code = Math.floor(100000 + Math.random() * 900000).toString()
+
+  const result = await sendVerificationCodeEmail({
+    email: trimmedEmail,
+    code,
+    userName,
+    actionType,
+  })
+
+  return {
+    ...result,
+    code: result.success ? code : undefined,
+  }
 }

@@ -89,6 +89,15 @@ export default function LoginPage() {
           placeholder="••••••••"
         />
 
+        <div className="-mt-2 flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="text-xs text-muted-foreground transition-colors hover:text-primary"
+          >
+            Забыли пароль?
+          </Link>
+        </div>
+
         <AuthSubmit id="login-submit" loading={loading}>
           Войти
         </AuthSubmit>

@@ -47,7 +47,7 @@ export function ProductHoverGallery({
           alt={index === 0 ? alt : `${alt} — фото ${index + 1}`}
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
-          className={`object-contain p-3 mix-blend-multiply dark:mix-blend-normal transition-opacity duration-200 ${
+          className={`object-contain p-2 mix-blend-multiply dark:mix-blend-normal transition-opacity duration-200 ${
             index === active ? "opacity-100" : "opacity-0"
           }`}
           priority={false}
