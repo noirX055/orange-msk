@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { requireAdmin } from "@/lib/admin/guard"
+import { getAdminClient } from "@/lib/supabase/admin"
 import type { OrderStatus } from "@/lib/account/queries"
 import { REFUNDABLE_ORDER_STATUSES } from "@/lib/account/types"
 import { createRefund, getPayment } from "@/lib/yookassa"
@@ -222,7 +223,8 @@ export async function toggleProductVisibility(formData: FormData): Promise<void>
 
 // ---------- Заказы ----------
 export async function updateOrderStatus(formData: FormData): Promise<void> {
-  const { supabase } = await requireAdmin()
+  await requireAdmin()
+  const supabase = getAdminClient()
   const id = String(formData.get("id") ?? "")
   const status = String(formData.get("status") ?? "") as OrderStatus
   if (!id || !status) return
@@ -233,7 +235,8 @@ export async function updateOrderStatus(formData: FormData): Promise<void> {
 }
 
 export async function removeOrderItem(formData: FormData): Promise<void> {
-  const { supabase } = await requireAdmin()
+  await requireAdmin()
+  const supabase = getAdminClient()
   const itemId = String(formData.get("item_id") ?? "")
   const orderId = String(formData.get("order_id") ?? "")
   if (!itemId) return
@@ -271,7 +274,8 @@ export async function refundOrder(
   _prev: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  const { supabase } = await requireAdmin()
+  await requireAdmin()
+  const supabase = getAdminClient()
   const id = String(formData.get("id") ?? "")
   if (!id) return { ok: false, error: "Не указан заказ" }
 
@@ -279,10 +283,14 @@ export async function refundOrder(
     .from("orders")
     .select("id, status, payment_id, total")
     .eq("id", id)
-    .single()
+    .maybeSingle()
 
-  if (orderError || !order) return { ok: false, error: "Заказ не найден" }
-  if (!order.payment_id) return { ok: false, error: "У заказа нет привязанного платежа" }
+  if (orderError) {
+    console.error("[refundOrder] Ошибка чтения заказа:", orderError)
+    return { ok: false, error: `Ошибка базы данных: ${orderError.message}` }
+  }
+  if (!order) return { ok: false, error: "Заказ не найден в базе данных" }
+  if (!order.payment_id) return { ok: false, error: "У заказа нет привязанного платежа в ЮКасса" }
   if (order.status === "refunded") return { ok: false, error: "Возврат по этому заказу уже оформлен" }
   if (!REFUNDABLE_ORDER_STATUSES.includes(order.status as OrderStatus)) {
     return { ok: false, error: "Возврат доступен только для оплаченных заказов" }
@@ -291,7 +299,7 @@ export async function refundOrder(
   try {
     const payment = await getPayment(order.payment_id)
     if (payment.status !== "succeeded") {
-      return { ok: false, error: "Платёж не был успешно завершён — возврат невозможен" }
+      return { ok: false, error: `Платёж в ЮКасса имеет статус "${payment.status}" — возврат невозможен` }
     }
 
     const refund = await createRefund({
@@ -318,9 +326,10 @@ export async function refundOrder(
       message: `Возврат ${formatRefundAmount(order.total)} оформлен.${receiptNote} Деньги вернутся покупателю в срок, установленный банком.`,
     }
   } catch (error) {
+    console.error("[refundOrder] Ошибка при оформлении возврата:", error)
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Не удалось оформить возврат",
+      error: error instanceof Error ? error.message : "Не удалось оформить возврат в ЮКасса",
     }
   }
 }
@@ -334,7 +343,8 @@ function formatRefundAmount(amount: number): string {
 }
 
 export async function deleteOrder(formData: FormData): Promise<void> {
-  const { supabase } = await requireAdmin()
+  await requireAdmin()
+  const supabase = getAdminClient()
   const id = String(formData.get("id") ?? "")
   if (!id) return
 
