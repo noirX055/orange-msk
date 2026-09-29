@@ -4,8 +4,8 @@
 const YOOKASSA_API = "https://api.yookassa.ru/v3"
 
 function getAuthHeader(): string {
-  const shopId = process.env.YOOKASSA_SHOP_ID
-  const secretKey = process.env.YOOKASSA_SECRET_KEY
+  const shopId = process.env.YOOKASSA_SHOP_ID?.trim()
+  const secretKey = process.env.YOOKASSA_SECRET_KEY?.trim()
   if (!shopId || !secretKey) {
     throw new Error("YOOKASSA_SHOP_ID и YOOKASSA_SECRET_KEY должны быть заданы в .env.local")
   }
