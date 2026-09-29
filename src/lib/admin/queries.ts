@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getAdminClient } from "@/lib/supabase/admin"
 import { mapProduct, type ProductRow } from "@/lib/products/queries"
 import type { Order, OrderStatus } from "@/lib/account/queries"
 import type { ProductAttribute, ProductAttributeValue } from "@/lib/admin/attributes-types"
@@ -15,13 +16,13 @@ export type AdminStats = {
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
-  const supabase = await createClient()
+  const supabase = getAdminClient()
 
   const [{ count: products }, { count: orders }, { count: pending }, { data: doneOrders }] =
     await Promise.all([
       supabase.from("products").select("id", { count: "exact", head: true }),
       supabase.from("orders").select("id", { count: "exact", head: true }),
-      supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "new"),
+      supabase.from("orders").select("id", { count: "exact", head: true }).in("status", ["new", "processing"]),
       supabase.from("orders").select("total").eq("status", "done"),
     ])
 
@@ -260,7 +261,7 @@ export async function getProductById(id: string): Promise<Product | null> {
 export type AdminOrder = Order & { buyer_name: string | null; buyer_email_id: string }
 
 export async function getAllOrders(status?: OrderStatus): Promise<AdminOrder[]> {
-  const supabase = await createClient()
+  const supabase = getAdminClient()
 
   let query = supabase
     .from("orders")
@@ -274,7 +275,7 @@ export async function getAllOrders(status?: OrderStatus): Promise<AdminOrder[]> 
   const { data } = await query
   const orders = (data as (Order & { user_id: string })[] | null) ?? []
 
-  // Имена покупателей — отдельным запросом по profiles (политика Admins can view all profiles)
+  // Имена покупателей — отдельным запросом по profiles
   const userIds = Array.from(new Set(orders.map((order) => order.user_id)))
   const names = new Map<string, string | null>()
 
@@ -297,7 +298,7 @@ export async function getAllOrders(status?: OrderStatus): Promise<AdminOrder[]> 
 }
 
 export async function getOrderById(id: string): Promise<AdminOrder | null> {
-  const supabase = await createClient()
+  const supabase = getAdminClient()
   const { data } = await supabase
     .from("orders")
     .select(

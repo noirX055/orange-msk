@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/products"
 
 const filters: { value: string; label: string }[] = [
   { value: "all", label: "Все" },
+  { value: "pending_payment", label: "Ожидают оплаты" },
   { value: "new", label: "Новые" },
   { value: "processing", label: "В обработке" },
   { value: "shipping", label: "В доставке" },
