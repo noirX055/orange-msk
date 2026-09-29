@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import {
   startRegistration,
@@ -11,8 +11,10 @@ import {
 } from "../actions"
 import { AuthAlert, AuthField, AuthSubmit } from "@/components/auth-ui"
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get("returnTo") || ""
   const [step, setStep] = useState<"form" | "verify">("form")
 
   // Поля формы
@@ -97,11 +99,11 @@ export default function RegisterPage() {
     })
 
     if (signInError) {
-      router.push("/login")
+      router.push(returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login")
       return
     }
 
-    router.push("/account")
+    router.push(returnTo || "/account")
     router.refresh()
   }
 
@@ -185,7 +187,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center text-xs text-muted-foreground">
             Уже есть аккаунт?{" "}
             <Link
-              href="/login"
+              href={returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login"}
               className="font-semibold text-foreground underline underline-offset-4 hover:text-primary"
             >
               Войти
@@ -272,5 +274,13 @@ export default function RegisterPage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[400px]" />}>
+      <RegisterForm />
+    </Suspense>
   )
 }

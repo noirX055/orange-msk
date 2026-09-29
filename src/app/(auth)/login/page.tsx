@@ -1,13 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { AuthAlert, AuthField, AuthSubmit } from "@/components/auth-ui"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get("returnTo") || "/"
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -35,9 +38,19 @@ export default function LoginPage() {
       return
     }
 
-    router.push("/")
+    router.push(returnTo)
     router.refresh()
   }
+
+  const registerHref =
+    returnTo && returnTo !== "/"
+      ? `/register?returnTo=${encodeURIComponent(returnTo)}`
+      : "/register"
+
+  const forgotHref =
+    returnTo && returnTo !== "/"
+      ? `/forgot-password?returnTo=${encodeURIComponent(returnTo)}`
+      : "/forgot-password"
 
   return (
     <div className="w-full">
@@ -47,7 +60,9 @@ export default function LoginPage() {
           Добро пожаловать
         </h1>
         <p className="mt-2 text-[0.9rem] leading-relaxed text-muted-foreground">
-          Войдите, чтобы отслеживать заказы и копить&nbsp;бонусы
+          {returnTo.startsWith("/cart")
+            ? "Войдите в аккаунт, чтобы перейти к оформлению и оплате заказа"
+            : "Войдите, чтобы отслеживать заказы и копить бонусы"}
         </p>
       </div>
 
@@ -80,7 +95,7 @@ export default function LoginPage() {
 
         <div className="-mt-2 flex justify-end">
           <Link
-            href="/forgot-password"
+            href={forgotHref}
             className="text-xs text-muted-foreground transition-colors hover:text-primary"
           >
             Забыли пароль?
@@ -101,11 +116,19 @@ export default function LoginPage() {
 
       {/* Register link */}
       <Link
-        href="/register"
+        href={registerHref}
         className="flex h-12 items-center justify-center rounded-xl border border-border text-sm font-semibold transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
       >
         Создать аккаунт
       </Link>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[400px]" />}>
+      <LoginForm />
+    </Suspense>
   )
 }

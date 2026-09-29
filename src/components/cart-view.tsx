@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   Minus,
   Plus,
@@ -11,10 +12,12 @@ import {
   Store,
   MapPin,
   Check,
+  Loader2,
 } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { ProductVisual } from "@/components/product-visual"
 import { formatPrice } from "@/lib/products"
+import { createClient } from "@/lib/supabase/client"
 
 const DELIVERY_THRESHOLD = 5000
 const DELIVERY_PRICE = 490
@@ -22,7 +25,8 @@ const DELIVERY_PRICE = 490
 type DeliveryMethod = "courier" | "pickup"
 
 export function CartView() {
-  const { items, totalItems, totalPrice, updateQuantity, removeItem, clear } =
+  const router = useRouter()
+  const { items, totalItems, totalPrice, isLoaded, updateQuantity, removeItem, clear } =
     useCart()
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -33,6 +37,68 @@ export function CartView() {
   const [recipientName, setRecipientName] = useState("")
   const [phone, setPhone] = useState("")
   const [address, setAddress] = useState("")
+
+  // 1. Восстановление данных оформления заказа из sessionStorage и профиля
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("orange_checkout_draft")
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.deliveryMethod) setDeliveryMethod(parsed.deliveryMethod)
+        if (parsed.recipientName) setRecipientName(parsed.recipientName)
+        if (parsed.phone) setPhone(parsed.phone)
+        if (parsed.address) setAddress(parsed.address)
+      }
+    } catch {
+      // ignore
+    }
+
+    // Если поля не заполнены пользователем, пробуем подставить из профиля
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, phone")
+          .eq("id", user.id)
+          .single()
+
+        if (profile) {
+          setRecipientName((curr) => curr || profile.full_name || "")
+          setPhone((curr) => curr || profile.phone || "")
+        }
+
+        const { data: addresses } = await supabase
+          .from("addresses")
+          .select("city, street, apartment")
+          .order("is_default", { ascending: false })
+          .limit(1)
+
+        if (addresses && addresses[0]) {
+          const addr = addresses[0]
+          const fullAddr = [addr.city, addr.street, addr.apartment ? `кв./офис ${addr.apartment}` : ""]
+            .filter(Boolean)
+            .join(", ")
+          setAddress((curr) => curr || fullAddr)
+        }
+      } catch {
+        // ignore
+      }
+    })
+  }, [])
+
+  // 2. Автоматическое сохранение черновика при изменении полей
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        "orange_checkout_draft",
+        JSON.stringify({ deliveryMethod, recipientName, phone, address })
+      )
+    } catch {
+      // ignore
+    }
+  }, [deliveryMethod, recipientName, phone, address])
 
   // Расчёт стоимости доставки
   const isPickup = deliveryMethod === "pickup"
@@ -81,8 +147,14 @@ export function CartView() {
 
       if (!res.ok) {
         if (res.status === 401) {
-          // Не авторизован — перенаправляем на логин
-          window.location.href = "/login"
+          // Не авторизован — сохраняем черновик и направляем на логин с сохранением возврата
+          try {
+            sessionStorage.setItem(
+              "orange_checkout_draft",
+              JSON.stringify({ deliveryMethod, recipientName, phone, address })
+            )
+          } catch {}
+          router.push("/login?returnTo=/cart")
           return
         }
         setError(data.error ?? "Не удалось оформить заказ")
@@ -90,12 +162,26 @@ export function CartView() {
         return
       }
 
+      // Очищаем сохранённый черновик оформления
+      try {
+        sessionStorage.removeItem("orange_checkout_draft")
+      } catch {}
+
       // Редирект на страницу оплаты с виджетом ЮКасса
       window.location.href = `/checkout?token=${data.confirmationToken}&orderId=${data.orderId}&total=${data.total}&delivery=${data.delivery}`
     } catch {
       setError("Ошибка сети. Проверьте подключение к интернету.")
       setLoading(false)
     }
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 rounded-card border border-border p-10 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Загрузка корзины...</p>
+      </div>
+    )
   }
 
   if (submitted) {
