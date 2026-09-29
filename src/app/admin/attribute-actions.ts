@@ -5,15 +5,7 @@ import { redirect } from "next/navigation"
 import { requireAdmin } from "@/lib/admin/guard"
 import type { AdminActionState } from "@/app/admin/actions"
 import type { AttributeType } from "@/lib/admin/attributes-types"
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9а-я\s-_]/gi, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-}
+import { slugify } from "@/lib/slugify"
 
 function parseAttributeType(raw: string): AttributeType | null {
   if (raw === "text" || raw === "select" || raw === "color") return raw

@@ -6,25 +6,17 @@ import { requireAdmin } from "@/lib/admin/guard"
 import type { OrderStatus } from "@/lib/account/queries"
 import { REFUNDABLE_ORDER_STATUSES } from "@/lib/account/types"
 import { createRefund, getPayment } from "@/lib/yookassa"
+import { slugify } from "@/lib/slugify"
 
 export type AdminActionState = { ok: boolean; error?: string; message?: string }
 
 const BUCKET = "products"
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9а-я\s-]/gi, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-}
-
 // Разбирает общие поля товара из формы
 function parseProductForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim()
   const slugRaw = String(formData.get("slug") ?? "").trim()
-  const slug = slugRaw ? slugify(slugRaw) : slugify(name)
+  const slug = (slugRaw ? slugify(slugRaw) : slugify(name)) || `product-${Date.now().toString(36)}`
 
   const badge = String(formData.get("badge") ?? "").trim()
   const oldPriceRaw = String(formData.get("old_price") ?? "").trim()
@@ -81,11 +73,13 @@ async function collectImages(
   }
 
   const files = formData.getAll("images").filter((f): f is File => f instanceof File && f.size > 0)
+  const safeSlug = slugify(slug) || "product"
 
   for (const [index, file] of files.entries()) {
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
-    // Уникальное имя без Date.now(): slug + индекс + размер
-    const path = `${slug}/${index}-${file.size}.${ext}`
+    const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg"
+    // Чистый ASCII ключ для Supabase Storage без кириллицы
+    const fileIndex = kept.length + index
+    const path = `${safeSlug}/${fileIndex}-${file.size}.${ext}`
     const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
       upsert: true,
       contentType: file.type || undefined,
@@ -340,7 +334,7 @@ export async function createBrand(
 ): Promise<AdminActionState> {
   const { supabase } = await requireAdmin()
   const name = String(formData.get("name") ?? "").trim()
-  const slug = String(formData.get("slug") ?? "").trim() || slugify(name)
+  const slug = slugify(String(formData.get("slug") ?? "").trim() || name)
 
   if (!name) return { ok: false, error: "Укажите название бренда" }
 
@@ -362,7 +356,8 @@ export async function updateBrand(
   const { supabase } = await requireAdmin()
   const id = Number(formData.get("id"))
   const name = String(formData.get("name") ?? "").trim()
-  const slug = String(formData.get("slug") ?? "").trim()
+  const slugRaw = String(formData.get("slug") ?? "").trim()
+  const slug = slugify(slugRaw || name)
 
   if (!id) return { ok: false, error: "Не указан бренд" }
   if (!name) return { ok: false, error: "Укажите название бренда" }
@@ -650,7 +645,7 @@ export async function createCategory(
 ): Promise<AdminActionState> {
   const { supabase } = await requireAdmin()
   const name = String(formData.get("name") ?? "").trim()
-  const slug = String(formData.get("slug") ?? "").trim() || slugify(name)
+  const slug = slugify(String(formData.get("slug") ?? "").trim() || name)
 
   if (!name) return { ok: false, error: "Укажите название категории" }
 
@@ -673,7 +668,8 @@ export async function updateCategory(
   const { supabase } = await requireAdmin()
   const id = Number(formData.get("id"))
   const name = String(formData.get("name") ?? "").trim()
-  const slug = String(formData.get("slug") ?? "").trim()
+  const slugRaw = String(formData.get("slug") ?? "").trim()
+  const slug = slugify(slugRaw || name)
 
   if (!id) return { ok: false, error: "Не указана категория" }
   if (!name) return { ok: false, error: "Укажите название категории" }
