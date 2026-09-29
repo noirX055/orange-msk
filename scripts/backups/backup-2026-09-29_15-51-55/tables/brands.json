@@ -1,0 +1,65 @@
+[
+  {
+    "id": 3,
+    "name": "Google",
+    "slug": "google",
+    "logo_url": null,
+    "created_at": "2026-08-18T12:22:09.441102+00:00"
+  },
+  {
+    "id": 4,
+    "name": "HONOR",
+    "slug": "honor",
+    "logo_url": null,
+    "created_at": "2026-08-18T12:22:09.531048+00:00"
+  },
+  {
+    "id": 5,
+    "name": "Huawei",
+    "slug": "huawei",
+    "logo_url": null,
+    "created_at": "2026-08-18T12:22:09.63787+00:00"
+  },
+  {
+    "id": 6,
+    "name": "OnePlus",
+    "slug": "oneplus",
+    "logo_url": null,
+    "created_at": "2026-08-18T12:22:09.751096+00:00"
+  },
+  {
+    "id": 7,
+    "name": "Poco",
+    "slug": "poco",
+    "logo_url": null,
+    "created_at": "2026-08-18T12:22:09.856184+00:00"
+  },
+  {
+    "id": 8,
+    "name": "Samsung",
+    "slug": "samsung",
+    "logo_url": null,
+    "created_at": "2026-08-18T12:22:09.967822+00:00"
+  },
+  {
+    "id": 9,
+    "name": "Xiaomi",
+    "slug": "xiaomi",
+    "logo_url": null,
+    "created_at": "2026-08-18T12:22:10.083762+00:00"
+  },
+  {
+    "id": 1,
+    "name": "Apple",
+    "slug": "Apple",
+    "logo_url": null,
+    "created_at": "2026-08-18T12:22:08.921395+00:00"
+  },
+  {
+    "id": 2,
+    "name": "Dyson",
+    "slug": "dyson",
+    "logo_url": null,
+    "created_at": "2026-08-18T12:22:09.330031+00:00"
+  }
+]

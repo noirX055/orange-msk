@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-09-29T12:51:55.397Z",
+  "host": "https://db.orangemsk.ru",
+  "tables": {
+    "brands": 9,
+    "categories": 5,
+    "product_groups": 27,
+    "product_attributes": 7,
+    "product_attribute_values": 92,
+    "products": 5759,
+    "banners": 3,
+    "home_categories": 7,
+    "profiles": 9,
+    "orders": 23,
+    "order_items": 20,
+    "addresses": 0,
+    "favorites": 0
+  },
+  "totalRows": 5961,
+  "authUsersCount": 9,
+  "buckets": [
+    {
+      "id": "products",
+      "name": "products",
+      "public": true
+    },
+    {
+      "id": "banner-images",
+      "name": "banner-images",
+      "public": true
+    },
+    {
+      "id": "category-images",
+      "name": "category-images",
+      "public": true
+    }
+  ]
+}

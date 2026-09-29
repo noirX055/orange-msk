@@ -1,0 +1,228 @@
+[
+  {
+    "id": "12286c93-684f-4a92-afca-a17f1541c364",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "aldona.1999@mail.ru",
+    "email_confirmed_at": "2026-09-28T14:36:37.102473Z",
+    "phone": "",
+    "confirmed_at": "2026-09-28T14:36:37.102473Z",
+    "last_sign_in_at": "2026-09-28T14:36:37.509413Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "Алдона",
+      "role": "user"
+    },
+    "identities": null,
+    "created_at": "2026-09-28T14:36:27.450772Z",
+    "updated_at": "2026-09-28T14:36:37.511528Z",
+    "is_anonymous": false
+  },
+  {
+    "id": "3b0de72f-eabf-4b02-bdcb-59c191c74937",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "jack.danielspmr333@gmail.com",
+    "email_confirmed_at": "2026-09-28T13:32:59.086832Z",
+    "phone": "",
+    "confirmed_at": "2026-09-28T13:32:59.086832Z",
+    "last_sign_in_at": "2026-09-28T13:44:42.192507Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "Artemka",
+      "role": "user"
+    },
+    "identities": null,
+    "created_at": "2026-09-28T13:32:44.829031Z",
+    "updated_at": "2026-09-28T13:44:42.195529Z",
+    "is_anonymous": false
+  },
+  {
+    "id": "4bb087f5-fa09-4623-97b4-5acc19146e03",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "cryptoonyx3@gmail.com",
+    "email_confirmed_at": "2026-09-28T13:27:44.727819Z",
+    "phone": "",
+    "confirmed_at": "2026-09-28T13:27:44.727819Z",
+    "recovery_sent_at": "2026-09-28T13:28:11.104224Z",
+    "last_sign_in_at": "2026-09-28T13:28:29.433319Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "Crypto Onyx",
+      "role": "user"
+    },
+    "identities": null,
+    "created_at": "2026-09-28T13:27:44.724045Z",
+    "updated_at": "2026-09-28T13:28:29.434986Z",
+    "is_anonymous": false
+  },
+  {
+    "id": "ccf5543a-27a3-433c-a512-00980f14d1ae",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "leviiacc9@gmail.com",
+    "email_confirmed_at": "2026-09-28T13:19:40.885028Z",
+    "phone": "",
+    "confirmed_at": "2026-09-28T13:19:40.885028Z",
+    "last_sign_in_at": "2026-09-28T13:19:41.202565Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "Марк Паскарь",
+      "role": "user"
+    },
+    "identities": null,
+    "created_at": "2026-09-28T13:19:40.881172Z",
+    "updated_at": "2026-09-28T13:19:41.204828Z",
+    "is_anonymous": false
+  },
+  {
+    "id": "09353101-6d0b-4ead-bdd4-72461ecf7095",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "artemvoziyan333@gmail.com",
+    "email_confirmed_at": "2026-09-28T02:08:35.679115Z",
+    "phone": "",
+    "confirmed_at": "2026-09-28T02:08:35.679115Z",
+    "recovery_sent_at": "2026-09-28T13:07:48.016415Z",
+    "last_sign_in_at": "2026-09-28T02:08:36.344949Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "Семён Петров",
+      "role": "user"
+    },
+    "identities": null,
+    "created_at": "2026-09-28T02:08:35.675278Z",
+    "updated_at": "2026-09-28T13:19:02.477687Z",
+    "is_anonymous": false
+  },
+  {
+    "id": "00668240-51c4-4e47-b703-c332c7f5cd23",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "bethovenskorotnogo@gmail.com",
+    "email_confirmed_at": "2026-09-27T17:43:57.663066Z",
+    "phone": "",
+    "confirmed_at": "2026-09-27T17:43:57.663066Z",
+    "last_sign_in_at": "2026-09-27T17:43:58.25661Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "VOZIAN ARTIOM",
+      "role": "user"
+    },
+    "identities": null,
+    "created_at": "2026-09-27T17:43:57.658659Z",
+    "updated_at": "2026-09-27T17:43:58.25909Z",
+    "is_anonymous": false
+  },
+  {
+    "id": "2cec0498-a6ec-4796-a61d-48ae239f80a3",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "manager@orange-msk.ru",
+    "email_confirmed_at": "2026-09-05T12:44:43.663698Z",
+    "phone": "",
+    "confirmed_at": "2026-09-05T12:44:43.663698Z",
+    "last_sign_in_at": "2026-09-29T12:42:51.726845Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "full_name": "Менеджер Магазина",
+      "role": "admin"
+    },
+    "identities": null,
+    "created_at": "2026-09-05T12:44:43.663698Z",
+    "updated_at": "2026-09-29T12:45:06.2932Z",
+    "is_anonymous": false
+  },
+  {
+    "id": "30d4b049-3fda-422e-b5f9-4fb72f6c485b",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "admin@orange-msk.ru",
+    "email_confirmed_at": "2026-08-17T16:59:21.069793Z",
+    "phone": "",
+    "confirmed_at": "2026-08-17T16:59:21.069793Z",
+    "last_sign_in_at": "2026-09-05T11:27:50.464514Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "Анна Администратор",
+      "role": "admin"
+    },
+    "identities": null,
+    "created_at": "2026-08-17T16:59:21.06581Z",
+    "updated_at": "2026-09-05T12:33:04.751124Z",
+    "is_anonymous": false
+  },
+  {
+    "id": "df56586a-6b1e-4426-85f1-cd8f1954685a",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "user@orange-msk.ru",
+    "email_confirmed_at": "2026-08-17T16:59:20.96256Z",
+    "phone": "",
+    "confirmed_at": "2026-08-17T16:59:20.96256Z",
+    "last_sign_in_at": "2026-09-04T09:14:44.276295Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "Иван Покупатель",
+      "role": "user"
+    },
+    "identities": null,
+    "created_at": "2026-08-17T16:59:20.958527Z",
+    "updated_at": "2026-09-10T14:49:27.738595Z",
+    "is_anonymous": false
+  }
+]

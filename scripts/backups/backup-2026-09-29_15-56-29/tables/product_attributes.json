@@ -1,0 +1,72 @@
+[
+  {
+    "id": 17,
+    "slug": "кейс",
+    "name": "Кейс",
+    "type": "select",
+    "category_slug": "dyson",
+    "sort": 0,
+    "created_at": "2026-09-23T12:46:29.684367+00:00",
+    "is_filter": false
+  },
+  {
+    "id": 6,
+    "slug": "tsvet-samsung",
+    "name": "Цвет Samsung",
+    "type": "color",
+    "category_slug": "samsung",
+    "sort": 10,
+    "created_at": "2026-09-05T12:21:57.399102+00:00",
+    "is_filter": true
+  },
+  {
+    "id": 15,
+    "slug": "konfiguraciya-sim",
+    "name": "Конфигурация SIM",
+    "type": "select",
+    "category_slug": "smartphones",
+    "sort": 40,
+    "created_at": "2026-09-05T12:33:11.255905+00:00",
+    "is_filter": true
+  },
+  {
+    "id": 9,
+    "slug": "operativnaya-pamyat",
+    "name": "Оперативная память",
+    "type": "select",
+    "category_slug": null,
+    "sort": 30,
+    "created_at": "2026-09-05T12:21:57.399102+00:00",
+    "is_filter": false
+  },
+  {
+    "id": 5,
+    "slug": "tsvet-iphone",
+    "name": "Цвет iPhone",
+    "type": "color",
+    "category_slug": "iphone",
+    "sort": 10,
+    "created_at": "2026-09-05T12:21:57.399102+00:00",
+    "is_filter": true
+  },
+  {
+    "id": 7,
+    "slug": "tsvet-dyson",
+    "name": "Dyson",
+    "type": "color",
+    "category_slug": "dyson",
+    "sort": 10,
+    "created_at": "2026-09-05T12:21:57.399102+00:00",
+    "is_filter": false
+  },
+  {
+    "id": 8,
+    "slug": "vstroennaya-pamyat",
+    "name": "Встроенная память",
+    "type": "select",
+    "category_slug": "samsung",
+    "sort": 8,
+    "created_at": "2026-09-05T12:21:57.399102+00:00",
+    "is_filter": false
+  }
+]

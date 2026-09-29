@@ -1,0 +1,86 @@
+[
+  {
+    "id": "195d5abb-4b83-4f1e-b88e-cf182b62116b",
+    "category_label": "Смартфоны",
+    "title": "iPhone 16",
+    "image": "/categories/smartphone.png",
+    "price_from": "от 99 900 ₽",
+    "href": "/catalog?category=apple&series=iPhone+16",
+    "is_visible": true,
+    "sort": 10,
+    "created_at": "2026-09-23T10:56:32.09603+00:00",
+    "updated_at": "2026-09-23T10:56:32.09603+00:00"
+  },
+  {
+    "id": "c746e2f7-17a8-4aa5-8dde-3cb1b0bb98bb",
+    "category_label": "Смартфоны",
+    "title": "iPhone 15",
+    "image": "/categories/smartphone.png",
+    "price_from": "от 79 900 ₽",
+    "href": "/catalog?category=apple&series=iPhone+15",
+    "is_visible": true,
+    "sort": 20,
+    "created_at": "2026-09-23T10:56:32.09603+00:00",
+    "updated_at": "2026-09-23T10:56:32.09603+00:00"
+  },
+  {
+    "id": "182a04cf-f555-4249-ade8-22bb5bcc232c",
+    "category_label": "Ноутбуки",
+    "title": "MacBook",
+    "image": "/categories/laptop.png",
+    "price_from": "от 129 900 ₽",
+    "href": "/catalog?category=apple&series=MacBook",
+    "is_visible": true,
+    "sort": 30,
+    "created_at": "2026-09-23T10:56:32.09603+00:00",
+    "updated_at": "2026-09-23T10:56:32.09603+00:00"
+  },
+  {
+    "id": "d7cd2fe5-7fe5-45af-9ca9-def3e55ddef7",
+    "category_label": "Планшеты",
+    "title": "iPad",
+    "image": "/categories/laptop.png",
+    "price_from": "от 59 900 ₽",
+    "href": "/catalog?category=apple&series=iPad",
+    "is_visible": true,
+    "sort": 40,
+    "created_at": "2026-09-23T10:56:32.09603+00:00",
+    "updated_at": "2026-09-23T10:56:32.09603+00:00"
+  },
+  {
+    "id": "1eca07e5-335c-45e3-b8d1-b35a82b36729",
+    "category_label": "Смарт-часы",
+    "title": "Apple Watch",
+    "image": "/categories/whatch.png",
+    "price_from": "от 39 900 ₽",
+    "href": "/catalog?category=apple&series=Apple+Watch",
+    "is_visible": true,
+    "sort": 50,
+    "created_at": "2026-09-23T10:56:32.09603+00:00",
+    "updated_at": "2026-09-23T10:56:32.09603+00:00"
+  },
+  {
+    "id": "cc6de96b-e00a-4a5c-842d-038efbc49eec",
+    "category_label": "Наушники",
+    "title": "AirPods",
+    "image": "/categories/audi.png",
+    "price_from": "от 19 900 ₽",
+    "href": "/catalog?category=apple&series=AirPods",
+    "is_visible": true,
+    "sort": 60,
+    "created_at": "2026-09-23T10:56:32.09603+00:00",
+    "updated_at": "2026-09-23T10:56:32.09603+00:00"
+  },
+  {
+    "id": "78c5ea9a-83a0-4e88-9629-dec715b6c69b",
+    "category_label": "Apple",
+    "title": "iPhone 18 Pro",
+    "image": "https://db.orangemsk.ru/storage/v1/object/public/category-images/cat_1790161295664_yd7yc.webp",
+    "price_from": "от 99 900 ₽",
+    "href": "https://orangemsk.ru/catalog?category=Apple&series=iPhone%2018%20Pro",
+    "is_visible": true,
+    "sort": 1,
+    "created_at": "2026-09-23T11:01:35.736099+00:00",
+    "updated_at": "2026-09-28T15:43:10.12+00:00"
+  }
+]

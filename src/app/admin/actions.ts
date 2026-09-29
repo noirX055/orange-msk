@@ -7,6 +7,7 @@ import type { OrderStatus } from "@/lib/account/queries"
 import { REFUNDABLE_ORDER_STATUSES } from "@/lib/account/types"
 import { createRefund, getPayment } from "@/lib/yookassa"
 import { slugify } from "@/lib/slugify"
+import { normalizeProductImage } from "@/lib/images/normalize"
 
 export type AdminActionState = { ok: boolean; error?: string; message?: string }
 
@@ -76,13 +77,29 @@ async function collectImages(
   const safeSlug = slugify(slug) || "product"
 
   for (const [index, file] of files.entries()) {
-    const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg"
+    let uploadData: Buffer | File = file
+    let contentType = file.type || "image/jpeg"
+    let ext = "jpg"
+
+    try {
+      const arrayBuf = await file.arrayBuffer()
+      const normalizedBuf = await normalizeProductImage(Buffer.from(arrayBuf))
+      uploadData = normalizedBuf
+      contentType = "image/jpeg"
+      ext = "jpg"
+    } catch (normErr) {
+      console.warn(`Не удалось нормализовать изображение ${file.name}, сохраняем оригинал:`, normErr)
+      ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg"
+    }
+
     // Чистый ASCII ключ для Supabase Storage без кириллицы
     const fileIndex = kept.length + index
-    const path = `${safeSlug}/${fileIndex}-${file.size}.${ext}`
-    const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+    const size = uploadData instanceof Buffer ? uploadData.length : file.size
+    const path = `${safeSlug}/${fileIndex}-${size}.${ext}`
+
+    const { error } = await supabase.storage.from(BUCKET).upload(path, uploadData, {
       upsert: true,
-      contentType: file.type || undefined,
+      contentType,
     })
     if (error) {
       console.error("Upload error:", error)

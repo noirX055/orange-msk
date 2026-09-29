@@ -1,0 +1,42 @@
+[
+  {
+    "id": 180,
+    "name": "Samsung",
+    "slug": "samsung",
+    "parent_id": null,
+    "created_at": "2026-09-14T17:00:40.810587+00:00",
+    "is_visible": true
+  },
+  {
+    "id": 181,
+    "name": "Lego",
+    "slug": "lego",
+    "parent_id": null,
+    "created_at": "2026-09-14T17:00:51.835323+00:00",
+    "is_visible": true
+  },
+  {
+    "id": 182,
+    "name": "Аксессуары",
+    "slug": "accessories",
+    "parent_id": null,
+    "created_at": "2026-09-14T17:01:37.871421+00:00",
+    "is_visible": true
+  },
+  {
+    "id": 178,
+    "name": "Apple",
+    "slug": "Apple",
+    "parent_id": null,
+    "created_at": "2026-09-14T17:00:17.479581+00:00",
+    "is_visible": true
+  },
+  {
+    "id": 179,
+    "name": "Dyson",
+    "slug": "dyson",
+    "parent_id": null,
+    "created_at": "2026-09-14T17:00:33.614875+00:00",
+    "is_visible": true
+  }
+]

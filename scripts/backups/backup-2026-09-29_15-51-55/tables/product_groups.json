@@ -1,0 +1,267 @@
+[
+  {
+    "id": 199,
+    "name": "iPhone 17е",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 203,
+    "name": "HS-05",
+    "brand_id": 1,
+    "category_slug": "dyson",
+    "parent_group": "Стайлер",
+    "attribute_ids": [
+      17,
+      7
+    ],
+    "filter_attribute_ids": [
+      17,
+      7
+    ]
+  },
+  {
+    "id": 207,
+    "name": "HS-09",
+    "brand_id": 1,
+    "category_slug": "dyson",
+    "parent_group": "HS-09",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 209,
+    "name": "HD-07",
+    "brand_id": 1,
+    "category_slug": "dyson",
+    "parent_group": "HD-07",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 211,
+    "name": "HD-15",
+    "brand_id": 1,
+    "category_slug": "dyson",
+    "parent_group": "HD-15",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 214,
+    "name": "Смартфон Samsung S25 FE",
+    "brand_id": 8,
+    "category_slug": "samsung",
+    "parent_group": "Cамсунги",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 216,
+    "name": "Смартфон Samsung S26+",
+    "brand_id": 8,
+    "category_slug": "samsung",
+    "parent_group": "Cамсунги",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 217,
+    "name": "Смартфон Samsung S26 Ultra",
+    "brand_id": 8,
+    "category_slug": "samsung",
+    "parent_group": "Cамсунги",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 204,
+    "name": "HS-08",
+    "brand_id": 1,
+    "category_slug": "dyson",
+    "parent_group": "Стайлер",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 191,
+    "name": "iPhone 17 Pro",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [
+      2,
+      15,
+      5
+    ],
+    "filter_attribute_ids": [
+      2,
+      15,
+      5
+    ]
+  },
+  {
+    "id": 189,
+    "name": "iPhone 15",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [
+      5,
+      2,
+      15
+    ],
+    "filter_attribute_ids": [
+      5,
+      2,
+      15
+    ]
+  },
+  {
+    "id": 208,
+    "name": "HT-01",
+    "brand_id": 1,
+    "category_slug": "dyson",
+    "parent_group": "HT-01",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 212,
+    "name": "HD-16",
+    "brand_id": 1,
+    "category_slug": "dyson",
+    "parent_group": "HD-16",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 213,
+    "name": "HD-17",
+    "brand_id": 1,
+    "category_slug": "dyson",
+    "parent_group": "HD-17",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 215,
+    "name": "Смартфон Samsung S25 Ultra",
+    "brand_id": 8,
+    "category_slug": "samsung",
+    "parent_group": "Cамсунги",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 184,
+    "name": "iPhone 15 Pro",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 185,
+    "name": "iPhone 15 Pro Max",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 186,
+    "name": "iPhone 16",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 187,
+    "name": "iPhone 16 Pro",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 188,
+    "name": "iPhone 16 Pro Max",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 190,
+    "name": "iPhone 17 Pro Max",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 192,
+    "name": "iPhone 17",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 194,
+    "name": "iPhone 18 Pro Max",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 195,
+    "name": "iPhone 18 Pro",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 196,
+    "name": "iPhone Duo",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPhone",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 197,
+    "name": "iPad Air 13, М4 (2026)",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPad",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  },
+  {
+    "id": 198,
+    "name": "iPad Air 11, М4 (2026)",
+    "brand_id": 1,
+    "category_slug": "Apple",
+    "parent_group": "iPad",
+    "attribute_ids": [],
+    "filter_attribute_ids": []
+  }
+]
