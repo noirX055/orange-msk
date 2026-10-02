@@ -59,10 +59,14 @@ export class YandexMarketClient {
 
     const headers: Record<string, string> = {
       "Api-Key": this.apiKey,
-      Authorization: `Bearer ${this.apiKey}`,
       "Content-Type": "application/json",
       Accept: "application/json",
       ...((options.headers as Record<string, string>) || {}),
+    }
+
+    // Для OAuth токенов добавляем Bearer, для ACMA API-ключей используется Api-Key
+    if (!this.apiKey.startsWith("ACMA:")) {
+      headers["Authorization"] = `Bearer ${this.apiKey}`
     }
 
     try {
@@ -163,16 +167,47 @@ export class YandexMarketClient {
         (c) => String(c.id) === String(this.campaignId)
       ) || campaigns[0]
 
-      const businessId = targetCampaign?.business?.id
+      const businessId = targetCampaign?.business?.id || (this.businessId ? Number(this.businessId) : undefined)
+
+      if (campaigns.length > 0) {
+        return {
+          ok: true,
+          campaigns,
+          detectedBusinessId: businessId,
+          activeCampaign: targetCampaign,
+          message: `Успешно подключено к Яндекс.Маркет! Найдено кампаний: ${campaigns.length}`,
+        }
+      }
+
+      // Если список кампаний пуст, но задан businessId или campaignId — проверяем кабинет бизнеса
+      const testId = this.businessId || this.campaignId
+      if (testId) {
+        try {
+          await this.getOffers(1, undefined, testId)
+          return {
+            ok: true,
+            campaigns: [],
+            detectedBusinessId: Number(testId),
+            message: `Авторизация успешна! Подключен кабинет бизнеса #${testId}`,
+          }
+        } catch (offerErr: any) {
+          const errMsg = offerErr?.message || ""
+          if (errMsg.includes("API_DISABLED") || errMsg.includes("disabled partners")) {
+            return {
+              ok: true,
+              campaigns: [],
+              detectedBusinessId: Number(testId),
+              message: `Авторизация успешна (Бизнес #${testId}). Внимание: в кабинете Маркета магазин находится на модерации или отключен.`,
+            }
+          }
+          throw offerErr
+        }
+      }
 
       return {
         ok: true,
-        campaigns,
-        detectedBusinessId: businessId,
-        activeCampaign: targetCampaign,
-        message: campaigns.length > 0
-          ? `Успешно подключено к Яндекс.Маркет! Найдено кампаний: ${campaigns.length}`
-          : "Авторизация успешна, но кампании не найдены в этом аккаунте",
+        campaigns: [],
+        message: "Авторизация успешна, но кампании не найдены в этом аккаунте",
       }
     } catch (err: any) {
       return {
