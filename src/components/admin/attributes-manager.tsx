@@ -346,7 +346,7 @@ export function AttributesManager({
             {attributesList.map((attr) => {
               const isOpen = expandedId === attr.id
               const categoryName =
-                categories.find((c) => c.slug === attr.category_slug)?.name ?? "Все"
+                categories.find((c) => c.slug.toLowerCase() === attr.category_slug?.toLowerCase())?.name ?? "Все"
               return (
                 <tr key={attr.id} className="align-top">
                   <td className="px-4 py-3">

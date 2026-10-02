@@ -96,17 +96,17 @@ export function ProductsTable({
   )
 
   const filteredGroups = useMemo(() => {
-    const validCategorySlugs = new Set(categories.map((c) => c.slug))
-    const validGroups = groups.filter((g) => validCategorySlugs.has(g.category_slug))
+    const validCategorySlugs = new Set(categories.map((c) => c.slug.toLowerCase()))
+    const validGroups = groups.filter((g) => validCategorySlugs.has(g.category_slug?.toLowerCase()))
     if (category === "all") return validGroups
-    return validGroups.filter((g) => g.category_slug === category)
+    return validGroups.filter((g) => g.category_slug?.toLowerCase() === category.toLowerCase())
   }, [groups, category, categories])
 
   const bulkGroups = useMemo(() => {
-    const validCategorySlugs = new Set(categories.map((c) => c.slug))
-    const validGroups = groups.filter((g) => validCategorySlugs.has(g.category_slug))
+    const validCategorySlugs = new Set(categories.map((c) => c.slug.toLowerCase()))
+    const validGroups = groups.filter((g) => validCategorySlugs.has(g.category_slug?.toLowerCase()))
     if (!bulkCategory) return validGroups
-    return validGroups.filter((g) => g.category_slug === bulkCategory)
+    return validGroups.filter((g) => g.category_slug?.toLowerCase() === bulkCategory.toLowerCase())
   }, [groups, bulkCategory, categories])
 
   const filtered = useMemo(() => {
@@ -114,10 +114,10 @@ export function ProductsTable({
     const selectedGroup = groupFilter !== "all" ? groups.find((g) => String(g.id) === groupFilter) : null
 
     const list = products.filter((product) => {
-      if (category !== "all" && product.category !== category) return false
+      if (category !== "all" && product.category?.toLowerCase() !== category.toLowerCase()) return false
       if (brand !== "all" && product.brand !== brand) return false
       if (selectedGroup) {
-        if (product.category !== selectedGroup.category_slug) return false
+        if (product.category?.toLowerCase() !== selectedGroup.category_slug?.toLowerCase()) return false
         if ((product.series ?? "") !== selectedGroup.name) return false
       }
       if (q) {

@@ -201,7 +201,7 @@ export async function getGroupAttributes(
       .eq("name", seriesName)
 
     if (categorySlug) {
-      query = query.eq("category_slug", categorySlug)
+      query = query.ilike("category_slug", categorySlug)
     }
 
     const { data: groups } = await query.limit(1)

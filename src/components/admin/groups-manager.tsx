@@ -172,7 +172,7 @@ export function GroupsManager({
                       </td>
                     )}
                     <td className="px-4 py-3 text-muted-foreground">
-                      {categories.find((c) => c.slug === group.category_slug)?.name || group.category_slug}
+                      {categories.find((c) => c.slug.toLowerCase() === group.category_slug?.toLowerCase())?.name || group.category_slug}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">

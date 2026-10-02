@@ -40,15 +40,19 @@ export function MegaMenu({
     timeoutRef.current = setTimeout(() => setActiveCategory(null), 200)
   }
 
-  const activeItem = visibleCategories.find((item) => item.slug === activeCategory)
+  const activeItem = visibleCategories.find(
+    (item) => item.slug.toLowerCase() === activeCategory?.toLowerCase()
+  )
   const categoryGroups = activeItem
-    ? groups.filter((g) => g.category_slug === activeItem.slug)
+    ? groups.filter((g) => g.category_slug?.toLowerCase() === activeItem.slug.toLowerCase())
     : []
   const hasDropdown = categoryGroups.length > 0
 
   const sections = useMemo(() => {
     if (!activeItem) return []
-    const catGroups = groups.filter((g) => g.category_slug === activeItem.slug)
+    const catGroups = groups.filter(
+      (g) => g.category_slug?.toLowerCase() === activeItem.slug.toLowerCase()
+    )
 
     const parentMap = new Map<string, AdminGroup[]>()
     const standalone: AdminGroup[] = []

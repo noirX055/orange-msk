@@ -9,7 +9,11 @@ export function filterAttributesForCategory(
   categorySlug: string,
 ): ProductAttribute[] {
   return attributes
-    .filter((attr) => !attr.category_slug || attr.category_slug === categorySlug)
+    .filter(
+      (attr) =>
+        !attr.category_slug ||
+        attr.category_slug.toLowerCase() === categorySlug.toLowerCase()
+    )
     .sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name, "ru"))
 }
 

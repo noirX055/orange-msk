@@ -152,7 +152,7 @@ export function AttributeDetail({
   }
 
   const categoryName =
-    categories.find((c) => c.slug === attribute.category_slug)?.name ?? "Все категории"
+    categories.find((c) => c.slug.toLowerCase() === attribute.category_slug?.toLowerCase())?.name ?? "Все категории"
 
   return (
     <div className="flex flex-col gap-6">

@@ -41,6 +41,7 @@ export function getBrandLogo(brand: string) {
 }
 
 export const categories: Category[] = [
+  { slug: "apple", name: "Apple" },
   { slug: "lego", name: "Lego" },
   { slug: "dyson", name: "Dyson" },
   { slug: "samsung", name: "Samsung" },
@@ -66,7 +67,11 @@ export function formatPrice(value: number) {
 }
 
 export function getCategoryName(slug: string) {
-  return categories.find((category) => category.slug === slug)?.name ?? slug
+  if (!slug) return ""
+  return (
+    categories.find((category) => category.slug.toLowerCase() === slug.toLowerCase())?.name ??
+    slug
+  )
 }
 
 const galleryByCategory: Record<string, string[]> = {

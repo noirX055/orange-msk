@@ -163,7 +163,7 @@ export function ProductForm({
   const filteredGroups = groups.filter(
     (g) =>
       (!currentBrandId || g.brand_id === currentBrandId) &&
-      (!selectedCategory || g.category_slug === selectedCategory)
+      (!selectedCategory || g.category_slug?.toLowerCase() === selectedCategory.toLowerCase())
   )
 
   const currentGroup = useMemo(() => {
@@ -172,7 +172,7 @@ export function ProductForm({
       groups.find(
         (g) =>
           g.name === selectedSeries &&
-          (!selectedCategory || g.category_slug === selectedCategory)
+          (!selectedCategory || g.category_slug?.toLowerCase() === selectedCategory.toLowerCase())
       ) ||
       groups.find((g) => g.name === selectedSeries) ||
       null
@@ -206,7 +206,7 @@ export function ProductForm({
 
   const categoryAttributes = useMemo(() => {
     return attributes.filter(
-      (a) => !a.category_slug || a.category_slug === selectedCategory
+      (a) => !a.category_slug || a.category_slug?.toLowerCase() === selectedCategory.toLowerCase()
     )
   }, [attributes, selectedCategory])
 

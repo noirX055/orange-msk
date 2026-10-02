@@ -86,13 +86,17 @@ export function CategoriesManager({
   }
 
   const groupsForCategory = (slug: string) =>
-    initialGroups.filter((g) => g.category_slug === slug)
+    initialGroups.filter((g) => g.category_slug?.toLowerCase() === slug.toLowerCase())
 
   const parentGroupsForCategory = (slug: string) =>
     Array.from(
       new Set(
         initialGroups
-          .filter((g) => g.category_slug === slug && g.parent_group?.trim())
+          .filter(
+            (g) =>
+              g.category_slug?.toLowerCase() === slug.toLowerCase() &&
+              g.parent_group?.trim()
+          )
           .map((g) => g.parent_group!.trim())
       )
     ).sort()
@@ -176,7 +180,7 @@ export function CategoriesManager({
 
     const ids = Array.from(selectedGroups).filter((id) => {
       const g = initialGroups.find((item) => item.id === id)
-      return g && g.category_slug === categorySlug
+      return g && g.category_slug?.toLowerCase() === categorySlug.toLowerCase()
     })
 
     const formData = new FormData()
@@ -201,7 +205,7 @@ export function CategoriesManager({
 
     const ids = Array.from(selectedGroups).filter((id) => {
       const g = initialGroups.find((item) => item.id === id)
-      return g && g.category_slug === categorySlug
+      return g && g.category_slug?.toLowerCase() === categorySlug.toLowerCase()
     })
 
     const formData = new FormData()
@@ -278,7 +282,7 @@ export function CategoriesManager({
 
   const handleOpenAttrModalForParent = (parentName: string, categorySlug: string) => {
     const parentGroups = initialGroups.filter(
-      (g) => g.category_slug === categorySlug && g.parent_group === parentName
+      (g) => g.category_slug?.toLowerCase() === categorySlug.toLowerCase() && g.parent_group === parentName
     )
     const existingAttrIds = parentGroups.find((g) => g.attribute_ids?.length)?.attribute_ids ?? []
     const existingFilterIds =
@@ -724,7 +728,7 @@ export function CategoriesManager({
                               (g) => g.parent_group?.trim() === parentName
                             )
                             const isRenaming =
-                              renamingParent?.category_slug === category.slug &&
+                              renamingParent?.category_slug?.toLowerCase() === category.slug.toLowerCase() &&
                               renamingParent?.old_name === parentName
 
                             return (
@@ -846,7 +850,7 @@ export function CategoriesManager({
                           )}
 
                           {editingGroup?.id === "new" &&
-                          editingGroup.category_slug === category.slug ? (
+                          editingGroup.category_slug?.toLowerCase() === category.slug.toLowerCase() ? (
                             groupForm(editingGroup)
                           ) : (
                             <button

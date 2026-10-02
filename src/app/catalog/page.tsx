@@ -23,7 +23,9 @@ export async function generateMetadata({
   if (params.category && params.category !== "all") {
     const { categories } = await getCategoriesWithGroups()
     const catItem = categories.find(
-      (c) => c.slug === params.category || c.name.toLowerCase() === params.category?.toLowerCase()
+      (c) =>
+        c.slug.toLowerCase() === params.category?.toLowerCase() ||
+        c.name.toLowerCase() === params.category?.toLowerCase()
     )
     const catName = catItem ? catItem.name : getCategoryName(params.category)
     if (params.series) {
@@ -93,7 +95,9 @@ export default async function CatalogPage({
   const visibleCategories = categories.filter((c) => c.is_visible !== false)
 
   const currentCategory = visibleCategories.find(
-    (c) => c.slug === params.category || c.name.toLowerCase() === params.category?.toLowerCase()
+    (c) =>
+      c.slug.toLowerCase() === params.category?.toLowerCase() ||
+      c.name.toLowerCase() === params.category?.toLowerCase()
   )
   const categoryName = currentCategory
     ? currentCategory.name

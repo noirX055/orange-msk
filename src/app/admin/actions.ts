@@ -418,7 +418,7 @@ export async function createGroup(
   const { supabase } = await requireAdmin()
   const name = String(formData.get("name") ?? "").trim()
   const brand_id = Number(formData.get("brand_id"))
-  const category_slug = String(formData.get("category_slug") ?? "").trim()
+  const category_slug = String(formData.get("category_slug") ?? "").trim().toLowerCase()
   const parent_group = String(formData.get("parent_group") ?? "").trim() || null
 
   if (!name) return { ok: false, error: "Укажите название группы" }
@@ -457,7 +457,7 @@ export async function updateGroup(
   const id = Number(formData.get("id"))
   const name = String(formData.get("name") ?? "").trim()
   const brand_id = Number(formData.get("brand_id"))
-  const category_slug = String(formData.get("category_slug") ?? "").trim()
+  const category_slug = String(formData.get("category_slug") ?? "").trim().toLowerCase()
   const parent_group = String(formData.get("parent_group") ?? "").trim() || null
 
   if (!id) return { ok: false, error: "Не указана группа" }
@@ -552,7 +552,7 @@ export async function renameParentGroup(
   const { error } = await supabase
     .from("product_groups")
     .update({ parent_group: new_name })
-    .eq("category_slug", category_slug)
+    .ilike("category_slug", category_slug)
     .eq("parent_group", old_name)
 
   if (error) {
@@ -576,7 +576,7 @@ export async function dissolveParentGroup(formData: FormData): Promise<void> {
   await supabase
     .from("product_groups")
     .update({ parent_group: null })
-    .eq("category_slug", category_slug)
+    .ilike("category_slug", category_slug)
     .eq("parent_group", parent_group)
 
   revalidatePath("/admin/categories")
@@ -701,6 +701,12 @@ export async function updateCategory(
   if (!id) return { ok: false, error: "Не указана категория" }
   if (!name) return { ok: false, error: "Укажите название категории" }
 
+  const { data: oldCategory } = await supabase
+    .from("categories")
+    .select("slug")
+    .eq("id", id)
+    .single()
+
   const { error } = await supabase.from("categories").update({ name, slug }).eq("id", id)
 
   if (error) {
@@ -708,8 +714,19 @@ export async function updateCategory(
     return { ok: false, error: error.message }
   }
 
+  // Если slug изменился (или изменился регистр), каскадно обновляем связанные таблицы
+  if (oldCategory?.slug && oldCategory.slug !== slug) {
+    await Promise.all([
+      supabase.from("product_groups").update({ category_slug: slug }).ilike("category_slug", oldCategory.slug),
+      supabase.from("products").update({ category: slug }).ilike("category", oldCategory.slug),
+      supabase.from("product_attributes").update({ category_slug: slug }).ilike("category_slug", oldCategory.slug),
+    ])
+  }
+
   revalidatePath("/admin/categories")
   revalidatePath("/admin/products")
+  revalidatePath("/catalog")
+  revalidatePath("/")
   return { ok: true, message: "Категория обновлена" }
 }
 
