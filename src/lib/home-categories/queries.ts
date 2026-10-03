@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server"
+import { createPublicClient } from "@/lib/supabase/public"
+import { getAdminClient } from "@/lib/supabase/admin"
 import type { HomeCategoryCard } from "./types"
 
 export type HomeCategoryRow = {
@@ -94,7 +95,7 @@ export function mapHomeCategory(row: HomeCategoryRow): HomeCategoryCard {
 // Витрина: только видимые карточки, по порядку (с fallback)
 export async function getHomeCategoryCards(): Promise<HomeCategoryCard[]> {
   try {
-    const supabase = await createClient()
+    const supabase = createPublicClient()
     const { data, error } = await supabase
       .from("home_categories")
       .select(COLUMNS)
@@ -107,6 +108,14 @@ export async function getHomeCategoryCards(): Promise<HomeCategoryCard[]> {
 
     return (data as HomeCategoryRow[]).map(mapHomeCategory)
   } catch (err) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "digest" in err &&
+      (err as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE"
+    ) {
+      throw err
+    }
     console.error("Error fetching home categories:", err)
     return defaultHomeCategoryCards
   }
@@ -115,7 +124,7 @@ export async function getHomeCategoryCards(): Promise<HomeCategoryCard[]> {
 // Админка: все карточки, по порядку
 export async function getAllHomeCategoryCards(): Promise<HomeCategoryCard[]> {
   try {
-    const supabase = await createClient()
+    const supabase = getAdminClient()
     const { data, error } = await supabase
       .from("home_categories")
       .select(COLUMNS)
@@ -132,6 +141,14 @@ export async function getAllHomeCategoryCards(): Promise<HomeCategoryCard[]> {
 
     return (data as HomeCategoryRow[]).map(mapHomeCategory)
   } catch (err) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "digest" in err &&
+      (err as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE"
+    ) {
+      throw err
+    }
     console.error("Error fetching all home categories:", err)
     return defaultHomeCategoryCards
   }
@@ -139,7 +156,7 @@ export async function getAllHomeCategoryCards(): Promise<HomeCategoryCard[]> {
 
 export async function getHomeCategoryCardById(id: string): Promise<HomeCategoryCard | null> {
   try {
-    const supabase = await createClient()
+    const supabase = createPublicClient()
     const { data, error } = await supabase
       .from("home_categories")
       .select(COLUMNS)
@@ -152,6 +169,14 @@ export async function getHomeCategoryCardById(id: string): Promise<HomeCategoryC
 
     return mapHomeCategory(data as HomeCategoryRow)
   } catch (err) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "digest" in err &&
+      (err as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE"
+    ) {
+      throw err
+    }
     console.error("Error fetching home category by id:", err)
     return defaultHomeCategoryCards.find((c) => c.id === id) ?? null
   }
