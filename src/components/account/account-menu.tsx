@@ -30,10 +30,17 @@ export function AccountMenu() {
   useEffect(() => {
     const supabase = createClient()
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
-      setReady(true)
-    })
+    supabase.auth
+      .getUser()
+      .then((res) => {
+        setUser(res.data?.user ?? null)
+        setReady(true)
+      })
+      .catch((err) => {
+        console.error("AccountMenu auth error:", err)
+        setUser(null)
+        setReady(true)
+      })
 
     const {
       data: { subscription },

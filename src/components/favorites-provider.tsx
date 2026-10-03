@@ -33,28 +33,34 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     let active = true
 
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      try {
+        const { data, error } = await supabase.auth.getUser()
+        if (!active) return
 
-      if (!active) return
+        const user = data?.user
+        if (error || !user) {
+          setIsAuthed(false)
+          setSlugs(new Set())
+          setReady(true)
+          return
+        }
 
-      if (!user) {
-        setIsAuthed(false)
-        setSlugs(new Set())
+        setIsAuthed(true)
+        const { data: favs } = await supabase
+          .from("favorites")
+          .select("product_slug")
+          .eq("user_id", user.id)
+
+        if (!active) return
+        setSlugs(new Set((favs ?? []).map((row) => row.product_slug as string)))
         setReady(true)
-        return
+      } catch (err) {
+        console.error("Error loading favorites:", err)
+        if (active) {
+          setIsAuthed(false)
+          setReady(true)
+        }
       }
-
-      setIsAuthed(true)
-      const { data } = await supabase
-        .from("favorites")
-        .select("product_slug")
-        .eq("user_id", user.id)
-
-      if (!active) return
-      setSlugs(new Set((data ?? []).map((row) => row.product_slug as string)))
-      setReady(true)
     }
 
     load()

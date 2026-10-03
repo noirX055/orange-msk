@@ -16,7 +16,11 @@ function YandexMetrikaHit() {
     const url = query ? `${pathname}?${query}` : pathname
 
     if (typeof window !== "undefined" && typeof (window as unknown as { ym?: Function }).ym === "function") {
-      ;(window as unknown as { ym: Function }).ym(YANDEX_METRIKA_ID, "hit", url)
+      try {
+        ;(window as unknown as { ym: Function }).ym(YANDEX_METRIKA_ID, "hit", url)
+      } catch (e) {
+        // Safe against blocked scripts
+      }
     }
   }, [pathname, searchParams])
 
@@ -28,7 +32,7 @@ export function YandexMetrika() {
     <>
       <Script
         id="yandex-metrika"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         dangerouslySetInnerHTML={{
           __html: `
             (function(m,e,t,r,i,k,a){

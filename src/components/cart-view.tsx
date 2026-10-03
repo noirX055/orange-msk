@@ -55,9 +55,12 @@ export function CartView() {
 
     // Если поля не заполнены пользователем, пробуем подставить из профиля
     const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return
-      try {
+    supabase.auth
+      .getUser()
+      .then(async (res) => {
+        const user = res.data?.user
+        if (!user) return
+        try {
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name, phone")
@@ -85,7 +88,7 @@ export function CartView() {
       } catch {
         // ignore
       }
-    })
+    }).catch(() => {})
   }, [])
 
   // 2. Автоматическое сохранение черновика при изменении полей
