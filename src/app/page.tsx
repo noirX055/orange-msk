@@ -18,7 +18,7 @@ import { getHomeCategoryCards } from "@/lib/home-categories/queries"
 const brandOrder = ["Apple", "Samsung", "Xiaomi", "ASUS", "LG", "Sony", "Dyson"]
 
 const benefits = [
-  { title: "Доставка за 2 часа", text: "По Москве и в пределах МКАД", Icon: Truck },
+  { title: "Доставка в день заказа", text: "По Москве и в пределах МКАД", Icon: Truck },
   { title: "Официальная гарантия", text: "От 1 года на всю технику", Icon: BadgeCheck },
   { title: "Рассрочка 0%", text: "До 24 месяцев без переплат", Icon: CreditCard },
   { title: "Возврат 14 дней", text: "Обмен или возврат средств", Icon: RefreshCw },

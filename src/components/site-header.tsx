@@ -28,7 +28,9 @@ export function SiteHeader({
       {/* Top bar — desktop only */}
       <div className="hidden bg-navy text-navy-foreground md:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-2 text-xs">
-          <p className="text-navy-foreground/80">Доставка по Москве за 2 часа — бесплатно от 5 000 ₽</p>
+          <p className="text-navy-foreground/80">
+            Оригинальная техника с гарантией · Доставка по Москве в день заказа
+          </p>
           <div className="flex items-center gap-6">
             <Link href="/catalog" className="text-navy-foreground/80 transition-colors hover:text-primary">
               Гарантия и сервис
