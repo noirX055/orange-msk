@@ -8,7 +8,6 @@ const info = [
   { label: "О компании", href: "/catalog" },
   { label: "Доставка и оплата", href: "/catalog" },
   { label: "Гарантия и возврат", href: "/catalog" },
-  { label: "Trade-in", href: "/catalog" },
   { label: "Контакты", href: "/catalog" },
 ]
 

@@ -21,7 +21,7 @@ const benefits = [
   { title: "Доставка за 2 часа", text: "По Москве и в пределах МКАД", Icon: Truck },
   { title: "Официальная гарантия", text: "От 1 года на всю технику", Icon: BadgeCheck },
   { title: "Рассрочка 0%", text: "До 24 месяцев без переплат", Icon: CreditCard },
-  { title: "Trade-in", text: "Обмен старого устройства", Icon: RefreshCw },
+  { title: "Возврат 14 дней", text: "Обмен или возврат средств", Icon: RefreshCw },
 ]
 
 export default async function HomePage() {
@@ -155,25 +155,6 @@ export default async function HomePage() {
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
-      </section>
-
-      <section className="flex flex-col items-start gap-6 rounded-card border border-primary/30 bg-primary/10 p-6 md:flex-row md:items-center md:p-10">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-2xl font-bold tracking-tight text-balance">
-            Обменяйте старый смартфон на новый со скидкой до 30 000 ₽
-          </h2>
-          <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
-            Бесплатная диагностика в магазине на Тверской: оцениваем устройство за 15 минут и сразу
-            вычитаем сумму из стоимости покупки.
-          </p>
-        </div>
-        <Link
-          href="/catalog"
-          className="ml-auto flex shrink-0 items-center gap-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-navy-foreground transition-opacity hover:opacity-90"
-        >
-          Узнать цену обмена
-          <ArrowRight size={18} />
-        </Link>
       </section>
     </div>
   )
