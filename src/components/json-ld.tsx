@@ -1,4 +1,4 @@
-import type { Product } from "@/lib/products"
+import { getCategoryName, type Product } from "@/lib/products"
 
 type BreadcrumbItem = {
   name: string
@@ -51,7 +51,7 @@ export function ProductJsonLd({
     sku: product.slug,
     mpn: product.id,
     color: primaryColor || undefined,
-    category: product.category,
+    category: getCategoryName(product.category),
     brand: {
       "@type": "Brand",
       name: product.brand || "Orange MSK",
@@ -72,12 +72,14 @@ export function ProductJsonLd({
         url: process.env.NEXT_PUBLIC_SITE_URL || "https://orangemsk.ru",
       },
     },
-    ...(product.rating && product.rating > 0
+    // Рейтинг выводим только при реальных отзывах — «накрученный» reviewCount
+    // может привести к снятию расширенного сниппета в Яндексе/Google.
+    ...(product.rating && product.rating > 0 && product.reviews && product.reviews > 0
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
             ratingValue: String(product.rating),
-            reviewCount: String(Math.max(product.reviews || 1, 1)),
+            reviewCount: String(product.reviews),
             bestRating: "5",
             worstRating: "1",
           },

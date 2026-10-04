@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next"
 import { createPublicClient } from "@/lib/supabase/public"
-import { categories } from "@/lib/products"
+import { buildCatalogHref } from "@/lib/catalog-urls"
+
+// Без этого Next.js генерирует sitemap один раз при билде и кэширует навсегда,
+// из-за чего в карту попадали удалённые товары (404). Обновляем раз в час.
+export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orangemsk.ru"
@@ -28,24 +32,64 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // 2. Страницы категорий
-  const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
-    url: `${baseUrl}/catalog?category=${cat.slug}`,
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: 0.85,
-  }))
-
-  // 3. Динамические страницы товаров
+  let categoryRoutes: MetadataRoute.Sitemap = []
+  let seriesRoutes: MetadataRoute.Sitemap = []
   let productRoutes: MetadataRoute.Sitemap = []
+
   try {
     const supabase = createPublicClient()
     const { data: products } = await supabase
       .from("products")
-      .select("slug, updated_at, created_at")
+      .select("slug, category, series, updated_at, created_at")
       .eq("is_visible", true)
 
     if (products && products.length > 0) {
+      // 2. Реальные разделы категорий, где есть видимые товары
+      const categoryMap = new Map<string, Date>()
+      // 3. Реальные серии внутри категорий, где есть видимые товары
+      const seriesMap = new Map<string, { category: string; series: string; lastMod: Date }>()
+
+      for (const p of products) {
+        const dateStr = p.updated_at || p.created_at
+        const lastMod = dateStr ? new Date(dateStr) : now
+        const validLastMod = isNaN(lastMod.getTime()) ? now : lastMod
+
+        if (p.category) {
+          const catKey = p.category.toLowerCase()
+          const prevDate = categoryMap.get(catKey)
+          if (!prevDate || validLastMod > prevDate) {
+            categoryMap.set(catKey, validLastMod)
+          }
+
+          if (p.series && p.series.trim()) {
+            const seriesKey = `${catKey}::${p.series.trim()}`
+            const prevSeries = seriesMap.get(seriesKey)
+            if (!prevSeries || validLastMod > prevSeries.lastMod) {
+              seriesMap.set(seriesKey, {
+                category: catKey,
+                series: p.series.trim(),
+                lastMod: validLastMod,
+              })
+            }
+          }
+        }
+      }
+
+      categoryRoutes = Array.from(categoryMap.entries()).map(([catSlug, lastMod]) => ({
+        url: `${baseUrl}${buildCatalogHref(catSlug)}`,
+        lastModified: lastMod,
+        changeFrequency: "daily",
+        priority: 0.85,
+      }))
+
+      seriesRoutes = Array.from(seriesMap.values()).map(({ category, series, lastMod }) => ({
+        url: `${baseUrl}${buildCatalogHref(category, series)}`,
+        lastModified: lastMod,
+        changeFrequency: "daily",
+        priority: 0.8,
+      }))
+
+      // 4. Карточки товаров
       productRoutes = products.map((p) => {
         const dateStr = p.updated_at || p.created_at
         const lastMod = dateStr ? new Date(dateStr) : now
@@ -57,9 +101,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
       })
     }
-  } catch {
-    // Безопасный fallback в случае временной недоступности БД
+  } catch (err) {
+    console.error("Error generating sitemap:", err)
   }
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes]
+  return [...staticRoutes, ...categoryRoutes, ...seriesRoutes, ...productRoutes]
 }

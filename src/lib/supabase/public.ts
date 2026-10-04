@@ -6,9 +6,14 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js"
  * Не вызывает `cookies()`, поэтому не ломает статическую генерацию и кэширование Next.js.
  */
 export function createPublicClient() {
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    key,
     {
       auth: {
         persistSession: false,

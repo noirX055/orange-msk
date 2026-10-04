@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState, useRef, useEffect, useMemo } from "react"
 import { createPortal } from "react-dom"
 import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
+import { buildCatalogHref } from "@/lib/catalog-urls"
 
 export function MegaMenu({
   categories,
@@ -107,7 +108,7 @@ export function MegaMenu({
                 {section.items.map((sub) => (
                   <Link
                     key={sub.id}
-                    href={`/catalog?category=${activeItem!.slug}&series=${encodeURIComponent(sub.name)}`}
+                    href={buildCatalogHref(activeItem!.slug, sub.name)}
                     onClick={() => setActiveCategory(null)}
                     className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                   >
@@ -138,7 +139,7 @@ export function MegaMenu({
                 onMouseEnter={() => handleEnter(item.slug)}
               >
                 <Link
-                  href={`/catalog?category=${item.slug}`}
+                  href={buildCatalogHref(item.slug)}
                   onClick={() => setActiveCategory(null)}
                   className={`block whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
                     activeCategory === item.slug

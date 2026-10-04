@@ -32,7 +32,7 @@ export function SiteChrome({
     <>
       <SiteHeader categories={categories} groups={groups} brands={brands} />
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
-      <SiteFooter />
+      <SiteFooter categories={categories} />
       <MobileBottomNav />
       <ContactPanel />
       <CookieConsent />

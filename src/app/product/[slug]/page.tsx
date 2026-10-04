@@ -11,6 +11,7 @@ import { ProductBuyPanel } from "@/components/product-buy-panel"
 import { ProductCard } from "@/components/product-card"
 import { ProductTabs } from "@/components/product-tabs"
 import { BreadcrumbsJsonLd, ProductJsonLd } from "@/components/json-ld"
+import { buildCatalogHref } from "@/lib/catalog-urls"
 
 // Ревалидация для SSR / ISR (кэширование на 60 секунд)
 export const revalidate = 60
@@ -99,9 +100,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const groupAttributes = await getGroupAttributes(product.series, product.category)
   const variants = buildProductVariants(product, candidates, groupAttributes)
 
+  const categoryHref = buildCatalogHref(product.category)
+  const seriesHref = product.series ? buildCatalogHref(product.category, product.series) : null
+
   const breadcrumbs = [
     { name: "Главная", url: siteUrl },
-    { name: getCategoryName(product.category), url: `${siteUrl}/catalog?category=${product.category}` },
+    { name: "Каталог", url: `${siteUrl}/catalog` },
+    { name: getCategoryName(product.category), url: `${siteUrl}${categoryHref}` },
+    ...(product.series && seriesHref
+      ? [{ name: product.series, url: `${siteUrl}${seriesHref}` }]
+      : []),
     { name: product.name, url: canonicalUrl },
   ]
 
@@ -121,10 +129,26 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </li>
             <li aria-hidden="true">/</li>
             <li>
-              <Link href={`/catalog?category=${product.category}`} className="hover:text-primary">
+              <Link href="/catalog" className="hover:text-primary">
+                Каталог
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li>
+              <Link href={categoryHref} className="hover:text-primary">
                 {getCategoryName(product.category)}
               </Link>
             </li>
+            {product.series && seriesHref && (
+              <>
+                <li aria-hidden="true">/</li>
+                <li>
+                  <Link href={seriesHref} className="hover:text-primary">
+                    {product.series}
+                  </Link>
+                </li>
+              </>
+            )}
             <li aria-hidden="true">/</li>
             <li className="text-foreground">{product.name}</li>
           </ol>

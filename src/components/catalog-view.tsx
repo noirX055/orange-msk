@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react"
-import { categories as fallbackCategories, type Product } from "@/lib/products"
+import { categories as fallbackCategories, getCategoryName, type Product } from "@/lib/products"
 import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
 import type { ProductAttribute } from "@/lib/admin/attributes-types"
 import { ProductCard } from "@/components/product-card"
@@ -258,6 +258,36 @@ export function CatalogView({
     setPrevInitialSeries(initialSeries)
     setSelectedSeries(initialSeries ? [initialSeries] : [])
   }
+
+  // SEO: H1 отражает текущую категорию / серию / бренд, а не общий «Каталог»
+  const heading = useMemo(() => {
+    const q = query.trim()
+    if (q) return `Результаты: «${q}»`
+
+    const catItem =
+      category && category !== "all"
+        ? categoriesList.find(
+            (c) =>
+              c.slug.toLowerCase() === category.toLowerCase() ||
+              c.name.toLowerCase() === category.toLowerCase(),
+          )
+        : undefined
+    const catName = catItem?.name ?? (category && category !== "all" ? getCategoryName(category) : "")
+    const series = selectedSeries.length === 1 ? selectedSeries[0].trim() : ""
+    const brand = selectedBrands.length === 1 ? selectedBrands[0] : ""
+
+    if (catName && series) {
+      return series.toLowerCase().includes(catName.toLowerCase()) ? series : `${catName} ${series}`
+    }
+    if (catName && brand && !catName.toLowerCase().includes(brand.toLowerCase())) {
+      return `${catName} ${brand}`
+    }
+    if (catName) return catName
+    if (series) return series
+    if (brand) return `Техника ${brand}`
+    if (saleOnly) return "Скидки и акции"
+    return "Каталог оригинальной техники"
+  }, [query, category, categoriesList, selectedSeries, selectedBrands, saleOnly])
 
   // Серии в рамках текущей категории и выбранных брендов — чтобы список был релевантным
   const seriesList = useMemo(() => {
@@ -1113,9 +1143,7 @@ export function CatalogView({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {query.trim() ? `Результаты: «${query.trim()}»` : "Каталог"}
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">{heading}</h1>
           <div className="mt-1 flex items-center gap-3">
             <p className="text-sm text-muted-foreground">Найдено товаров: {visible.length}</p>
             {query.trim() && (

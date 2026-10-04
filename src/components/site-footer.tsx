@@ -1,7 +1,8 @@
 import Link from "next/link"
 import { Clock, Mail, MapPin, Phone } from "lucide-react"
-import { categories } from "@/lib/products"
+import { categories as fallbackCategories, type Category } from "@/lib/products"
 import { Logo } from "@/components/logo"
+import { buildCatalogHref } from "@/lib/catalog-urls"
 
 const info = [
   { label: "О компании", href: "/catalog" },
@@ -11,7 +12,20 @@ const info = [
   { label: "Контакты", href: "/catalog" },
 ]
 
-export function SiteFooter() {
+// Реальные разделы для fallback, чтобы не выводить пустые псевдо-категории
+const primaryFallbackSlugs = new Set(["apple", "dyson", "lego", "samsung", "accessories"])
+
+export function SiteFooter({
+  categories: categoriesProp,
+}: {
+  categories?: { slug: string; name: string; is_visible?: boolean }[]
+} = {}) {
+  const displayCategories = (
+    categoriesProp && categoriesProp.length > 0
+      ? categoriesProp.filter((c) => c.is_visible !== false)
+      : fallbackCategories.filter((c) => primaryFallbackSlugs.has(c.slug.toLowerCase()))
+  )
+
   return (
     <footer className="mt-16 bg-navy text-navy-foreground">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-4">
@@ -26,10 +40,10 @@ export function SiteFooter() {
         <nav aria-label="Каталог">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary">Каталог</h2>
           <ul className="flex flex-col gap-2.5 text-sm">
-            {categories.map((category) => (
+            {displayCategories.map((category) => (
               <li key={category.slug}>
                 <Link
-                  href={`/catalog?category=${category.slug}`}
+                  href={buildCatalogHref(category.slug)}
                   className="text-navy-foreground/75 transition-colors hover:text-primary"
                 >
                   {category.name}
