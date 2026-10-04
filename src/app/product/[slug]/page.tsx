@@ -78,7 +78,7 @@ const guarantees = [
   { title: "Доставка сегодня", text: "По Москве от 2 часов", Icon: Truck },
   { title: "Гарантия 1 год", text: "Официальный сервис", Icon: BadgeCheck },
   { title: "Рассрочка 0%", text: "До 24 месяцев", Icon: CreditCard },
-  { title: "Возврат 14 дней", text: "Без объяснения причин", Icon: RefreshCw },
+  { title: "Возврат 14 дней", text: "Обмен или возврат средств", Icon: RefreshCw },
 ]
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
