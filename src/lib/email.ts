@@ -1,10 +1,12 @@
 import nodemailer, { type Transporter } from "nodemailer"
 
 // SMTP Транспорт (Selectel Cloud Mail)
+// Все учётные данные — только из переменных окружения (SMTP_HOST, SMTP_PORT,
+// SMTP_USER, SMTP_PASS, EMAIL_FROM). Никаких значений по умолчанию с секретами в коде.
 const smtpHost = process.env.SMTP_HOST || "smtp.mail.selcloud.ru"
 const smtpPort = parseInt(process.env.SMTP_PORT || "1127", 10)
-const smtpUser = process.env.SMTP_USER || "12710"
-const smtpPass = process.env.SMTP_PASS || "lHUVetGm7ji1KEkp4S"
+const smtpUser = process.env.SMTP_USER
+const smtpPass = process.env.SMTP_PASS
 const defaultFrom =
   process.env.EMAIL_FROM || "Orange MSK <noreply@orangemsk.ru>"
 
@@ -14,6 +16,9 @@ const isSecure = smtpPort === 1127 || smtpPort === 465
 let cachedTransporter: Transporter | null = null
 
 function getTransporter(): Transporter {
+  if (!smtpUser || !smtpPass) {
+    throw new Error("SMTP не настроен: задайте SMTP_USER и SMTP_PASS в переменных окружения")
+  }
   if (!cachedTransporter) {
     cachedTransporter = nodemailer.createTransport({
       host: smtpHost,

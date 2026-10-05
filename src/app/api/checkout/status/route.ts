@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getPayment } from "@/lib/yookassa"
+import { markOrderPaid } from "@/lib/orders/mark-paid"
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,10 +36,8 @@ export async function GET(request: NextRequest) {
       const payment = await getPayment(order.payment_id)
 
       if (payment.status === "succeeded") {
-        await supabase
-          .from("orders")
-          .update({ status: "processing" })
-          .eq("id", order.id)
+        // Смена статуса + письмо клиенту. Если вебхук уже успел — повторно не отправится.
+        await markOrderPaid(order.id)
 
         return NextResponse.json({
           status: "processing",
