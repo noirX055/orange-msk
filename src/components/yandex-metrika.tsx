@@ -32,7 +32,7 @@ export function YandexMetrika() {
     <>
       <Script
         id="yandex-metrika"
-        strategy="lazyOnload"
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
             (function(m,e,t,r,i,k,a){
@@ -47,8 +47,6 @@ export function YandexMetrika() {
               webvisor: true,
               clickmap: true,
               ecommerce: "dataLayer",
-              referrer: document.referrer,
-              url: location.href,
               accurateTrackBounce: true,
               trackLinks: true
             });
