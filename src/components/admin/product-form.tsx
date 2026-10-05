@@ -159,12 +159,32 @@ export function ProductForm({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [selectedModalAttrIds, setSelectedModalAttrIds] = useState<number[]>([])
 
-  const currentBrandId = brands.find((b) => b.name === selectedBrand)?.id
-  const filteredGroups = groups.filter(
-    (g) =>
-      (!currentBrandId || g.brand_id === currentBrandId) &&
-      (!selectedCategory || g.category_slug?.toLowerCase() === selectedCategory.toLowerCase())
-  )
+  const currentBrandId = brands.find(
+    (b) => b.name.toLowerCase().trim() === selectedBrand.toLowerCase().trim()
+  )?.id
+  // Фильтруем только по категории (как в массовом редактировании).
+  // Бренд используется лишь для сортировки: группы бренда товара — сверху.
+  // Раньше жёсткий фильтр по brand_id прятал все группы, если brand_id группы
+  // не совпадал с брендом товара.
+  const filteredGroups = useMemo(() => {
+    const byCategory = groups.filter(
+      (g) => !selectedCategory || g.category_slug?.toLowerCase() === selectedCategory.toLowerCase()
+    )
+    const seen = new Set<string>()
+    const unique = byCategory.filter((g) => {
+      if (seen.has(g.name)) return false
+      seen.add(g.name)
+      return true
+    })
+    return unique.sort((a, b) => {
+      const aMatch = currentBrandId && a.brand_id === currentBrandId ? 0 : 1
+      const bMatch = currentBrandId && b.brand_id === currentBrandId ? 0 : 1
+      return aMatch - bMatch || a.name.localeCompare(b.name, "ru")
+    })
+  }, [groups, selectedCategory, currentBrandId])
+  // Текущая группа товара должна всегда отображаться, даже если не прошла фильтр
+  const seriesMissingInList =
+    Boolean(selectedSeries) && !filteredGroups.some((g) => g.name === selectedSeries)
 
   const currentGroup = useMemo(() => {
     if (!selectedSeries) return null
@@ -408,6 +428,9 @@ export function ProductForm({
               className={inputBase}
             >
               <option value="">Без группы</option>
+              {seriesMissingInList && (
+                <option value={selectedSeries}>{selectedSeries}</option>
+              )}
               {filteredGroups.map((g) => (
                 <option key={g.id} value={g.name}>{g.name}</option>
               ))}
