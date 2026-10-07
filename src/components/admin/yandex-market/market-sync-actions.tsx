@@ -11,7 +11,11 @@ interface Props {
 export function MarketSyncActions({ isConfigured }: Props) {
   const [loadingType, setLoadingType] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-  const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null)
+  const [feedback, setFeedback] = useState<{
+    ok: boolean
+    message: string
+    error?: string
+  } | null>(null)
 
   const handleSyncPrices = () => {
     setLoadingType("prices")
@@ -20,7 +24,8 @@ export function MarketSyncActions({ isConfigured }: Props) {
       const res = await syncPricesAction()
       setFeedback({
         ok: res.ok,
-        message: res.message || res.error || "Синхронизация цен завершена",
+        message: res.message || "Синхронизация цен завершена",
+        error: res.error,
       })
       setLoadingType(null)
     })
@@ -33,7 +38,8 @@ export function MarketSyncActions({ isConfigured }: Props) {
       const res = await syncStocksAction()
       setFeedback({
         ok: res.ok,
-        message: res.message || res.error || "Синхронизация остатков завершена",
+        message: res.message || "Синхронизация остатков завершена",
+        error: res.error,
       })
       setLoadingType(null)
     })
@@ -46,7 +52,8 @@ export function MarketSyncActions({ isConfigured }: Props) {
       const res = await pushCatalogAction()
       setFeedback({
         ok: res.ok,
-        message: res.message || res.error || "Выгрузка каталога завершена",
+        message: res.message || "Выгрузка каталога завершена",
+        error: res.error,
       })
       setLoadingType(null)
     })
@@ -159,12 +166,26 @@ export function MarketSyncActions({ isConfigured }: Props) {
         >
           <div className="flex items-center gap-2">
             {feedback.ok ? (
-              <Check size={16} className="text-emerald-600" />
+              <Check size={16} className="text-emerald-600 shrink-0" />
             ) : (
-              <ShieldAlert size={16} className="text-red-600" />
+              <ShieldAlert size={16} className="text-red-600 shrink-0" />
             )}
-            {feedback.message}
+            <span className="font-semibold">{feedback.message}</span>
           </div>
+
+          {feedback.error && (
+            <div className="mt-2 pl-6 text-[11px] leading-relaxed">
+              <span className="font-semibold">Причина от Яндекс.Маркета:</span>{" "}
+              <code className="rounded bg-red-100 px-1 py-0.5 font-mono text-red-800">
+                {feedback.error}
+              </code>
+              {feedback.error.toLowerCase().includes("revoked") && (
+                <p className="mt-1 text-red-700">
+                  Токен API-ключа был отозван или удален в личном кабинете Яндекс.Маркета. Создайте новый API-ключ в кабинете продавца Маркета и сохраните его в блоке «Настройки интеграции» ниже.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

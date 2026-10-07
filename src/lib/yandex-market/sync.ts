@@ -256,7 +256,11 @@ export async function pushCatalogToMarket(): Promise<SyncResult> {
       totalSuccessful += batch.length
     } catch (err: any) {
       totalFailed += batch.length
-      errors.push(`Пакет ${i + 1}-${i + batch.length}: ${err.message}`)
+      let msg = err.message || "Ошибка API"
+      if (msg.includes("API_DISABLED") || msg.includes("disabled partners")) {
+        msg = "Магазин в кабинете Маркета находится на проверке/модерации или отключен (API_DISABLED)"
+      }
+      errors.push(`Пакет ${i + 1}-${i + batch.length}: ${msg}`)
     }
   }
 
