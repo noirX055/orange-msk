@@ -189,7 +189,7 @@ function CheckoutContent() {
               Безопасная оплата
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Оплата проходит через сертифицированный шлюз ЮKassa. Мы принимаем Visa, Mastercard,
+              Оплата проходит через сертифицированный шлюз ЮKassa. Мы принимаем банковские карты,
               Мир, СБП, SberPay и T-Pay.
             </p>
           </div>

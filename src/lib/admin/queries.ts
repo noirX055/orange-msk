@@ -190,6 +190,44 @@ export async function getCategoriesWithGroups(): Promise<{
   }
 }
 
+export type ProductGroupInfo = {
+  id: number
+  name: string
+  parent_group: string | null
+}
+
+/** Получение информации о группе товара (включая родительскую группу) */
+export async function getProductGroupInfo(
+  seriesName?: string | null,
+  categorySlug?: string | null
+): Promise<ProductGroupInfo | null> {
+  if (!seriesName) return null
+  const supabase = await createClient()
+
+  try {
+    let query = supabase
+      .from("product_groups")
+      .select("id, name, parent_group")
+      .ilike("name", seriesName)
+
+    if (categorySlug) {
+      query = query.ilike("category_slug", categorySlug)
+    }
+
+    const { data: groups } = await query.limit(1)
+    if (groups && groups.length > 0) {
+      const g = groups[0] as { id: number; name: string; parent_group?: string | null }
+      return {
+        id: g.id,
+        name: g.name ? g.name.normalize("NFKC").trim() : "",
+        parent_group: g.parent_group ? g.parent_group.normalize("NFKC").trim() : null,
+      }
+    }
+  } catch (err) {
+    console.error("getProductGroupInfo error:", err)
+  }
+  return null
+}
 
 /** Получение характеристик, привязанных к группе (серии) товара */
 export async function getGroupAttributes(

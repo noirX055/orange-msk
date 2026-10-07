@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, LayoutGrid, Heart, ShoppingBag, User } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
+import { useFavorites } from "@/components/favorites-provider"
 
 const tabs = [
   { href: "/", label: "Главная", Icon: Home },
@@ -16,6 +17,7 @@ const tabs = [
 export function MobileBottomNav() {
   const pathname = usePathname()
   const { totalItems } = useCart()
+  const { totalFavorites } = useFavorites()
 
   return (
     <nav className="fixed bottom-2 left-2 right-2 z-50 rounded-2xl border border-border bg-background/90 shadow-lg backdrop-blur-xl md:hidden">
@@ -44,6 +46,11 @@ export function MobileBottomNav() {
                   {label === "Корзина" && totalItems > 0 && (
                     <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
                       {totalItems}
+                    </span>
+                  )}
+                  {label === "Избранное" && totalFavorites > 0 && (
+                    <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                      {totalFavorites}
                     </span>
                   )}
                 </span>

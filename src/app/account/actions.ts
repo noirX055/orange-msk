@@ -60,6 +60,7 @@ export async function toggleFavorite(productSlug: string): Promise<ActionState> 
 
   revalidatePath("/account/favorites")
   revalidatePath("/account")
+  revalidatePath("/favorites")
   return { ok: true }
 }
 
@@ -75,6 +76,56 @@ export async function removeFavorite(formData: FormData): Promise<void> {
 
   revalidatePath("/account/favorites")
   revalidatePath("/account")
+  revalidatePath("/favorites")
+}
+
+export async function removeFavoriteSlug(productSlug: string): Promise<ActionState> {
+  const { supabase, user } = await requireUser()
+
+  await supabase
+    .from("favorites")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("product_slug", productSlug)
+
+  revalidatePath("/account/favorites")
+  revalidatePath("/account")
+  revalidatePath("/favorites")
+  return { ok: true }
+}
+
+export async function syncFavorites(slugs: string[]): Promise<string[]> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const validSlugs = (slugs ?? []).filter((s) => typeof s === "string" && s.trim().length > 0)
+
+  // 1. Текущие избранные в БД
+  const { data: existing } = await supabase
+    .from("favorites")
+    .select("product_slug")
+    .eq("user_id", user.id)
+
+  const existingSet = new Set((existing ?? []).map((row) => row.product_slug as string))
+  const toInsert = validSlugs.filter((s) => !existingSet.has(s))
+
+  if (toInsert.length > 0) {
+    await supabase.from("favorites").insert(
+      toInsert.map((slug) => ({
+        user_id: user.id,
+        product_slug: slug,
+      }))
+    )
+  }
+
+  const allSlugs = Array.from(new Set([...existingSet, ...toInsert]))
+  revalidatePath("/account/favorites")
+  revalidatePath("/account")
+  revalidatePath("/favorites")
+  return allSlugs
 }
 
 // ---------- Адреса ----------

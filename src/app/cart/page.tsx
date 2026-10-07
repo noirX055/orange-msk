@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { CartView } from "@/components/cart-view"
+import { RecentlyViewed } from "@/components/recently-viewed"
 
 export const metadata = {
   title: "Корзина — Orange MSK",
@@ -21,6 +22,7 @@ export default function CartPage() {
         </ol>
       </nav>
       <CartView />
+      <RecentlyViewed className="mt-16 border-t border-border pt-10" />
     </div>
   )
 }

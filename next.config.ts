@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/delivery-and-payment",
+        destination: "/delivery",
+        permanent: true,
+      },
+      {
         source: "/:path*",
         has: [{ type: "host", value: "www.orangemsk.ru" }],
         destination: "https://orangemsk.ru/:path*",

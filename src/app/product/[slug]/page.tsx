@@ -4,12 +4,13 @@ import { notFound } from "next/navigation"
 import { BadgeCheck, CreditCard, RefreshCw, Star, Truck } from "lucide-react"
 import { formatPrice, getCategoryName, getProductImages } from "@/lib/products"
 import { getProductBySlug, getRelatedProducts, getProductVariantCandidates } from "@/lib/products/queries"
-import { getGroupAttributes } from "@/lib/admin/queries"
+import { getGroupAttributes, getProductGroupInfo } from "@/lib/admin/queries"
 import { buildProductVariants } from "@/lib/products/variants"
 import { ProductGallery } from "@/components/product-gallery"
 import { ProductBuyPanel } from "@/components/product-buy-panel"
 import { ProductCard } from "@/components/product-card"
 import { ProductTabs } from "@/components/product-tabs"
+import { RecentlyViewed } from "@/components/recently-viewed"
 import { BreadcrumbsJsonLd, ProductJsonLd } from "@/components/json-ld"
 import { buildCatalogHref } from "@/lib/catalog-urls"
 
@@ -95,18 +96,48 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     img.startsWith("http") ? img : `${siteUrl}${img}`
   )
 
-  const related = await getRelatedProducts(product)
-  const candidates = await getProductVariantCandidates(product)
-  const groupAttributes = await getGroupAttributes(product.series, product.category)
+  const [related, candidates, groupAttributes, groupInfo] = await Promise.all([
+    getRelatedProducts(product),
+    getProductVariantCandidates(product),
+    getGroupAttributes(product.series, product.category),
+    getProductGroupInfo(product.series, product.category),
+  ])
   const variants = buildProductVariants(product, candidates, groupAttributes)
 
+  let parentSeries: string | null = null
+  if (groupInfo?.parent_group) {
+    const p = groupInfo.parent_group.trim()
+    if (p.toLowerCase() !== (product.series || "").trim().toLowerCase()) {
+      parentSeries = p
+    }
+  }
+
+  // Fallback: определение родительской серии по названию товара (например, для MacBook, iPhone, iPad)
+  if (!parentSeries) {
+    const nameLower = product.name.toLowerCase()
+    if (nameLower.includes("macbook")) {
+      parentSeries = "MacBook"
+    } else if (nameLower.includes("iphone")) {
+      parentSeries = "iPhone"
+    } else if (nameLower.includes("ipad")) {
+      parentSeries = "iPad"
+    }
+    if (parentSeries && product.series && parentSeries.toLowerCase() === product.series.trim().toLowerCase()) {
+      parentSeries = null
+    }
+  }
+
   const categoryHref = buildCatalogHref(product.category)
+  const parentSeriesHref = parentSeries ? buildCatalogHref(product.category, parentSeries) : null
   const seriesHref = product.series ? buildCatalogHref(product.category, product.series) : null
 
   const breadcrumbs = [
     { name: "Главная", url: siteUrl },
     { name: "Каталог", url: `${siteUrl}/catalog` },
     { name: getCategoryName(product.category), url: `${siteUrl}${categoryHref}` },
+    ...(parentSeries && parentSeriesHref
+      ? [{ name: parentSeries, url: `${siteUrl}${parentSeriesHref}` }]
+      : []),
     ...(product.series && seriesHref
       ? [{ name: product.series, url: `${siteUrl}${seriesHref}` }]
       : []),
@@ -139,6 +170,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 {getCategoryName(product.category)}
               </Link>
             </li>
+            {parentSeries && parentSeriesHref && (
+              <>
+                <li aria-hidden="true">/</li>
+                <li>
+                  <Link href={parentSeriesHref} className="hover:text-primary">
+                    {parentSeries}
+                  </Link>
+                </li>
+              </>
+            )}
             {product.series && seriesHref && (
               <>
                 <li aria-hidden="true">/</li>
@@ -214,6 +255,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             ))}
           </div>
         </section>
+
+        <RecentlyViewed
+          excludeSlug={product.slug}
+          currentSlug={product.slug}
+          limit={4}
+          className="border-t border-border pt-8"
+        />
       </div>
     </>
   )

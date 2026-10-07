@@ -5,10 +5,10 @@ import { Logo } from "@/components/logo"
 import { buildCatalogHref } from "@/lib/catalog-urls"
 
 const info = [
-  { label: "О компании", href: "/catalog" },
-  { label: "Доставка и оплата", href: "/catalog" },
-  { label: "Гарантия и возврат", href: "/catalog" },
-  { label: "Контакты", href: "/catalog" },
+  { label: "О компании", href: "/about" },
+  { label: "Доставка и оплата", href: "/delivery" },
+  { label: "Гарантия и возврат", href: "/warranty" },
+  { label: "Контакты", href: "/contacts" },
 ]
 
 // Реальные разделы для fallback, чтобы не выводить пустые псевдо-категории
@@ -108,8 +108,14 @@ export function SiteFooter({
       </div>
 
       <div className="border-t border-navy-foreground/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-navy-foreground/60 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-navy-foreground/60 md:flex-row">
           <p>© {new Date().getFullYear()} Orange MSK. Все права защищены.</p>
+          <div className="text-center">
+            <p className="font-medium text-navy-foreground/85">ИП Белокур Елена Руслановна</p>
+            <p className="text-[11px] text-navy-foreground/60">
+              ОГРНИП 325508100440023 · ИНН 504419271112
+            </p>
+          </div>
           <p>Информация на сайте не является публичной офертой.</p>
         </div>
       </div>

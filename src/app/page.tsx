@@ -12,6 +12,7 @@ import { CategoryCarousel } from "@/components/category-carousel"
 import { ProductCard } from "@/components/product-card"
 import { BrandLogo } from "@/components/brand-logo"
 import { CatalogAppBanner } from "@/components/catalog-app-banner"
+import { RecentlyViewed } from "@/components/recently-viewed"
 import { getProducts } from "@/lib/products/queries"
 import { getBanners } from "@/lib/banners/queries"
 import { getHomeCategoryCards } from "@/lib/home-categories/queries"
@@ -157,6 +158,8 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      <RecentlyViewed />
 
       <CatalogAppBanner />
     </div>

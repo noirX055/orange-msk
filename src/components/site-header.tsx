@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { Phone, ShoppingCart } from "lucide-react"
+import { Heart, Phone, ShoppingCart } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
+import { useFavorites } from "@/components/favorites-provider"
 import { Logo } from "@/components/logo"
 import { SearchBox } from "@/components/search-box"
 import { AccountMenu } from "@/components/account/account-menu"
@@ -22,6 +23,7 @@ export function SiteHeader({
   brands: Brand[]
 }) {
   const { totalItems } = useCart()
+  const { totalFavorites } = useFavorites()
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
@@ -32,7 +34,7 @@ export function SiteHeader({
             Оригинальная техника с гарантией · Доставка по Москве в день заказа
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/catalog" className="text-navy-foreground/80 transition-colors hover:text-primary">
+            <Link href="/warranty" className="text-navy-foreground/80 transition-colors hover:text-primary">
               Гарантия и сервис
             </Link>
             <a href="tel:+79892058377" className="flex items-center gap-2 font-medium hover:text-primary">
@@ -54,7 +56,7 @@ export function SiteHeader({
         <AccountMenu />
       </div>
 
-      {/* Desktop header: logo + search + account + cart */}
+      {/* Desktop header: logo + search + favorites + account + cart */}
       <div className="mx-auto hidden max-w-7xl items-center gap-4 px-4 py-4 md:flex">
         <Link href="/" className="shrink-0" aria-label="Orange MSK — на главную">
           <Logo />
@@ -65,6 +67,19 @@ export function SiteHeader({
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          <Link
+            href="/favorites"
+            className="relative flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            aria-label="Избранное"
+          >
+            <Heart size={18} />
+            <span className="hidden lg:inline">Избранное</span>
+            {totalFavorites > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-bold text-primary-foreground">
+                {totalFavorites}
+              </span>
+            )}
+          </Link>
           <AccountMenu />
           <Link
             href="/cart"

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound, permanentRedirect } from "next/navigation"
 import { CatalogView } from "@/components/catalog-view"
+import { RecentlyViewed } from "@/components/recently-viewed"
 import { getProducts } from "@/lib/products/queries"
 import { getCategoriesWithGroups, getAllAttributesWithValues } from "@/lib/admin/queries"
 import { BreadcrumbsJsonLd } from "@/components/json-ld"
@@ -281,6 +282,8 @@ export default async function CatalogPage(props: CatalogPageProps) {
           initialQuery={ctx.queryParams.q ?? ""}
           initialSeries={ctx.seriesName}
         />
+
+        <RecentlyViewed className="mt-14 border-t border-border pt-10" />
       </div>
     </>
   )
