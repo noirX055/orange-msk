@@ -181,7 +181,11 @@ export async function getCategoriesWithGroups(): Promise<{
 
   return {
     categories: (categoriesRes.data as AdminCategory[] | null) ?? [],
-    groups,
+    groups: groups.map((g) => ({
+      ...g,
+      name: g.name ? g.name.normalize("NFKC").trim() : g.name,
+      parent_group: g.parent_group ? g.parent_group.normalize("NFKC").trim() : g.parent_group,
+    })),
     brands: (brandsRes.data as { id: number; name: string }[] | null) ?? [],
   }
 }

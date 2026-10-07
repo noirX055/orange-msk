@@ -160,6 +160,59 @@ function productMatchesDynamicFilters(
   return true
 }
 
+function productMatchesSeries(
+  product: Product,
+  selectedSeries: string[],
+  groups: AdminGroup[],
+  candidateSeriesByLength: string[],
+  parentGroupNames: Set<string>
+): boolean {
+  if (selectedSeries.length === 0) return true
+
+  const prodSeries = product.series?.trim().toLowerCase()
+  const matchedGroup = prodSeries
+    ? groups.find((g) => g.name.trim().toLowerCase() === prodSeries)
+    : null
+  const parentName = matchedGroup?.parent_group?.trim().toLowerCase()
+
+  let inferredSeries = prodSeries
+  if (!inferredSeries) {
+    const nameLower = product.name.toLowerCase()
+    for (const cand of candidateSeriesByLength) {
+      if (nameLower.includes(cand)) {
+        inferredSeries = cand
+        break
+      }
+    }
+  }
+
+  return selectedSeries.some((s) => {
+    const target = s.trim().toLowerCase()
+    const isParent = parentGroupNames.has(target)
+
+    if (isParent) {
+      return (
+        parentName === target ||
+        (inferredSeries &&
+          groups.some(
+            (g) =>
+              g.name.trim().toLowerCase() === inferredSeries &&
+              g.parent_group?.trim().toLowerCase() === target
+          )) ||
+        product.name.toLowerCase().includes(target)
+      )
+    }
+
+    if (prodSeries) {
+      return prodSeries === target
+    }
+    if (inferredSeries) {
+      return inferredSeries === target
+    }
+    return false
+  })
+}
+
 const sortOptions = [
   { value: "popular", label: "По популярности" },
   { value: "price-asc", label: "Сначала дешёвые" },
@@ -322,6 +375,36 @@ export function CatalogView({
     return "Каталог оригинальной техники"
   }, [query, category, categoriesList, selectedSeries, selectedBrands, saleOnly])
 
+  const parentGroupNames = useMemo(() => {
+    const set = new Set<string>()
+    for (const g of groups) {
+      if (g.parent_group?.trim()) {
+        set.add(g.parent_group.trim().toLowerCase())
+      }
+    }
+    return set
+  }, [groups])
+
+  const candidateSeriesByLength = useMemo(() => {
+    const names = new Set<string>()
+    for (const g of groups) {
+      if (g.name?.trim()) names.add(g.name.trim().toLowerCase())
+    }
+    for (const p of products) {
+      if (p.series?.trim()) names.add(p.series.trim().toLowerCase())
+    }
+    const fallbackModels = [
+      "iphone 16 pro max", "iphone 16 pro", "iphone 16 plus", "iphone 16e", "iphone 16",
+      "iphone 15 pro max", "iphone 15 pro", "iphone 15 plus", "iphone 15",
+      "iphone 14 pro max", "iphone 14 pro", "iphone 14 plus", "iphone 14",
+      "iphone 13 pro max", "iphone 13 pro", "iphone 13 mini", "iphone 13",
+    ]
+    for (const m of fallbackModels) {
+      names.add(m)
+    }
+    return Array.from(names).sort((a, b) => b.length - a.length)
+  }, [groups, products])
+
   // Серии в рамках текущей категории и выбранных брендов — чтобы список был релевантным
   const seriesList = useMemo(() => {
     // В общем каталоге ("Все товары") список серий не отображается, пока не выбрана конкретная категория или серия
@@ -351,23 +434,13 @@ export function CatalogView({
         return false
       }
       if (selectedSeries.length > 0) {
-        const prodSeries = product.series?.trim().toLowerCase()
-        const matchedGroup = prodSeries ? groups.find((g) => g.name.trim().toLowerCase() === prodSeries) : null
-        const parentName = matchedGroup?.parent_group?.trim().toLowerCase()
-
-        const matchesSeries = selectedSeries.some((s) => {
-          const target = s.trim().toLowerCase()
-          return (
-            (prodSeries && target === prodSeries) ||
-            (parentName && target === parentName) ||
-            product.name.toLowerCase().includes(target)
-          )
-        })
-        if (!matchesSeries) return false
+        if (!productMatchesSeries(product, selectedSeries, groups, candidateSeriesByLength, parentGroupNames)) {
+          return false
+        }
       }
       return true
     })
-  }, [products, category, selectedBrands, selectedSeries, groups])
+  }, [products, category, selectedBrands, selectedSeries, groups, candidateSeriesByLength, parentGroupNames])
 
   // Вычисление динамических секций фильтров на основе:
   // 1. Настроек группы (filter_attribute_ids из product_groups)
@@ -709,19 +782,9 @@ export function CatalogView({
       }
       if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false
       if (selectedSeries.length > 0) {
-        const prodSeries = product.series?.trim().toLowerCase()
-        const matchedGroup = prodSeries ? groups.find((g) => g.name.trim().toLowerCase() === prodSeries) : null
-        const parentName = matchedGroup?.parent_group?.trim().toLowerCase()
-
-        const matchesSeries = selectedSeries.some((s) => {
-          const target = s.trim().toLowerCase()
-          return (
-            (prodSeries && target === prodSeries) ||
-            (parentName && target === parentName) ||
-            product.name.toLowerCase().includes(target)
-          )
-        })
-        if (!matchesSeries) return false
+        if (!productMatchesSeries(product, selectedSeries, groups, candidateSeriesByLength, parentGroupNames)) {
+          return false
+        }
       }
       if (!productMatchesDynamicFilters(product, selectedFilters)) {
         return false
@@ -765,6 +828,9 @@ export function CatalogView({
     saleOnly,
     sort,
     query,
+    groups,
+    candidateSeriesByLength,
+    parentGroupNames,
   ])
 
   const toggleBrand = (brand: string) => {

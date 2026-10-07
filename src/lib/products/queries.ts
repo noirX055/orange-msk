@@ -33,9 +33,9 @@ export function mapProduct(row: ProductRow): Product {
   return {
     id: row.id,
     slug: row.slug,
-    name: row.name,
-    brand: row.brand,
-    series: row.series ?? undefined,
+    name: row.name ? row.name.normalize("NFKC") : "",
+    brand: row.brand ? row.brand.normalize("NFKC") : "",
+    series: row.series ? row.series.normalize("NFKC") : undefined,
     variantGroup: row.variant_group ?? undefined,
     category: row.category,
     price: row.price,
