@@ -108,7 +108,12 @@ async function resolveRouteContext(
   const catGroups = groups.filter(
     (g) => g.category_slug?.toLowerCase() === currentCategory.slug.toLowerCase(),
   )
-  const candidateNames = catGroups.map((g) => g.name)
+  const candidateNames = Array.from(
+    new Set([
+      ...catGroups.map((g) => g.name),
+      ...catGroups.map((g) => g.parent_group).filter((p): p is string => Boolean(p && p.trim())),
+    ]),
+  )
 
   let seriesName = findSeriesNameBySlug(rawSeriesSlug, candidateNames)
 

@@ -667,11 +667,18 @@ export function CatalogView({
       }
       if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false
       if (selectedSeries.length > 0) {
-        if (!product.series) return false
-        const prodSeries = product.series.trim().toLowerCase()
-        const matchesSeries = selectedSeries.some(
-          (s) => s.trim().toLowerCase() === prodSeries
-        )
+        const prodSeries = product.series?.trim().toLowerCase()
+        const matchedGroup = prodSeries ? groups.find((g) => g.name.trim().toLowerCase() === prodSeries) : null
+        const parentName = matchedGroup?.parent_group?.trim().toLowerCase()
+
+        const matchesSeries = selectedSeries.some((s) => {
+          const target = s.trim().toLowerCase()
+          return (
+            (prodSeries && target === prodSeries) ||
+            (parentName && target === parentName) ||
+            product.name.toLowerCase().includes(target)
+          )
+        })
         if (!matchesSeries) return false
       }
       if (!productMatchesDynamicFilters(product, selectedFilters)) {
@@ -680,11 +687,18 @@ export function CatalogView({
       if (product.price > maxPrice) return false
       if (inStockOnly && !product.inStock) return false
       if (saleOnly && !product.oldPrice) return false
-      if (
-        term &&
-        !`${product.name} ${product.brand} ${product.series ?? ""}`.toLowerCase().includes(term)
-      )
-        return false
+      if (term) {
+        const words = term
+          .split(/[\s,()\[\]\/\-_+]+/g)
+          .map((w) => w.trim().toLowerCase())
+          .filter((w) => w.length > 0)
+
+        if (words.length > 0) {
+          const haystack = `${product.name} ${product.brand} ${product.series ?? ""}`.toLowerCase()
+          const allWordsMatch = words.every((w) => haystack.includes(w))
+          if (!allWordsMatch) return false
+        }
+      }
       return true
     })
 
@@ -877,9 +891,20 @@ export function CatalogView({
                       <>
                         {Array.from(parentMap.entries()).map(([parentName, items]) => (
                           <div key={parentName} className="mt-1.5 first:mt-0.5">
-                            <span className="block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectGroup(item.slug, parentName)}
+                              className={`w-full text-left rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wider transition-colors ${
+                                isCurrentCategory &&
+                                selectedSeries.some(
+                                  (s) => s.trim().toLowerCase() === parentName.trim().toLowerCase()
+                                )
+                                  ? "bg-primary font-bold text-primary-foreground shadow-sm"
+                                  : "text-muted-foreground/80 hover:bg-muted hover:text-foreground"
+                              }`}
+                            >
                               {parentName}
-                            </span>
+                            </button>
                             <div className="mt-0.5 flex flex-col gap-0.5 pl-1">
                               {items.map((group) => {
                                 const isGroupActive =

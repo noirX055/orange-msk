@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createPublicClient } from "@/lib/supabase/public"
 import type { Product } from "@/lib/products"
 
 // Строка таблицы products (snake_case из БД)
@@ -165,21 +166,85 @@ export async function getProductsBySlugs(slugs: string[]): Promise<Product[]> {
 }
 
 export async function searchProducts(query: string, limit = 8): Promise<Product[]> {
-  // Убираем спецсимволы фильтра PostgREST (запятая, скобки, %) — иначе .or() ломается
-  const safe = query.trim().replace(/[%,()]/g, " ").trim()
-  if (!safe) return []
+  const trimmed = query.trim()
+  if (!trimmed) return []
 
-  const supabase = await createClient()
-  const pattern = `%${safe}%`
-  const { data } = await supabase
-    .from("products")
-    .select(PRODUCT_COLUMNS)
-    .eq("is_visible", true)
-    .or(`name.ilike.${pattern},brand.ilike.${pattern},series.ilike.${pattern}`)
-    .order("sort", { ascending: true })
-    .limit(limit)
+  // Разбиваем на значимые слова (токены), убирая знаки препинания
+  const words = trimmed
+    .split(/[\s,()\[\]\/\-_+]+/g)
+    .map((w) => w.trim().toLowerCase())
+    .filter((w) => w.length > 0)
 
-  return ((data as ProductRow[] | null) ?? []).map(mapProduct)
+  if (words.length === 0) return []
+
+  const supabase = createPublicClient()
+
+  // 1. Сначала пробуем точный поиск подстроки
+  const cleanPhrase = trimmed.replace(/[%_,()]/g, " ").replace(/\s+/g, " ").trim()
+  let products: ProductRow[] = []
+
+  if (cleanPhrase.length >= 2) {
+    const pattern = `%${cleanPhrase}%`
+    const { data } = await supabase
+      .from("products")
+      .select(PRODUCT_COLUMNS)
+      .eq("is_visible", true)
+      .or(`name.ilike.${pattern},brand.ilike.${pattern},series.ilike.${pattern}`)
+      .limit(limit)
+
+    if (data && data.length > 0) {
+      products = data as ProductRow[]
+    }
+  }
+
+  // 2. Если точная фраза ничего не нашла или нашла мало — ищем по ключевым словам (AND)
+  if (products.length < limit) {
+    let queryBuilder = supabase
+      .from("products")
+      .select(PRODUCT_COLUMNS)
+      .eq("is_visible", true)
+
+    // Фильтруем по каждому слову (до 5 ключевых слов)
+    const keywords = words.slice(0, 5)
+    for (const word of keywords) {
+      const p = `%${word}%`
+      queryBuilder = queryBuilder.or(`name.ilike.${p},brand.ilike.${p},series.ilike.${p}`)
+    }
+
+    const { data: keywordData } = await queryBuilder.limit(limit * 2)
+
+    if (keywordData && keywordData.length > 0) {
+      const existingIds = new Set(products.map((p) => p.id))
+      for (const item of keywordData as ProductRow[]) {
+        if (!existingIds.has(item.id)) {
+          existingIds.add(item.id)
+          products.push(item)
+        }
+      }
+    }
+  }
+
+  // Ранжирование по релевантности (сколько слов совпало в названии)
+  products.sort((a, b) => {
+    const aText = `${a.name} ${a.brand} ${a.series ?? ""}`.toLowerCase()
+    const bText = `${b.name} ${b.brand} ${b.series ?? ""}`.toLowerCase()
+
+    let aScore = 0
+    let bScore = 0
+
+    for (const w of words) {
+      if (aText.includes(w)) aScore += 1
+      if (bText.includes(w)) bScore += 1
+    }
+
+    // Бонус за совпадение начала названия
+    if (a.name.toLowerCase().startsWith(trimmed.toLowerCase())) aScore += 2
+    if (b.name.toLowerCase().startsWith(trimmed.toLowerCase())) bScore += 2
+
+    return bScore - aScore
+  })
+
+  return products.slice(0, limit).map(mapProduct)
 }
 
 export async function getRelatedProducts(product: Product, limit = 4): Promise<Product[]> {
