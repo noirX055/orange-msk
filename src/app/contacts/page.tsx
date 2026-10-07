@@ -85,9 +85,10 @@ export default function ContactsPage() {
     },
     geo: {
       "@type": "GeoCoordinates",
-      latitude: "55.9863",
-      longitude: "37.3117",
+      latitude: "55.975169",
+      longitude: "37.311543",
     },
+    hasMap: "https://yandex.ru/maps/-/CXqmFXmF",
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",
@@ -218,7 +219,7 @@ export default function ContactsPage() {
 
             <div className="mt-6 pt-4 border-t border-border">
               <a
-                href="https://yandex.md/maps/1/moscow-and-moscow-oblast/house/derevnya_chyornaya_gryaz_7_1m/Z04YdQZhTEEEQFtvfXV2dH1lbQ==/"
+                href="https://yandex.ru/maps/-/CXqmFXmF"
                 target="_blank"
                 rel="noreferrer"
                 className="flex w-full items-center justify-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
@@ -231,7 +232,7 @@ export default function ContactsPage() {
 
           <div className="relative min-h-[380px] overflow-hidden rounded-card border border-border bg-muted lg:col-span-2">
             <iframe
-              src="https://yandex.ru/map-widget/v1/?ll=37.311746%2C55.986348&z=16&pt=37.311746%2C55.986348%2Cpm2orgm"
+              src="https://yandex.ru/map-widget/v1/?ol=biz&oid=69848803792&ll=37.311543%2C55.975169&z=16&pt=37.311543%2C55.975169%2Cpm2orgm"
               width="100%"
               height="100%"
               className="absolute inset-0 h-full w-full border-0"

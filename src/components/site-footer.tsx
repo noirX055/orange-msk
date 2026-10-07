@@ -88,7 +88,7 @@ export function SiteFooter({
             <li className="flex items-start gap-2.5">
               <MapPin size={16} className="mt-0.5 shrink-0 text-primary" />
               <a
-                href="https://yandex.md/maps/1/moscow-and-moscow-oblast/house/derevnya_chyornaya_gryaz_7_1m/Z04YdQZhTEEEQFtvfXV2dH1lbQ==/"
+                href="https://yandex.ru/maps/-/CXqmFXmF"
                 target="_blank"
                 rel="noreferrer"
                 className="hover:text-primary"
