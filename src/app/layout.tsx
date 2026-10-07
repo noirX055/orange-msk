@@ -111,7 +111,7 @@ export default async function RootLayout({
       <head>
         <OrganizationJsonLd />
       </head>
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <YandexMetrika />
         <CartProvider>
           <FavoritesProvider>

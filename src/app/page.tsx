@@ -11,6 +11,7 @@ import { BannerCarousel } from "@/components/banner-carousel"
 import { CategoryCarousel } from "@/components/category-carousel"
 import { ProductCard } from "@/components/product-card"
 import { BrandLogo } from "@/components/brand-logo"
+import { CatalogAppBanner } from "@/components/catalog-app-banner"
 import { getProducts } from "@/lib/products/queries"
 import { getBanners } from "@/lib/banners/queries"
 import { getHomeCategoryCards } from "@/lib/home-categories/queries"
@@ -156,6 +157,8 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      <CatalogAppBanner />
     </div>
   )
 }
