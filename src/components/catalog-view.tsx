@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react"
 import { categories as fallbackCategories, getCategoryName, type Product } from "@/lib/products"
 import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
@@ -15,6 +15,7 @@ import {
   getSimLabel,
   KNOWN_COLOR_HEXES,
 } from "@/lib/products/variants"
+import { buildCatalogHref, findSeriesNameBySlug } from "@/lib/catalog-urls"
 
 interface CatalogFilterOption {
   value: string
@@ -259,6 +260,38 @@ export function CatalogView({
     setSelectedSeries(initialSeries ? [initialSeries] : [])
   }
 
+  // Синхронизация состояния со стрелками «Назад» / «Вперёд» в браузере
+  useEffect(() => {
+    const handlePopState = () => {
+      const parts = window.location.pathname.split("/").filter(Boolean)
+      if (parts[0] === "catalog") {
+        const catSlug = parts[1] || "all"
+        setCategory(catSlug)
+        if (catSlug !== "all") {
+          setExpandedCategories((prev) => new Set(prev).add(catSlug))
+        }
+        const seriesSlug = parts[2]
+        if (seriesSlug) {
+          const catGroups = groups.filter(
+            (g) => g.category_slug?.trim().toLowerCase() === catSlug.trim().toLowerCase()
+          )
+          const candidates = Array.from(
+            new Set([
+              ...catGroups.map((g) => g.name),
+              ...catGroups.map((g) => g.parent_group).filter((p): p is string => Boolean(p && p.trim())),
+            ])
+          )
+          const resolved = findSeriesNameBySlug(seriesSlug, candidates)
+          setSelectedSeries(resolved ? [resolved] : [decodeURIComponent(seriesSlug)])
+        } else {
+          setSelectedSeries([])
+        }
+      }
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [groups])
+
   // SEO: H1 отражает текущую категорию / серию / бренд, а не общий «Каталог»
   const heading = useMemo(() => {
     const q = query.trim()
@@ -318,14 +351,23 @@ export function CatalogView({
         return false
       }
       if (selectedSeries.length > 0) {
-        if (!product.series) return false
-        const prodSeries = product.series.trim().toLowerCase()
-        const matches = selectedSeries.some((s) => s.trim().toLowerCase() === prodSeries)
-        if (!matches) return false
+        const prodSeries = product.series?.trim().toLowerCase()
+        const matchedGroup = prodSeries ? groups.find((g) => g.name.trim().toLowerCase() === prodSeries) : null
+        const parentName = matchedGroup?.parent_group?.trim().toLowerCase()
+
+        const matchesSeries = selectedSeries.some((s) => {
+          const target = s.trim().toLowerCase()
+          return (
+            (prodSeries && target === prodSeries) ||
+            (parentName && target === parentName) ||
+            product.name.toLowerCase().includes(target)
+          )
+        })
+        if (!matchesSeries) return false
       }
       return true
     })
-  }, [products, category, selectedBrands, selectedSeries])
+  }, [products, category, selectedBrands, selectedSeries, groups])
 
   // Вычисление динамических секций фильтров на основе:
   // 1. Настроек группы (filter_attribute_ids из product_groups)
@@ -759,6 +801,9 @@ export function CatalogView({
     setCategory("all")
     setSelectedSeries([])
     setSelectedFilters({})
+    if (typeof window !== "undefined") {
+      window.history.pushState(null, "", "/catalog")
+    }
   }
 
   const handleSelectCategory = (catSlug: string) => {
@@ -770,6 +815,9 @@ export function CatalogView({
       setSelectedSeries([])
       setSelectedFilters({})
       setExpandedCategories((prev) => new Set(prev).add(catSlug))
+      if (typeof window !== "undefined") {
+        window.history.pushState(null, "", buildCatalogHref(catSlug))
+      }
     }
   }
 
@@ -790,10 +838,17 @@ export function CatalogView({
     setCategory(catSlug)
     setExpandedCategories((prev) => new Set(prev).add(catSlug))
     setSelectedFilters({})
-    setSelectedSeries((prev) => {
-      const exists = prev.some((s) => s.trim().toLowerCase() === groupName.trim().toLowerCase())
-      return exists ? [] : [groupName]
-    })
+
+    const exists = selectedSeries.some((s) => s.trim().toLowerCase() === groupName.trim().toLowerCase())
+    const nextSeries = exists ? [] : [groupName]
+    setSelectedSeries(nextSeries)
+
+    if (typeof window !== "undefined") {
+      const targetUrl = nextSeries.length > 0
+        ? buildCatalogHref(catSlug, nextSeries[0])
+        : buildCatalogHref(catSlug)
+      window.history.pushState(null, "", targetUrl)
+    }
   }
 
   const reset = () => {

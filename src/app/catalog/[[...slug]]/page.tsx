@@ -117,6 +117,7 @@ async function resolveRouteContext(
 
   let seriesName = findSeriesNameBySlug(rawSeriesSlug, candidateNames)
 
+
   // Если в groups серии нет, ищем в товарах этой категории
   if (!seriesName) {
     const allProducts = await getProducts()

@@ -9,9 +9,14 @@ export async function createClient() {
       ? process.env.NEXT_PUBLIC_SUPABASE_URL
       : "https://db.orangemsk.ru"
 
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+
   return createServerClient(
     url,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    key,
     {
       cookies: {
         getAll() {

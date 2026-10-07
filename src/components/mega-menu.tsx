@@ -99,9 +99,13 @@ export function MegaMenu({
             <div key={section.title ?? `col-${idx}`} className="flex flex-col min-w-[160px] max-w-[220px]">
               {section.title && (
                 <div className="mb-2.5 pb-1 border-b border-border/60">
-                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  <Link
+                    href={buildCatalogHref(activeItem!.slug, section.title)}
+                    onClick={() => setActiveCategory(null)}
+                    className="text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:text-primary"
+                  >
                     {section.title}
-                  </span>
+                  </Link>
                 </div>
               )}
               <div className="flex flex-col gap-2">

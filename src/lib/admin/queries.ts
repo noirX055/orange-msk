@@ -186,6 +186,7 @@ export async function getCategoriesWithGroups(): Promise<{
   }
 }
 
+
 /** Получение характеристик, привязанных к группе (серии) товара */
 export async function getGroupAttributes(
   seriesName?: string | null,

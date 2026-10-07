@@ -50,9 +50,9 @@ const LEGACY_CATEGORY_MAP: Record<string, { category: string; series?: string }>
   "iphone-15": { category: "apple", series: "iPhone 15" },
   "iphone-14": { category: "apple", series: "iPhone 14" },
   "airpods": { category: "accessories" },
-  "ipad": { category: "apple" },
-  "macbook": { category: "apple" },
-  "apple-watch": { category: "apple" },
+  "ipad": { category: "apple", series: "iPad" },
+  "macbook": { category: "apple", series: "MacBook" },
+  "apple-watch": { category: "apple", series: "Apple Watch" },
   "consoles": { category: "accessories" },
 }
 
