@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ChevronLeft, User } from "lucide-react"
+import { ChevronLeft, User, CreditCard, Mail, ExternalLink, MessageSquare, MapPin } from "lucide-react"
 import { getOrderById } from "@/lib/admin/queries"
 import { ORDER_STATUS } from "@/lib/account/queries"
 import { formatPrice } from "@/lib/products"
@@ -25,6 +25,27 @@ export default async function AdminOrderPage({
   const canRefund =
     Boolean(order.payment_id) &&
     REFUNDABLE_ORDER_STATUSES.includes(order.status)
+
+  // Парсинг структурированного комментария к заказу
+  const comment = order.comment || ""
+  let parsedEmail = ""
+  let parsedSocial = ""
+  let parsedPayment = ""
+
+  if (comment) {
+    const parts = comment.split(" | ")
+    for (const part of parts) {
+      if (part.startsWith("Email: ")) {
+        parsedEmail = part.replace("Email: ", "").trim()
+      } else if (part.startsWith("Соцсеть / Мессенджер: ")) {
+        parsedSocial = part.replace("Соцсеть / Мессенджер: ", "").trim()
+      } else if (part.startsWith("Способ оплаты: ")) {
+        parsedPayment = part.replace("Способ оплаты: ", "").trim()
+      }
+    }
+  }
+
+  const isOnlinePaid = Boolean(order.payment_id) && order.status === "processing"
 
   return (
     <div className="flex flex-col gap-6">
@@ -118,30 +139,118 @@ export default async function AdminOrderPage({
           </div>
         </div>
 
-        {/* Покупатель + действия */}
+        {/* Покупатель + Оплата + действия */}
         <div className="flex flex-col gap-6">
+          {/* Данные покупателя */}
           <div className="rounded-card border border-border p-5">
             <h2 className="mb-3 flex items-center gap-2 font-bold">
               <User size={18} />
-              Покупатель
+              Данные клиента
             </h2>
-            <dl className="flex flex-col gap-2 text-sm">
+            <dl className="flex flex-col gap-2.5 text-sm">
               <div>
-                <dt className="text-xs text-muted-foreground">Имя (профиль)</dt>
-                <dd className="font-medium">{order.buyer_name || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Получатель</dt>
-                <dd className="font-medium">{order.recipient_name || "—"}</dd>
+                <dt className="text-xs text-muted-foreground">Имя и фамилия</dt>
+                <dd className="font-medium text-foreground">
+                  {order.recipient_name || order.buyer_name || "—"}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Телефон</dt>
-                <dd className="font-medium">{order.phone || "—"}</dd>
+                <dd className="font-medium">
+                  {order.phone ? (
+                    <a href={`tel:${order.phone}`} className="text-primary hover:underline font-semibold">
+                      {order.phone}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
               </div>
+              {parsedEmail && (
+                <div>
+                  <dt className="text-xs text-muted-foreground">Email</dt>
+                  <dd className="font-medium">
+                    <a href={`mailto:${parsedEmail}`} className="text-primary hover:underline">
+                      {parsedEmail}
+                    </a>
+                  </dd>
+                </div>
+              )}
+              {parsedSocial && (
+                <div>
+                  <dt className="text-xs text-muted-foreground">Соцсеть / Мессенджер</dt>
+                  <dd className="font-medium text-foreground break-all">
+                    {parsedSocial}
+                  </dd>
+                </div>
+              )}
               <div>
-                <dt className="text-xs text-muted-foreground">Адрес доставки</dt>
-                <dd className="font-medium">{order.address || "—"}</dd>
+                <dt className="text-xs text-muted-foreground">Способ получения и адрес</dt>
+                <dd className="font-medium text-foreground">
+                  {order.address || "—"}
+                </dd>
               </div>
+              {order.comment && (
+                <div className="pt-2 border-t border-border">
+                  <dt className="text-xs text-muted-foreground mb-0.5">Примечание к заказу</dt>
+                  <dd className="text-xs text-muted-foreground bg-muted/40 p-2 rounded-lg leading-relaxed">
+                    {order.comment}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          {/* Чек и статус оплаты */}
+          <div className="rounded-card border border-border p-5">
+            <h2 className="mb-3 flex items-center gap-2 font-bold">
+              <CreditCard size={18} />
+              Оплата и чек
+            </h2>
+            <dl className="flex flex-col gap-2.5 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground">Статус оплаты</dt>
+                <dd className="mt-1">
+                  <span
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${ORDER_STATUS[order.status].tone}`}
+                  >
+                    {isOnlinePaid
+                      ? "Оплачен онлайн через ЮKassa"
+                      : order.payment_id
+                      ? "Ожидает онлайн-оплаты в ЮKassa"
+                      : parsedPayment || "Оплата на кассе (наличные / терминал)"}
+                  </span>
+                </dd>
+              </div>
+
+              {parsedPayment && (
+                <div>
+                  <dt className="text-xs text-muted-foreground">Выбранный способ</dt>
+                  <dd className="font-medium text-foreground">{parsedPayment}</dd>
+                </div>
+              )}
+
+              {order.payment_id ? (
+                <div className="pt-2 border-t border-border">
+                  <dt className="text-xs text-muted-foreground">Идентификатор платежа ЮKassa</dt>
+                  <dd className="font-mono text-xs text-foreground mt-0.5 break-all">
+                    {order.payment_id}
+                  </dd>
+                  <a
+                    href={`https://yookassa.ru/my/payments?search=${order.payment_id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                  >
+                    <span>Открыть в кабинете ЮKassa</span>
+                    <ExternalLink size={13} />
+                  </a>
+                </div>
+              ) : (
+                <div className="pt-2 border-t border-border text-xs text-muted-foreground">
+                  Заказ без онлайн-платежа ЮKassa. Расчёт производится на кассе при получении.
+                </div>
+              )}
             </dl>
           </div>
 

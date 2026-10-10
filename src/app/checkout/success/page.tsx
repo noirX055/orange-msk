@@ -6,6 +6,7 @@ import { useEffect, useState, useRef, Suspense } from "react"
 import { CheckCircle, XCircle, Loader2, ShoppingBag } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { formatPrice } from "@/lib/products"
+import { trackPurchase } from "@/lib/analytics"
 
 type PaymentStatus = "checking" | "paid" | "pending" | "failed"
 
@@ -14,6 +15,7 @@ function SuccessContent() {
   const router = useRouter()
   const { clear } = useCart()
   const orderId = searchParams.get("orderId")
+  const paymentParam = searchParams.get("payment")
   const [status, setStatus] = useState<PaymentStatus>("checking")
   const [total, setTotal] = useState(0)
   const clearedRef = useRef(false)
@@ -21,6 +23,18 @@ function SuccessContent() {
 
   useEffect(() => {
     if (!orderId) return
+
+    // Заказы с оплатой при получении (наличными / через терминал на кассе) подтверждаются сразу
+    if (paymentParam === "cash" || paymentParam === "in_store") {
+      setStatus("paid")
+      const totalParam = searchParams.get("total")
+      if (totalParam) setTotal(Number(totalParam))
+      if (!clearedRef.current) {
+        clear()
+        clearedRef.current = true
+      }
+      return
+    }
 
     async function checkStatus() {
       try {
@@ -63,6 +77,27 @@ function SuccessContent() {
     checkStatus()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId])
+
+  // Фиксация макро-цели в Яндекс Метрике и dataLayer purchase (защита от дублей при F5)
+  useEffect(() => {
+    if (status !== "paid" || !orderId) return
+
+    const storageKey = `ym_order_tracked_${orderId}`
+    try {
+      if (!sessionStorage.getItem(storageKey)) {
+        sessionStorage.setItem(storageKey, "1")
+        trackPurchase({
+          id: orderId,
+          revenue: total,
+        })
+      }
+    } catch {
+      trackPurchase({
+        id: orderId,
+        revenue: total,
+      })
+    }
+  }, [status, orderId, total])
 
   if (!orderId) {
     return (
@@ -132,12 +167,16 @@ function SuccessContent() {
         <CheckCircle size={28} />
       </span>
       <h1 className="text-2xl font-bold tracking-tight text-green-700">
-        Заказ оплачен!
+        {paymentParam === "cash" || paymentParam === "in_store"
+          ? "Заказ успешно оформлен!"
+          : "Заказ оплачен!"}
       </h1>
       <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
         Заказ № {orderId.slice(0, 8).toUpperCase()}
         {total > 0 && <> на сумму <strong className="text-foreground">{formatPrice(total)}</strong></>}
-        {" "}успешно оплачен. Менеджер Orange MSK свяжется с вами в течение 15 минут для подтверждения доставки.
+        {paymentParam === "cash" || paymentParam === "in_store"
+          ? " принят. Оплата наличными или картой через терминал при получении. Менеджер свяжется с вами в течение 15 минут для подтверждения."
+          : " успешно оплачен. Менеджер Orange MSK свяжется с вами в течение 15 минут для подтверждения доставки."}
       </p>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link

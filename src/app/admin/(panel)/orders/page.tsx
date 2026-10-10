@@ -6,11 +6,11 @@ import { formatPrice } from "@/lib/products"
 
 const filters: { value: string; label: string }[] = [
   { value: "all", label: "Все" },
+  { value: "processing", label: "Оплачены (ЮKassa)" },
+  { value: "new", label: "Новые (на кассе)" },
   { value: "pending_payment", label: "Ожидают оплаты" },
-  { value: "new", label: "Новые" },
-  { value: "processing", label: "В обработке" },
   { value: "shipping", label: "В доставке" },
-  { value: "done", label: "Доставлены" },
+  { value: "done", label: "Выданы / Доставлены" },
   { value: "refunded", label: "Возвращённые" },
   { value: "cancelled", label: "Отменённые" },
 ]
@@ -67,43 +67,74 @@ export default async function AdminOrdersPage({
               <tr>
                 <th className="px-4 py-3 font-semibold">Заказ</th>
                 <th className="hidden px-4 py-3 font-semibold sm:table-cell">Покупатель</th>
-                <th className="hidden px-4 py-3 font-semibold md:table-cell">Дата</th>
+                <th className="hidden px-4 py-3 font-semibold md:table-cell">Оплата</th>
+                <th className="hidden px-4 py-3 font-semibold lg:table-cell">Дата</th>
                 <th className="px-4 py-3 font-semibold">Сумма</th>
                 <th className="px-4 py-3 font-semibold">Статус</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {orders.map((order) => (
-                <tr key={order.id} className="transition-colors hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/orders/${order.id}`}
-                      className="font-semibold transition-colors hover:text-primary"
-                    >
-                      № {order.id.slice(0, 8).toUpperCase()}
-                    </Link>
-                    <p className="text-xs text-muted-foreground">{order.order_items.length} тов.</p>
-                  </td>
-                  <td className="hidden px-4 py-3 sm:table-cell">
-                    {order.buyer_name || order.recipient_name || "—"}
-                  </td>
-                  <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
-                    {new Date(order.created_at).toLocaleDateString("ru-RU", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </td>
-                  <td className="px-4 py-3 font-semibold">{formatPrice(order.total)}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${ORDER_STATUS[order.status].tone}`}
-                    >
-                      {ORDER_STATUS[order.status].label}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {orders.map((order) => {
+                const isPaidYookassa = Boolean(order.payment_id) && order.status === "processing"
+                const isCash = order.comment?.toLowerCase().includes("наличными") || order.comment?.toLowerCase().includes("кассе")
+                const paymentBadgeText = isPaidYookassa
+                  ? "Оплачен (ЮKassa)"
+                  : order.payment_id
+                  ? "ЮKassa"
+                  : isCash
+                  ? "На кассе"
+                  : "—"
+
+                return (
+                  <tr key={order.id} className="transition-colors hover:bg-muted/30">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="font-semibold transition-colors hover:text-primary"
+                      >
+                        № {order.id.slice(0, 8).toUpperCase()}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">{order.order_items.length} тов.</p>
+                    </td>
+                    <td className="hidden px-4 py-3 sm:table-cell">
+                      <div className="font-medium text-foreground">
+                        {order.buyer_name || order.recipient_name || "—"}
+                      </div>
+                      {order.phone && (
+                        <div className="text-xs text-muted-foreground">{order.phone}</div>
+                      )}
+                    </td>
+                    <td className="hidden px-4 py-3 text-xs md:table-cell">
+                      <span
+                        className={`inline-flex rounded-md px-2 py-0.5 font-medium ${
+                          isPaidYookassa
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                            : order.payment_id
+                            ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {paymentBadgeText}
+                      </span>
+                    </td>
+                    <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
+                      {new Date(order.created_at).toLocaleDateString("ru-RU", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-4 py-3 font-semibold">{formatPrice(order.total)}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${ORDER_STATUS[order.status].tone}`}
+                      >
+                        {ORDER_STATUS[order.status].label}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

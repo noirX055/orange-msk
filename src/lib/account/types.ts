@@ -38,6 +38,7 @@ export type Order = {
   recipient_name: string | null
   phone: string | null
   address: string | null
+  comment?: string | null
   created_at: string
   order_items: OrderItem[]
 }
@@ -60,13 +61,13 @@ export type Address = {
 }
 
 export const ORDER_STATUS: Record<OrderStatus, { label: string; tone: string }> = {
-  new: { label: "Новый", tone: "bg-muted text-muted-foreground" },
-  pending_payment: { label: "Ожидает оплаты", tone: "bg-yellow-100 text-yellow-700" },
-  processing: { label: "В обработке", tone: "bg-amber-100 text-amber-700" },
-  shipping: { label: "В доставке", tone: "bg-blue-100 text-blue-700" },
-  done: { label: "Доставлен", tone: "bg-green-100 text-green-700" },
-  cancelled: { label: "Отменён", tone: "bg-red-100 text-red-700" },
-  refunded: { label: "Возвращён", tone: "bg-purple-100 text-purple-700" },
+  new: { label: "Новый (на кассе)", tone: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" },
+  pending_payment: { label: "Ожидает оплаты", tone: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
+  processing: { label: "Оплачен (в обработке)", tone: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" },
+  shipping: { label: "В доставке", tone: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300" },
+  done: { label: "Выдан / Доставлен", tone: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300" },
+  cancelled: { label: "Отменён", tone: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300" },
+  refunded: { label: "Возвращён", tone: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300" },
 }
 
 /** Заказы, по которым можно оформить возврат через ЮKassa */

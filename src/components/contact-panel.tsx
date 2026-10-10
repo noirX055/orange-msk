@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, type ComponentProps } from "react"
+import { trackContactClick } from "@/lib/analytics"
 
 /* ——— Brand SVG icons ——— */
 
@@ -41,24 +42,28 @@ function PhoneIcon(props: ComponentProps<"svg">) {
 const contacts = [
   {
     label: "Telegram",
+    channel: "telegram" as const,
     href: "https://t.me/orangemsk",
     Icon: TelegramIcon,
     bg: "bg-[#29A9EA]",
   },
   {
     label: "Instagram",
+    channel: "instagram" as const,
     href: "https://www.instagram.com/orangelenengradka?stkn=MWk0b3Q0bzZjaWNieg%3D%3D&utm_source=qr",
     Icon: InstagramIcon,
     bg: "bg-gradient-to-br from-[#7638FA] to-[#D300C5]",
   },
   {
     label: "WhatsApp",
+    channel: "whatsapp" as const,
     href: "https://wa.me/79892058377",
     Icon: WhatsAppIcon,
     bg: "bg-[#25D366]",
   },
   {
     label: "Позвонить: 8 989 205-83-77",
+    channel: "phone" as const,
     href: "tel:+79892058377",
     Icon: PhoneIcon,
     bg: "bg-[#FF6B00]",
@@ -83,12 +88,13 @@ export function ContactPanel() {
             : "pointer-events-none scale-75 opacity-0"
         }`}
       >
-        {contacts.map(({ label, href, Icon, bg }) => (
+        {contacts.map(({ label, href, Icon, bg, channel }) => (
           <a
             key={label}
             href={href}
             aria-label={label}
             title={label}
+            onClick={() => trackContactClick(channel, label)}
             target={href.startsWith("http") ? "_blank" : undefined}
             rel={href.startsWith("http") ? "noreferrer" : undefined}
             className={`flex size-12 items-center justify-center rounded-full text-white shadow-md transition-transform duration-200 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${bg}`}

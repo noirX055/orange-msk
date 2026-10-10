@@ -83,6 +83,7 @@ export async function createPayment(input: {
   returnUrl: string
   items: ReceiptItem[]
   delivery?: number
+  deliveryDescription?: string
   customerEmail?: string
 }): Promise<{ paymentId: string; confirmationToken: string }> {
   const receiptItems: YooKassaReceiptLineItem[] = input.items.map((item) => ({
@@ -99,7 +100,7 @@ export async function createPayment(input: {
 
   if (input.delivery && input.delivery > 0) {
     receiptItems.push({
-      description: "Доставка по Москве",
+      description: (input.deliveryDescription || "Доставка").slice(0, 128),
       quantity: "1",
       amount: {
         value: input.delivery.toFixed(2),

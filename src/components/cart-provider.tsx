@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react"
 import type { Product } from "@/lib/products"
+import { trackAddToCart, trackRemoveFromCart } from "@/lib/analytics"
 
 export type CartItem = {
   id: string
@@ -17,6 +18,7 @@ export type CartItem = {
   price: number
   category: string
   color?: string
+  image?: string
   quantity: number
 }
 
@@ -25,7 +27,10 @@ type CartContextValue = {
   totalItems: number
   totalPrice: number
   isLoaded: boolean
-  addItem: (product: Product, options?: { color?: string; quantity?: number }) => void
+  addItem: (
+    product: Product,
+    options?: { color?: string; quantity?: number; image?: string }
+  ) => void
   updateQuantity: (id: string, color: string | undefined, quantity: number) => void
   removeItem: (id: string, color?: string) => void
   clear: () => void
@@ -99,6 +104,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addItem: (product, options) => {
         const quantity = options?.quantity ?? 1
         const color = options?.color ?? product.colors[0]?.name
+        const image =
+          options?.image ??
+          (product.images && product.images.length > 0 ? product.images[0] : undefined)
+
+        trackAddToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          category: product.category,
+          color,
+          quantity,
+        })
+
         setItems((current) => {
           const existing = current.find(
             (item) => keyOf(item.id, item.color) === keyOf(product.id, color),
@@ -106,7 +124,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
           if (existing) {
             return current.map((item) =>
               keyOf(item.id, item.color) === keyOf(product.id, color)
-                ? { ...item, quantity: item.quantity + quantity }
+                ? {
+                    ...item,
+                    image: item.image ?? image,
+                    quantity: item.quantity + quantity,
+                  }
                 : item,
             )
           }
@@ -119,6 +141,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               price: product.price,
               category: product.category,
               color,
+              image,
               quantity,
             },
           ]
@@ -134,6 +157,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
         )
       },
       removeItem: (id, color) => {
+        const target = items.find((item) => keyOf(item.id, item.color) === keyOf(id, color))
+        if (target) {
+          trackRemoveFromCart({
+            id: target.id,
+            name: target.name,
+            price: target.price,
+            category: target.category,
+            color: target.color,
+            quantity: target.quantity,
+          })
+        }
         setItems((current) =>
           current.filter((item) => keyOf(item.id, item.color) !== keyOf(id, color)),
         )

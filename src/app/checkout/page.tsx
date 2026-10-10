@@ -30,6 +30,7 @@ function CheckoutContent() {
   const orderId = searchParams.get("orderId")
   const totalParam = searchParams.get("total")
   const deliveryParam = searchParams.get("delivery")
+  const methodParam = searchParams.get("method")
   const widgetRef = useRef<ReturnType<Window["YooMoneyCheckoutWidget"]["prototype"]["render"]> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -171,7 +172,13 @@ function CheckoutContent() {
               {deliveryParam !== null && (
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Доставка:</span>
-                  <span>{Number(deliveryParam) === 0 ? "Бесплатно (0 ₽)" : formatPrice(Number(deliveryParam))}</span>
+                  <span>
+                    {methodParam === "cdek"
+                      ? "По тарифам СДЭК"
+                      : Number(deliveryParam) === 0
+                      ? "Бесплатно (0 ₽)"
+                      : formatPrice(Number(deliveryParam))}
+                  </span>
                 </div>
               )}
               <div className="flex items-center justify-between text-base">

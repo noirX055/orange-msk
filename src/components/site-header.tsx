@@ -8,6 +8,7 @@ import { Logo } from "@/components/logo"
 import { SearchBox } from "@/components/search-box"
 import { AccountMenu } from "@/components/account/account-menu"
 import { MegaMenu } from "@/components/mega-menu"
+import { trackContactClick } from "@/lib/analytics"
 
 import type { AdminCategory, AdminGroup } from "@/lib/admin/queries"
 
@@ -37,7 +38,11 @@ export function SiteHeader({
             <Link href="/warranty" className="text-navy-foreground/80 transition-colors hover:text-primary">
               Гарантия и сервис
             </Link>
-            <a href="tel:+79892058377" className="flex items-center gap-2 font-medium hover:text-primary">
+            <a
+              href="tel:+79892058377"
+              onClick={() => trackContactClick("phone", "header")}
+              className="flex items-center gap-2 font-medium hover:text-primary"
+            >
               <Phone size={14} />
               +7 (989) 205-83-77
             </a>

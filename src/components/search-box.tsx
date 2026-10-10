@@ -5,6 +5,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Loader2, Search, X } from "lucide-react"
 import { formatPrice, getCategoryName } from "@/lib/products"
+import { trackSearch } from "@/lib/analytics"
 
 type SearchHit = {
   slug: string
@@ -87,6 +88,7 @@ export function SearchBox({
   }
 
   const submit = () => {
+    trackSearch(query)
     if (active >= 0 && results[active]) {
       go(`/product/${results[active].slug}`)
     } else if (query.trim()) {

@@ -12,6 +12,7 @@ import { ProductCard } from "@/components/product-card"
 import { ProductTabs } from "@/components/product-tabs"
 import { RecentlyViewed } from "@/components/recently-viewed"
 import { BreadcrumbsJsonLd, ProductJsonLd } from "@/components/json-ld"
+import { ProductViewTracker } from "@/components/product-view-tracker"
 import { buildCatalogHref } from "@/lib/catalog-urls"
 
 // Ревалидация для SSR / ISR (кэширование на 60 секунд)
@@ -148,6 +149,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <>
       {/* Микроразметка Schema.org: Product + Offer + AggregateRating + Breadcrumbs */}
       <ProductJsonLd product={product} images={images} canonicalUrl={canonicalUrl} />
+      <ProductViewTracker product={product} />
       <BreadcrumbsJsonLd items={breadcrumbs} />
 
       <div className="mx-auto flex max-w-7xl flex-col gap-12 px-4 py-8">

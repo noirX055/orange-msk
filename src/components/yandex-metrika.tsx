@@ -3,8 +3,9 @@
 import { useEffect, Suspense } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import Script from "next/script"
+import { YANDEX_METRIKA_ID } from "@/lib/analytics"
 
-export const YANDEX_METRIKA_ID = 113057205
+export { YANDEX_METRIKA_ID }
 
 function YandexMetrikaHit() {
   const pathname = usePathname()
@@ -13,13 +14,21 @@ function YandexMetrikaHit() {
   useEffect(() => {
     if (!pathname) return
     const query = searchParams?.toString()
-    const url = query ? `${pathname}?${query}` : pathname
+    const targetUrl =
+      typeof window !== "undefined"
+        ? window.location.href
+        : query
+          ? `${pathname}?${query}`
+          : pathname
 
-    if (typeof window !== "undefined" && typeof (window as unknown as { ym?: Function }).ym === "function") {
+    if (
+      typeof window !== "undefined" &&
+      typeof (window as unknown as { ym?: Function }).ym === "function"
+    ) {
       try {
-        ;(window as unknown as { ym: Function }).ym(YANDEX_METRIKA_ID, "hit", url)
+        ;(window as unknown as { ym: Function }).ym(YANDEX_METRIKA_ID, "hit", targetUrl)
       } catch (e) {
-        // Safe against blocked scripts
+        // Защита от блокировщиков рекламы
       }
     }
   }, [pathname, searchParams])
@@ -35,14 +44,17 @@ export function YandexMetrika() {
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
+            window.dataLayer = window.dataLayer || [];
+
             (function(m,e,t,r,i,k,a){
                 m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
                 m[i].l=1*new Date();
                 for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
                 k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-            })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=${YANDEX_METRIKA_ID}', 'ym');
+            })(window, document,'script','https://mc.yandex.ru/metrika/tag.js', 'ym');
 
             ym(${YANDEX_METRIKA_ID}, 'init', {
+              defer: true,
               ssr: true,
               webvisor: true,
               clickmap: true,

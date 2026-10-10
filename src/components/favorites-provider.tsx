@@ -12,6 +12,7 @@ import {
 } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { toggleFavorite, removeFavoriteSlug, syncFavorites } from "@/app/account/actions"
+import { trackFavoriteToggle } from "@/lib/analytics"
 
 const STORAGE_KEY = "orange_favorites_slugs_v1"
 
@@ -184,6 +185,11 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         saveStoredSlugs(Array.from(next))
         return next
       })
+
+      // Сохраняем в localStorage сразу
+      if (willBeFavorite) {
+        trackFavoriteToggle("add", slug)
+      }
 
       // Если пользователь авторизован — также синхронизируем с БД на сервере
       if (isAuthed) {

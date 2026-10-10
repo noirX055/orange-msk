@@ -8,6 +8,7 @@ import { getPrimaryColor, type ProductVariants } from "@/lib/products/variants"
 import { useCart } from "@/components/cart-provider"
 import { FavoriteButton } from "@/components/favorite-button"
 import { ProductVariantPicker } from "@/components/product-variant-picker"
+import { PaymentBadges } from "@/components/payment-badges"
 
 export function ProductBuyPanel({
   product,
@@ -122,6 +123,9 @@ export function ProductBuyPanel({
           </Link>
         </p>
       )}
+
+      {/* Доступные способы оплаты через интеграцию ЮKassa */}
+      <PaymentBadges />
     </div>
   )
 }

@@ -14,7 +14,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { items, subtotal, delivery, total, recipient_name, phone, address } = body
+    const {
+      items,
+      subtotal,
+      delivery,
+      delivery_method,
+      total,
+      recipient_name,
+      phone,
+      email,
+      social,
+      address,
+      payment_type,
+    } = body
 
     if (!items || !items.length) {
       return NextResponse.json({ error: "Корзина пуста" }, { status: 400 })
@@ -24,18 +36,53 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Некорректная сумма" }, { status: 400 })
     }
 
-    // 1. Создаём заказ в Supabase со статусом pending_payment
+    if (!recipient_name?.trim()) {
+      return NextResponse.json({ error: "Укажите имя и фамилию" }, { status: 400 })
+    }
+
+    if (!phone?.trim()) {
+      return NextResponse.json({ error: "Укажите номер телефона" }, { status: 400 })
+    }
+
+    const customerEmail = email?.trim() || user.email || ""
+    if (!customerEmail) {
+      return NextResponse.json({ error: "Укажите email" }, { status: 400 })
+    }
+
+    const isCashInStore = payment_type === "cash_in_store"
+    const isCardTerminalInStore = payment_type === "card_terminal_in_store"
+    const isOfflinePayment = isCashInStore || isCardTerminalInStore || payment_type === "in_store"
+
+    // Описание способа оплаты для комментария к заказу
+    const paymentLabel = isCashInStore
+      ? "Оплата наличными на кассе в магазине"
+      : isCardTerminalInStore
+      ? "Оплата банковской картой через POS-терминал на кассе"
+      : isOfflinePayment
+      ? "Оплата на кассе в магазине"
+      : "Онлайн через ЮKassa"
+
+    const commentParts: string[] = [
+      `Способ оплаты: ${paymentLabel}`,
+      `Email: ${customerEmail}`,
+    ]
+    if (social?.trim()) {
+      commentParts.push(`Соцсеть / Мессенджер: ${social.trim()}`)
+    }
+
+    // 1. Создаём заказ в Supabase (со статусом new для кассы или pending_payment для онлайн-оплаты)
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         user_id: user.id,
-        status: "pending_payment",
+        status: isOfflinePayment ? "new" : "pending_payment",
         subtotal,
         delivery,
         total,
-        recipient_name: recipient_name ?? null,
-        phone: phone ?? null,
+        recipient_name: recipient_name.trim(),
+        phone: phone.trim(),
         address: address ?? null,
+        comment: commentParts.join(" | "),
       })
       .select("id")
       .single()
@@ -71,6 +118,16 @@ export async function POST(request: Request) {
       )
     }
 
+    // Для оплаты наличными / картой на кассе не создаём платёж в ЮКассе
+    if (isOfflinePayment) {
+      return NextResponse.json({
+        orderId: order.id,
+        total,
+        delivery: delivery ?? 0,
+        isOfflinePayment: true,
+      })
+    }
+
     // 3. Создаём платёж в ЮКасса
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://orangemsk.ru"
     const itemNames = items
@@ -78,6 +135,13 @@ export async function POST(request: Request) {
       .slice(0, 3)
       .join(", ")
     const description = `Заказ Orange MSK: ${itemNames}${items.length > 3 ? "..." : ""}`
+
+    const deliveryDescription =
+      delivery_method === "mo"
+        ? "Доставка по Московской области"
+        : delivery_method === "moscow"
+        ? "Доставка по Москве"
+        : "Доставка"
 
     const { paymentId, confirmationToken } = await createPayment({
       amount: total,
@@ -90,7 +154,8 @@ export async function POST(request: Request) {
         quantity: item.quantity,
       })),
       delivery: delivery ?? 0,
-      customerEmail: user.email,
+      deliveryDescription,
+      customerEmail,
     })
 
     // 4. Сохраняем payment_id в заказе
