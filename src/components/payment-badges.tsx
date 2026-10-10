@@ -385,7 +385,7 @@ export function PaymentBadges({ className = "" }: { className?: string }) {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border/60 pt-2.5 text-[11px] text-muted-foreground">
-        <span>✓ 0% комиссии</span>
+        <span>✓ Выгода за наличные</span>
         <span className="font-medium text-foreground/90">✓ Кредит от Сбера</span>
         <span>✓ Чек и гарантия</span>
       </div>

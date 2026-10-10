@@ -304,7 +304,14 @@ export function ProductsTable({
         <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
           {product.series || "—"}
         </td>
-        <td className="px-4 py-3 font-semibold">{formatPrice(product.price)}</td>
+        <td className="px-4 py-3">
+          <div className="font-semibold">{formatPrice(product.price)}</div>
+          {product.cardPrice && product.cardPrice > 0 ? (
+            <div className="text-[11px] text-muted-foreground whitespace-nowrap">
+              картой: {formatPrice(product.cardPrice)}
+            </div>
+          ) : null}
+        </td>
         <td className="hidden px-4 py-3 lg:table-cell">
           {product.inStock ? (
             <span className="whitespace-nowrap rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">

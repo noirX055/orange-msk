@@ -7,7 +7,7 @@ import { Filter, Plus, Save, SlidersHorizontal, Trash2, X } from "lucide-react"
 import { createProduct, updateProduct, type AdminActionState } from "@/app/admin/actions"
 import type { ColorRow, SpecRow } from "@/lib/admin/attribute-helpers"
 import type { ProductAttribute, ProductAttributeValue } from "@/lib/admin/attributes-types"
-import { type Product } from "@/lib/products"
+import { calculateCardPrice, type Product } from "@/lib/products"
 
 const inputBase =
   "h-12 w-full rounded-xl border border-border bg-muted/50 px-4 text-sm outline-none transition-all placeholder:text-muted-foreground/50 focus:border-primary focus:bg-white focus:shadow-[0_0_0_3px_rgba(245,150,12,0.12)]"
@@ -58,6 +58,47 @@ export function ProductForm({
   const initialCategory = product?.category || categories[0]?.slug || ""
 
   const [selectedBrand, setSelectedBrand] = useState(product?.brand || "")
+  const [basePrice, setBasePrice] = useState<number | string>(product?.price ?? "")
+  const [cardPrice, setCardPrice] = useState<number | string>(
+    product?.cardPrice ?? (product?.price ? calculateCardPrice(product.price) : "")
+  )
+  const [isCardPriceManual, setIsCardPriceManual] = useState(
+    Boolean(
+      product?.cardPrice &&
+        product.price &&
+        product.cardPrice !== calculateCardPrice(product.price)
+    )
+  )
+
+  const handleBasePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setBasePrice(val)
+    const num = Number(val)
+    if (!isNaN(num) && num > 0) {
+      if (!isCardPriceManual) {
+        setCardPrice(calculateCardPrice(num))
+      }
+    } else {
+      if (!isCardPriceManual) {
+        setCardPrice("")
+      }
+    }
+  }
+
+  const handleCardPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCardPrice(e.target.value)
+    setIsCardPriceManual(true)
+  }
+
+  const handleResetCardPrice = () => {
+    const num = Number(basePrice)
+    if (!isNaN(num) && num > 0) {
+      setCardPrice(calculateCardPrice(num))
+    } else {
+      setCardPrice("")
+    }
+    setIsCardPriceManual(false)
+  }
   const [selectedCategory, setSelectedCategory] = useState(initialCategory)
   const [selectedSeries, setSelectedSeries] = useState(product?.series || "")
 
@@ -486,10 +527,49 @@ export function ProductForm({
       <section className="flex flex-col gap-4 rounded-card border border-border p-6">
         <h2 className="text-lg font-bold">Цена и наличие</h2>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="flex flex-col gap-2">
-            <label htmlFor="price" className={labelBase}>Цена, ₽ *</label>
-            <input id="price" name="price" type="number" min={0} defaultValue={product?.price} required className={inputBase} />
+            <label htmlFor="price" className={labelBase}>Цена (наличные), ₽ *</label>
+            <input
+              id="price"
+              name="price"
+              type="number"
+              min={0}
+              value={basePrice}
+              onChange={handleBasePriceChange}
+              required
+              className={inputBase}
+              placeholder="0"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="card_price" className={labelBase}>
+                Цена картой (+15%), ₽
+              </label>
+              {isCardPriceManual ? (
+                <button
+                  type="button"
+                  onClick={handleResetCardPrice}
+                  className="text-[10px] text-primary hover:underline font-semibold"
+                  title="Вернуть автоматический расчет +15% от цены за наличные"
+                >
+                  Авто (+15%)
+                </button>
+              ) : (
+                <span className="text-[10px] text-muted-foreground">авто-расчет</span>
+              )}
+            </div>
+            <input
+              id="card_price"
+              name="card_price"
+              type="number"
+              min={0}
+              value={cardPrice}
+              onChange={handleCardPriceChange}
+              className={inputBase}
+              placeholder="0"
+            />
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="old_price" className={labelBase}>Старая цена, ₽</label>

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { createPublicClient } from "@/lib/supabase/public"
-import type { Product } from "@/lib/products"
+import { calculateCardPrice, type Product } from "@/lib/products"
 
 // Строка таблицы products (snake_case из БД)
 export type ProductRow = {
@@ -12,6 +12,7 @@ export type ProductRow = {
   variant_group: string | null
   category: string
   price: number
+  card_price?: number | null
   old_price: number | null
   rating: number
   reviews: number
@@ -26,10 +27,39 @@ export type ProductRow = {
   created_at?: string
 }
 
-const PRODUCT_COLUMNS =
+export const PRODUCT_COLUMNS =
+  "id, slug, name, brand, series, variant_group, category, price, card_price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort, created_at"
+
+export const PRODUCT_COLUMNS_LEGACY =
   "id, slug, name, brand, series, variant_group, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort, created_at"
 
+let hasCardPriceSupport: boolean | null = null
+
+export async function getProductColumns(supabase: any): Promise<any> {
+  if (hasCardPriceSupport === true) return PRODUCT_COLUMNS
+  if (hasCardPriceSupport === false) return PRODUCT_COLUMNS_LEGACY
+
+  try {
+    const { error } = await supabase.from("products").select("card_price").limit(1)
+    if (error && error.code === "42703") {
+      hasCardPriceSupport = false
+      return PRODUCT_COLUMNS_LEGACY
+    }
+    hasCardPriceSupport = true
+    return PRODUCT_COLUMNS
+  } catch {
+    return PRODUCT_COLUMNS_LEGACY
+  }
+}
+
 export function mapProduct(row: ProductRow): Product {
+  const cardPrice =
+    row.card_price != null && row.card_price > 0
+      ? row.card_price
+      : row.price > 0
+      ? calculateCardPrice(row.price)
+      : undefined
+
   return {
     id: row.id,
     slug: row.slug,
@@ -39,6 +69,7 @@ export function mapProduct(row: ProductRow): Product {
     variantGroup: row.variant_group ?? undefined,
     category: row.category,
     price: row.price,
+    cardPrice,
     oldPrice: row.old_price ?? undefined,
     rating: Number(row.rating),
     reviews: row.reviews,
@@ -55,41 +86,44 @@ export function mapProduct(row: ProductRow): Product {
 
 export async function getProducts(): Promise<Product[]> {
   const supabase = await createClient()
+  const columns = await getProductColumns(supabase)
   const { data } = await supabase
     .from("products")
-    .select(PRODUCT_COLUMNS)
+    .select(columns as any)
     .eq("is_visible", true)
     .order("sort", { ascending: true })
 
-  return ((data as ProductRow[] | null) ?? []).map(mapProduct)
+  return ((data as unknown as ProductRow[] | null) ?? []).map(mapProduct)
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const supabase = await createClient()
+  const columns = await getProductColumns(supabase)
   const { data } = await supabase
     .from("products")
-    .select(PRODUCT_COLUMNS)
+    .select(columns as any)
     .eq("slug", slug)
     .eq("is_visible", true)
     .maybeSingle()
 
-  return data ? mapProduct(data as ProductRow) : null
+  return data ? mapProduct(data as unknown as ProductRow) : null
 }
 
 /** Соседние варианты для переключения цвета (slug) и памяти */
 export async function getProductVariantCandidates(product: Product): Promise<Product[]> {
   const supabase = await createClient()
+  const columns = await getProductColumns(supabase)
   const ids = new Set<string>([product.id])
   const results: Product[] = [product]
 
   if (product.variantGroup) {
     const { data } = await supabase
       .from("products")
-      .select(PRODUCT_COLUMNS)
+      .select(columns as any)
       .eq("variant_group", product.variantGroup)
       .eq("is_visible", true)
 
-    for (const row of (data as ProductRow[] | null) ?? []) {
+    for (const row of (data as unknown as ProductRow[] | null) ?? []) {
       const mapped = mapProduct(row)
       if (!ids.has(mapped.id)) {
         ids.add(mapped.id)
@@ -101,12 +135,12 @@ export async function getProductVariantCandidates(product: Product): Promise<Pro
   if (product.series) {
     const { data } = await supabase
       .from("products")
-      .select(PRODUCT_COLUMNS)
+      .select(columns as any)
       .eq("series", product.series)
       .eq("brand", product.brand)
       .eq("is_visible", true)
 
-    for (const row of (data as ProductRow[] | null) ?? []) {
+    for (const row of (data as unknown as ProductRow[] | null) ?? []) {
       const mapped = mapProduct(row)
       if (!ids.has(mapped.id)) {
         ids.add(mapped.id)
@@ -124,12 +158,12 @@ export async function getProductVariantCandidates(product: Product): Promise<Pro
       const modelName = modelMatch[1].trim()
       const { data } = await supabase
         .from("products")
-        .select(PRODUCT_COLUMNS)
+        .select(columns as any)
         .eq("category", product.category)
         .eq("is_visible", true)
         .ilike("name", `%${modelName}%`)
 
-      for (const row of (data as ProductRow[] | null) ?? []) {
+      for (const row of (data as unknown as ProductRow[] | null) ?? []) {
         const mapped = mapProduct(row)
         if (!ids.has(mapped.id)) {
           ids.add(mapped.id)
@@ -144,25 +178,27 @@ export async function getProductVariantCandidates(product: Product): Promise<Pro
 
 export async function getProductById(id: string): Promise<Product | null> {
   const supabase = await createClient()
+  const columns = await getProductColumns(supabase)
   const { data } = await supabase
     .from("products")
-    .select(PRODUCT_COLUMNS)
+    .select(columns as any)
     .eq("id", id)
     .maybeSingle()
 
-  return data ? mapProduct(data as ProductRow) : null
+  return data ? mapProduct(data as unknown as ProductRow) : null
 }
 
 export async function getProductsBySlugs(slugs: string[]): Promise<Product[]> {
   if (slugs.length === 0) return []
   const supabase = await createClient()
+  const columns = await getProductColumns(supabase)
   const { data } = await supabase
     .from("products")
-    .select(PRODUCT_COLUMNS)
+    .select(columns as any)
     .in("slug", slugs)
     .eq("is_visible", true)
 
-  return ((data as ProductRow[] | null) ?? []).map(mapProduct)
+  return ((data as unknown as ProductRow[] | null) ?? []).map(mapProduct)
 }
 
 export async function searchProducts(query: string, limit = 8): Promise<Product[]> {
@@ -178,6 +214,7 @@ export async function searchProducts(query: string, limit = 8): Promise<Product[
   if (words.length === 0) return []
 
   const supabase = createPublicClient()
+  const columns = await getProductColumns(supabase)
 
   // 1. Сначала пробуем точный поиск подстроки
   const cleanPhrase = trimmed.replace(/[%_,()]/g, " ").replace(/\s+/g, " ").trim()
@@ -187,13 +224,13 @@ export async function searchProducts(query: string, limit = 8): Promise<Product[
     const pattern = `%${cleanPhrase}%`
     const { data } = await supabase
       .from("products")
-      .select(PRODUCT_COLUMNS)
+      .select(columns as any)
       .eq("is_visible", true)
       .or(`name.ilike.${pattern},brand.ilike.${pattern},series.ilike.${pattern}`)
       .limit(limit)
 
     if (data && data.length > 0) {
-      products = data as ProductRow[]
+      products = data as unknown as ProductRow[]
     }
   }
 
@@ -201,7 +238,7 @@ export async function searchProducts(query: string, limit = 8): Promise<Product[
   if (products.length < limit) {
     let queryBuilder = supabase
       .from("products")
-      .select(PRODUCT_COLUMNS)
+      .select(columns as any)
       .eq("is_visible", true)
 
     // Фильтруем по каждому слову (до 5 ключевых слов)
@@ -215,7 +252,7 @@ export async function searchProducts(query: string, limit = 8): Promise<Product[
 
     if (keywordData && keywordData.length > 0) {
       const existingIds = new Set(products.map((p) => p.id))
-      for (const item of keywordData as ProductRow[]) {
+      for (const item of keywordData as unknown as ProductRow[]) {
         if (!existingIds.has(item.id)) {
           existingIds.add(item.id)
           products.push(item)

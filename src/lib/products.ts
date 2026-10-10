@@ -13,6 +13,7 @@ export type Product = {
   variantGroup?: string
   category: string
   price: number
+  cardPrice?: number
   oldPrice?: number
   rating: number
   reviews: number
@@ -24,6 +25,26 @@ export type Product = {
   specs: { label: string; value: string; is_configurator?: boolean; is_filter?: boolean }[]
   images?: string[]
   createdAt?: string
+}
+
+/**
+ * Расчет цены при оплате картой: +15% от базовой цены с округлением до сотен рублей.
+ * Пример: 89 990 ₽ -> 103 488.5 ₽ -> 103 500 ₽
+ */
+export function calculateCardPrice(price: number): number {
+  if (!price || price <= 0) return 0
+  return Math.round((price * 1.15) / 100) * 100
+}
+
+/**
+ * Получение актуальной цены при оплате картой.
+ * Приоритет: заданная cardPrice товара, иначе автоматический расчет от базовой цены price.
+ */
+export function getEffectiveCardPrice(product: { price: number; cardPrice?: number | null }): number {
+  if (product.cardPrice && product.cardPrice > 0) {
+    return product.cardPrice
+  }
+  return calculateCardPrice(product.price)
 }
 
 // Логотипы брендов (моно-версии) загружены из theSVG.org

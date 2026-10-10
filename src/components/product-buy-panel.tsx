@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Minus, Plus, ShoppingCart } from "lucide-react"
-import { formatPrice, type Product } from "@/lib/products"
+import { formatPrice, getEffectiveCardPrice, type Product } from "@/lib/products"
 import { getPrimaryColor, type ProductVariants } from "@/lib/products/variants"
 import { useCart } from "@/components/cart-provider"
 import { FavoriteButton } from "@/components/favorite-button"
@@ -21,6 +21,7 @@ export function ProductBuyPanel({
   const primaryColor = getPrimaryColor(product)
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
+  const cardPrice = getEffectiveCardPrice(product)
 
   const discount = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
@@ -62,17 +63,36 @@ export function ProductBuyPanel({
       )}
 
       <div className="flex flex-col gap-5 pt-2">
-        <div className="flex items-end gap-3">
-          <span className="text-3xl font-bold tracking-tight">{formatPrice(product.price)}</span>
-          {product.oldPrice && (
-            <>
-              <span className="pb-1 text-base font-medium text-muted-foreground line-through">
-                {formatPrice(product.oldPrice)}
+        <div className="flex flex-col gap-2 rounded-2xl border border-border/80 bg-muted/20 p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-3xl font-extrabold tracking-tight text-foreground">
+                {formatPrice(product.price)}
               </span>
-              <span className="mb-1 rounded-md bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 dark:bg-red-500/20 dark:text-red-400">
-                −{discount}%
+              <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                за наличные
               </span>
-            </>
+            </div>
+            {product.oldPrice && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground line-through">
+                  {formatPrice(product.oldPrice)}
+                </span>
+                <span className="rounded-md bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 dark:bg-red-500/20 dark:text-red-400">
+                  −{discount}%
+                </span>
+              </div>
+            )}
+          </div>
+
+          {cardPrice > 0 && (
+            <div className="flex items-center justify-between border-t border-border/60 pt-2.5 text-xs">
+              <span className="text-muted-foreground">При оплате картой / онлайн:</span>
+              <div className="flex items-center gap-2 font-semibold text-foreground">
+                <span className="text-sm font-bold">{formatPrice(cardPrice)}</span>
+                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">+15%</span>
+              </div>
+            </div>
           )}
         </div>
 

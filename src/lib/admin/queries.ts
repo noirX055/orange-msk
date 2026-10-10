@@ -1,12 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { getAdminClient } from "@/lib/supabase/admin"
-import { mapProduct, type ProductRow } from "@/lib/products/queries"
+import { getProductColumns, mapProduct, type ProductRow } from "@/lib/products/queries"
 import type { Order, OrderStatus } from "@/lib/account/queries"
 import type { ProductAttribute, ProductAttributeValue } from "@/lib/admin/attributes-types"
 import type { Product } from "@/lib/products"
-
-const PRODUCT_COLUMNS =
-  "id, slug, name, brand, series, variant_group, category, price, old_price, rating, reviews, in_stock, is_visible, badge, colors, specs, images, description, sort, created_at"
 
 export type AdminStats = {
   products: number
@@ -41,6 +38,7 @@ export async function getAdminStats(): Promise<AdminStats> {
 
 export async function getAllProducts(): Promise<Product[]> {
   const supabase = await createClient()
+  const columns = await getProductColumns(supabase)
   
   let allData: ProductRow[] = []
   let from = 0
@@ -50,12 +48,12 @@ export async function getAllProducts(): Promise<Product[]> {
   while (hasMore) {
     const { data } = await supabase
       .from("products")
-      .select(PRODUCT_COLUMNS)
+      .select(columns as any)
       .order("created_at", { ascending: false, nullsFirst: false })
       .range(from, to)
 
     if (data && data.length > 0) {
-      allData = allData.concat(data as ProductRow[])
+      allData = allData.concat(data as unknown as ProductRow[])
       from += 1000
       to += 1000
       if (data.length < 1000) hasMore = false
@@ -291,13 +289,14 @@ export async function getGroupAttributes(
 
 export async function getProductById(id: string): Promise<Product | null> {
   const supabase = await createClient()
+  const columns = await getProductColumns(supabase)
   const { data } = await supabase
     .from("products")
-    .select(PRODUCT_COLUMNS)
+    .select(columns as any)
     .eq("id", id)
     .maybeSingle()
 
-  return data ? mapProduct(data as ProductRow) : null
+  return data ? mapProduct(data as unknown as ProductRow) : null
 }
 
 // Заказ с именем покупателя для админских списков

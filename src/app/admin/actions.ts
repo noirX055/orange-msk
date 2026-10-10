@@ -9,6 +9,7 @@ import { REFUNDABLE_ORDER_STATUSES } from "@/lib/account/types"
 import { createRefund, getPayment } from "@/lib/yookassa"
 import { slugify } from "@/lib/slugify"
 import { normalizeProductImage } from "@/lib/images/normalize"
+import { calculateCardPrice } from "@/lib/products"
 
 export type AdminActionState = { ok: boolean; error?: string; message?: string }
 
@@ -22,6 +23,7 @@ function parseProductForm(formData: FormData) {
 
   const badge = String(formData.get("badge") ?? "").trim()
   const oldPriceRaw = String(formData.get("old_price") ?? "").trim()
+  const cardPriceRaw = String(formData.get("card_price") ?? "").trim()
 
   let colors: { name: string; hex: string }[] = []
   let specs: { label: string; value: string }[] = []
@@ -37,6 +39,12 @@ function parseProductForm(formData: FormData) {
   }
 
   const parseNum = (val: string) => Number(val.replace(/\s/g, "").replace(",", "."))
+  const price = parseNum(String(formData.get("price") ?? "0"))
+  const cardPrice = cardPriceRaw
+    ? parseNum(cardPriceRaw)
+    : price > 0
+    ? calculateCardPrice(price)
+    : null
 
   return {
     name,
@@ -48,7 +56,8 @@ function parseProductForm(formData: FormData) {
       ? slugify(String(formData.get("series") ?? "").trim())
       : (String(formData.get("variant_group") ?? "").trim() || null),
     category: String(formData.get("category") ?? "").trim(),
-    price: parseNum(String(formData.get("price") ?? "0")),
+    price,
+    card_price: cardPrice,
     old_price: oldPriceRaw ? parseNum(oldPriceRaw) : null,
     rating: parseNum(String(formData.get("rating") ?? "0")),
     reviews: parseNum(String(formData.get("reviews") ?? "0")),
@@ -132,7 +141,13 @@ export async function createProduct(
     return { ok: false, error: e.message || "Ошибка при загрузке изображений" }
   }
 
-  const { error } = await supabase.from("products").insert({ ...fields, images })
+  let { error } = await supabase.from("products").insert({ ...fields, images })
+
+  if (error && (error.code === "42703" || error.message?.includes("card_price"))) {
+    const { card_price, ...restFields } = fields
+    const retry = await supabase.from("products").insert({ ...restFields, images })
+    error = retry.error
+  }
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Товар с таким slug уже существует" }
@@ -181,7 +196,13 @@ export async function updateProduct(
     sku: existingProd?.sku || null,
   }
 
-  const { error } = await supabase.from("products").update(updatePayload).eq("id", id)
+  let { error } = await supabase.from("products").update(updatePayload).eq("id", id)
+
+  if (error && (error.code === "42703" || error.message?.includes("card_price"))) {
+    const { card_price, ...restPayload } = updatePayload
+    const retry = await supabase.from("products").update(restPayload).eq("id", id)
+    error = retry.error
+  }
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Товар с таким slug уже существует" }

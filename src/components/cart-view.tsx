@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { ProductVisual } from "@/components/product-visual"
-import { formatPrice } from "@/lib/products"
+import { calculateCardPrice, formatPrice } from "@/lib/products"
 import { createClient } from "@/lib/supabase/client"
 import { trackBeginCheckout, reachGoal } from "@/lib/analytics"
 
@@ -109,7 +109,7 @@ export function CartView() {
   const [error, setError] = useState("")
 
   // Способ оплаты: наличными в магазине, картой в терминале, онлайн через ЮKassa
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("cash_in_store")
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("yookassa")
   // Способ получения
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("pickup")
   const [recipientName, setRecipientName] = useState("")
@@ -134,7 +134,7 @@ export function CartView() {
         if (parsed.paymentMethod) {
           setPaymentMethod(parsed.paymentMethod)
         } else if (parsed.paymentType) {
-          setPaymentMethod(parsed.paymentType === "yookassa" ? "yookassa" : "cash_in_store")
+          setPaymentMethod(parsed.paymentType === "cash_in_store" ? "cash_in_store" : "yookassa")
         }
         if (parsed.recipientName) setRecipientName(parsed.recipientName)
         if (parsed.phone) setPhone(parsed.phone)
@@ -207,6 +207,9 @@ export function CartView() {
     }
   }, [items.length > 0]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Оплата картой (в терминале или онлайн через ЮKassa) или наличными
+  const isCash = paymentMethod === "cash_in_store"
+
   // Оплата на кассе возможна только при самовывозе из магазина
   const isStorePayment = paymentMethod === "cash_in_store" || paymentMethod === "card_terminal_in_store"
 
@@ -215,11 +218,21 @@ export function CartView() {
   const isPickup = effectiveDeliveryMethod === "pickup"
   const isCdek = effectiveDeliveryMethod === "cdek"
 
+  // Функция расчёта цены конкретного товара в зависимости от выбранного способа оплаты
+  const getItemPrice = (item: (typeof items)[number]) => {
+    if (isCash) return item.price
+    return item.cardPrice && item.cardPrice > 0 ? item.cardPrice : calculateCardPrice(item.price)
+  }
+
+  // Расчёт промежуточных и итоговых сумм
+  const subtotal = items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0)
+  const cashSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
   // Выбранный тариф и расчёт стоимости доставки
   const selectedOption =
     DELIVERY_OPTIONS.find((opt) => opt.id === effectiveDeliveryMethod) || DELIVERY_OPTIONS[0]
   const delivery = selectedOption.price
-  const finalTotal = totalPrice + delivery
+  const finalTotal = subtotal + delivery
 
   // Валидация обязательных полей
   const isNameValid = recipientName.trim().length >= 2
@@ -261,7 +274,10 @@ export function CartView() {
     }
 
     setLoading(true)
-    trackBeginCheckout(items, finalTotal)
+    trackBeginCheckout(
+      items.map((item) => ({ ...item, price: getItemPrice(item) })),
+      finalTotal
+    )
 
     try {
       let orderAddress: string
@@ -286,10 +302,10 @@ export function CartView() {
             name: item.name,
             category: item.category,
             color: item.color,
-            price: item.price,
+            price: getItemPrice(item),
             quantity: item.quantity,
           })),
-          subtotal: totalPrice,
+          subtotal,
           delivery,
           delivery_method: effectiveDeliveryMethod,
           payment_type: paymentMethod,
@@ -457,7 +473,12 @@ export function CartView() {
                       Цвет: {item.color}
                     </span>
                   )}
-                  <span className="text-sm font-bold">{formatPrice(item.price)}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-bold">{formatPrice(getItemPrice(item))}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {isCash ? "за наличные" : "оплата картой"}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -541,13 +562,13 @@ export function CartView() {
                       </span>
                     </div>
 
-                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground shrink-0">
-                      В магазине
+                    <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 shrink-0">
+                      Выгода
                     </span>
                   </div>
 
                   <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                    Оплата наличными на кассе в шоуруме после личной проверки товара.
+                    Оплата наличными на кассе в шоуруме после личной проверки товара по базовой цене.
                   </p>
                 </div>
 
@@ -596,12 +617,12 @@ export function CartView() {
                     </div>
 
                     <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground shrink-0">
-                      Терминал
+                      +15%
                     </span>
                   </div>
 
                   <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                    Банковской картой через POS-терминал на кассе в шоуруме.
+                    Банковской картой через POS-терминал на кассе в шоуруме (+15% к базовой цене).
                   </p>
                 </div>
 
@@ -650,12 +671,12 @@ export function CartView() {
                     </div>
 
                     <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground shrink-0">
-                      0%
+                      +15%
                     </span>
                   </div>
 
                   <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                    Карты МИР, Visa, Mastercard, СБП, SberPay, T-Pay, кредит от Сбера.
+                    Карты МИР, Visa, Mastercard, СБП, SberPay, T-Pay через шлюз ЮKassa (+15%).
                   </p>
                 </div>
 
@@ -1001,7 +1022,7 @@ export function CartView() {
           <dl className="flex flex-col gap-3 text-sm">
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Товары ({totalItems})</dt>
-              <dd className="font-medium">{formatPrice(totalPrice)}</dd>
+              <dd className="font-medium">{formatPrice(subtotal)}</dd>
             </div>
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Доставка</dt>
@@ -1025,8 +1046,8 @@ export function CartView() {
                 {paymentMethod === "cash_in_store"
                   ? "Наличными в магазине"
                   : paymentMethod === "card_terminal_in_store"
-                  ? "Картой в терминале"
-                  : "Онлайн через ЮKassa"}
+                  ? "Картой в терминале (+15%)"
+                  : "Онлайн через ЮKassa (+15%)"}
               </dd>
             </div>
             <div className="flex items-center justify-between border-t border-border pt-3 text-base">
@@ -1034,6 +1055,12 @@ export function CartView() {
               <dd className="text-xl font-bold">{formatPrice(finalTotal)}</dd>
             </div>
           </dl>
+
+          {!isCash && cashSubtotal < subtotal && (
+            <div className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs leading-relaxed text-emerald-900 dark:text-emerald-300">
+              💡 За наличные в шоуруме сумма: <strong>{formatPrice(cashSubtotal + delivery)}</strong> (экономия {formatPrice(subtotal - cashSubtotal)})
+            </div>
+          )}
 
           <div className="mt-4 rounded-lg bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground">
             <div className="font-semibold text-foreground mb-1">
